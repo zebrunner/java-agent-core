@@ -1,0 +1,19 @@
+plugins {
+    id "java-library"
+}
+
+group = 'com.zebrunner'
+version = "${version != 'unspecified' ? version : '1.0-SNAPSHOT'}"
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation("com.konghq:unirest-java:3.6.01")
+
+    annotationProcessor("org.projectlombok:lombok:1.18.10")
+    compileOnly("org.projectlombok:lombok:1.18.10")
+}
+
+apply from: 'publish-maven.gradle'
