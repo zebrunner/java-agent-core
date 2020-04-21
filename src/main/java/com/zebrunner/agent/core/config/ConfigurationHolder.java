@@ -2,30 +2,28 @@ package com.zebrunner.agent.core.config;
 
 public class ConfigurationHolder {
 
-    private static final Configuration configuration;
-
-    private static final String host;
-    private static final String token;
-    private static final String runId;
+    private static final String HOST;
+    private static final String TOKEN;
+    private static final String RUN_ID;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
-        configuration = configurationProvider.getConfiguration();
+        Configuration configuration = configurationProvider.getConfiguration();
 
-        host = configuration.getHostname();
-        token = configuration.getAccessToken();
-        runId = configuration.getRunId();
+        HOST = configuration.getHostname();
+        TOKEN = configuration.getAccessToken();
+        RUN_ID = configuration.getRunId();
     }
 
     public static String getHost() {
-        return host;
+        return HOST;
     }
 
     public static String getToken() {
-        return token;
+        return TOKEN;
     }
 
     public static String getRunId() {
-        return runId;
+        return RUN_ID;
     }
 }

@@ -9,14 +9,13 @@ import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 class ReportingRegistrar implements TestRunRegistrar {
 
     private static final ReportingRegistrar INSTANCE = new ReportingRegistrar();
-    private static final ZebrunnerApiClient apiClient;
+    private static final ZebrunnerApiClient API_CLIENT;
 
     static {
-
         String url = ConfigurationHolder.getHost();
         String token = ConfigurationHolder.getToken();
 
-        apiClient = new ZebrunnerApiClient(url, token);
+        API_CLIENT = new ZebrunnerApiClient(url, token);
 
         RerunResolver.resolve();
     }
@@ -31,7 +30,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        .launchContext(new TestRunDTO.LaunchContextDTO("1", "1"))
                                        .build();
 
-        testRun = apiClient.registerTestRunStart(testRun);
+        testRun = API_CLIENT.registerTestRunStart(testRun);
 
         TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(String.valueOf(testRun.getId()), tr);
         RunContext.putRun(testRunDescriptor);
@@ -45,7 +44,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        .id(Long.valueOf(testRunDescriptor.getZebrunnerId()))
                                        .endedAt(finishDescriptor.getEndedAt())
                                        .build();
-        apiClient.registerTestRunFinish(testRun);
+        API_CLIENT.registerTestRunFinish(testRun);
 
         RunContext.getRun().complete(finishDescriptor);
     }
@@ -62,12 +61,12 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .name(ts.getName())
                               .className(ts.getTestClass().getName())
                               .methodName(ts.getTestMethod().getName())
-                              .maintainer(ts.getMaintainer())
+                              .maintainer(owner)
                               .uuid(ts.getUuid())
                               .startedAt(ts.getStartedAt())
                               .build();
 
-        test = apiClient.registerTestStart(Long.valueOf(testRun.getZebrunnerId()), test);
+        test = API_CLIENT.registerTestStart(Long.valueOf(testRun.getZebrunnerId()), test);
 
         TestDescriptor testDescriptor = TestDescriptor.create(String.valueOf(test.getId()), ts);
         RunContext.putTest(uniqueId, testDescriptor);
@@ -85,7 +84,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                                 .endedAt(tf.getEndedAt())
                                 .build();
 
-        apiClient.registerTestFinish(Long.valueOf(testRun.getZebrunnerId()), result);
+        API_CLIENT.registerTestFinish(Long.valueOf(testRun.getZebrunnerId()), result);
 
         RunContext.getTest(uniqueId).complete(tf);
     }
@@ -95,6 +94,6 @@ class ReportingRegistrar implements TestRunRegistrar {
     }
 
     static ZebrunnerApiClient getApiClient() {
-        return apiClient;
+        return API_CLIENT;
     }
 }

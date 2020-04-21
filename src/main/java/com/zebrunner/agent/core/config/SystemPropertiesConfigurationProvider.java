@@ -18,11 +18,11 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         accessToken = accessToken != null ? accessToken.trim() : null;
         runId = runId != null ? runId.trim() : null;
 
-        if ((hostname == null || hostname.isEmpty()) || (accessToken == null || accessToken.isEmpty())) {
+        if (hostname == null || hostname.isEmpty() || accessToken == null || accessToken.isEmpty()) {
             throw new TestAgentException("Unable to load agent configuration from system properties");
         }
 
-        return new Configuration(runId, hostname, accessToken);
+        return new Configuration(hostname, accessToken, runId);
     }
 
 }
