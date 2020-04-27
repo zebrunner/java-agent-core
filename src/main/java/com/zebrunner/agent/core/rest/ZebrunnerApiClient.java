@@ -87,7 +87,7 @@ public class ZebrunnerApiClient {
     private void setTestIds(GetRequest request, Set<Long> testIds) {
         if (!testIds.isEmpty()) {
             String tests = testIds.stream()
-                                  .map(String::valueOf)
+                                  .map(Object::toString)
                                   .collect(Collectors.joining(","));
             request.queryString("tests", tests);
         }

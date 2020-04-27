@@ -18,11 +18,11 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
         accessToken = accessToken != null ? accessToken.trim() : null;
         runId = runId != null ? runId.trim() : null;
 
-        if ((hostname == null || hostname.isEmpty()) || (accessToken == null || accessToken.isEmpty())) {
+        if (hostname == null || hostname.isEmpty() || accessToken == null || accessToken.isEmpty()) {
             throw new TestAgentException("Unable to load agent configuration from environment");
         }
 
-        return new Configuration(runId, hostname, accessToken);
+        return new Configuration(hostname, accessToken, runId);
     }
 
 }
