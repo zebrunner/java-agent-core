@@ -1,5 +1,7 @@
 package com.zebrunner.agent.core.rest;
 
+import com.zebrunner.agent.core.appender.Log;
+import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.registrar.Status;
 import com.zebrunner.agent.core.rerun.RerunCondition;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
@@ -9,18 +11,31 @@ import kong.unirest.GetRequest;
 import kong.unirest.UnirestInstance;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ZebrunnerApiClient {
 
+    private static ZebrunnerApiClient INSTANCE;
+
     private final String apiHost;
     private final UnirestInstance client;
 
-    public ZebrunnerApiClient(String hostname, String accessToken) {
+    private ZebrunnerApiClient(String hostname, String accessToken) {
         this.apiHost = hostname;
         this.client = initClient(accessToken);
+    }
+
+    public static synchronized ZebrunnerApiClient getInstance() {
+        if (INSTANCE == null) {
+            String host = ConfigurationHolder.getHost();
+            String token = ConfigurationHolder.getToken();
+
+            INSTANCE = new ZebrunnerApiClient(host, token);
+        }
+        return INSTANCE;
     }
 
     private String url(String endpointPath) {
@@ -65,11 +80,27 @@ public class ZebrunnerApiClient {
     public TestDTO registerTestFinish(Long testRunId, TestDTO test) {
         // TODO by nsidorevich on 2/25/20: PUT /api/v2/test-runs/{testRunId}/tests/{testId}
         return client.put(url("/api/v1/reporting/test-runs/{testRunId}/tests/{testId}"))
-                      .routeParam("testRunId", String.valueOf(testRunId))
-                      .routeParam("testId", String.valueOf(test.getId()))
-                      .body(test)
-                      .asObject(TestDTO.class)
+                     .routeParam("testRunId", String.valueOf(testRunId))
+                     .routeParam("testId", String.valueOf(test.getId()))
+                     .body(test)
+                     .asObject(TestDTO.class)
                      .getBody();
+    }
+
+    public void sendLogs(Collection<Log> logs, String testRunId) {
+        client.post(url("/reporting/test-runs/{testRunId}/logs"))
+              .routeParam("testRunId", testRunId)
+              .body(logs)
+              .asEmpty();
+    }
+
+    public void sendScreenshot(byte[] screenshotBytes, String testRunId, String testId) {
+        client.post(url("/reporting/test-runs/{testRunId}/tests/{testId}/screenshots"))
+              .headerReplace("Content-Type", "image/png")
+              .routeParam("testRunId", testRunId)
+              .routeParam("testId", testId)
+              .body(screenshotBytes)
+              .asEmpty();
     }
 
     public List<TestDTO> getTestsByCiRunId(RerunCondition rerunCondition) {

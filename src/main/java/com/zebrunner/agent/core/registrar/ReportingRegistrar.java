@@ -1,6 +1,5 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.reporting.MaintainerProcessor;
 import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
@@ -9,14 +8,9 @@ import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 class ReportingRegistrar implements TestRunRegistrar {
 
     private static final ReportingRegistrar INSTANCE = new ReportingRegistrar();
-    private static final ZebrunnerApiClient API_CLIENT;
+    private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
     static {
-        String url = ConfigurationHolder.getHost();
-        String token = ConfigurationHolder.getToken();
-
-        API_CLIENT = new ZebrunnerApiClient(url, token);
-
         RerunResolver.resolve();
     }
 
@@ -86,7 +80,7 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         API_CLIENT.registerTestFinish(Long.valueOf(testRun.getZebrunnerId()), result);
 
-        RunContext.getTest(uniqueId).complete(tf);
+        RunContext.completeTest(uniqueId, tf);
     }
 
     public static ReportingRegistrar getInstance() {

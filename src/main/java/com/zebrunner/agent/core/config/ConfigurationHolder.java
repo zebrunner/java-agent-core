@@ -26,4 +26,5 @@ public class ConfigurationHolder {
     public static String getRunId() {
         return RUN_ID;
     }
+
 }

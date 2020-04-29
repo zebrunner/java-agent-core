@@ -1,17 +1,16 @@
 package com.zebrunner.agent.core.registrar;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
 import java.time.OffsetDateTime;
 
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 class TestRunDescriptor {
 
     private final String zebrunnerId;
     private final TestRunStartDescriptor startDescriptor;
     private TestRunFinishDescriptor finishDescriptor;
-
-    private TestRunDescriptor(String zebrunnerId, TestRunStartDescriptor startDescriptor) {
-        this.zebrunnerId = zebrunnerId;
-        this.startDescriptor = startDescriptor;
-    }
 
     static TestRunDescriptor create(String zebrunnerId, TestRunStartDescriptor startDescriptor) {
         return new TestRunDescriptor(zebrunnerId, startDescriptor);
