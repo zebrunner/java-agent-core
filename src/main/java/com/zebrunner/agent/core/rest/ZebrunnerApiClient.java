@@ -18,6 +18,10 @@ import java.util.stream.Collectors;
 
 public class ZebrunnerApiClient {
 
+    private final static String REPORTING_API_CONTEXT_PATH = "api/reporting";
+    private final static String REPORTING_API_VERSION = "v1";
+    private final static String REPORTING_ENDPOINT_FOMAT = "%s/%s/%s/%s";
+
     private static ZebrunnerApiClient INSTANCE;
 
     private final String apiHost;
@@ -39,7 +43,7 @@ public class ZebrunnerApiClient {
     }
 
     private String url(String endpointPath) {
-        return apiHost + endpointPath;
+        return String.format(REPORTING_ENDPOINT_FOMAT, apiHost, REPORTING_API_CONTEXT_PATH, REPORTING_API_VERSION, endpointPath);
     }
 
     private UnirestInstance initClient(String accessToken) {
@@ -52,16 +56,14 @@ public class ZebrunnerApiClient {
     }
 
     public TestRunDTO registerTestRunStart(TestRunDTO testRun) {
-        // TODO by nsidorevich on 2/25/20: POST /api/v2/test-runs
-        return client.post(url("/api/v1/reporting/test-runs"))
+        return client.post(url("test-runs"))
                      .body(testRun)
                      .asObject(TestRunDTO.class)
                      .getBody();
     }
 
     public TestRunDTO registerTestRunFinish(TestRunDTO testRun) {
-        // TODO by nsidorevich on 2/25/20: PUT /api/v2/test-runs/{testRunId}
-        return client.put(url("/api/v1/reporting/test-runs/{testRunId}"))
+        return client.put(url("test-runs/{testRunId}"))
                      .body(testRun)
                      .routeParam("testRunId", String.valueOf(testRun.getId()))
                      .asObject(TestRunDTO.class)
@@ -69,8 +71,7 @@ public class ZebrunnerApiClient {
     }
 
     public TestDTO registerTestStart(Long testRunId, TestDTO test) {
-        // TODO by nsidorevich on 2/25/20: POST /api/v2/test-runs/{testRunId}/tests
-        return client.post(url("/api/v1/reporting/test-runs/{testRunId}/tests"))
+        return client.post(url("test-runs/{testRunId}/tests"))
                      .body(test)
                      .routeParam("testRunId", String.valueOf(testRunId))
                      .asObject(TestDTO.class)
@@ -78,8 +79,7 @@ public class ZebrunnerApiClient {
     }
 
     public TestDTO registerTestFinish(Long testRunId, TestDTO test) {
-        // TODO by nsidorevich on 2/25/20: PUT /api/v2/test-runs/{testRunId}/tests/{testId}
-        return client.put(url("/api/v1/reporting/test-runs/{testRunId}/tests/{testId}"))
+        return client.put(url("test-runs/{testRunId}/tests/{testId}"))
                      .routeParam("testRunId", String.valueOf(testRunId))
                      .routeParam("testId", String.valueOf(test.getId()))
                      .body(test)
@@ -88,14 +88,14 @@ public class ZebrunnerApiClient {
     }
 
     public void sendLogs(Collection<Log> logs, String testRunId) {
-        client.post(url("/reporting/test-runs/{testRunId}/logs"))
+        client.post(url("test-runs/{testRunId}/logs"))
               .routeParam("testRunId", testRunId)
               .body(logs)
               .asEmpty();
     }
 
     public void sendScreenshot(byte[] screenshotBytes, String testRunId, String testId) {
-        client.post(url("/reporting/test-runs/{testRunId}/tests/{testId}/screenshots"))
+        client.post(url("test-runs/{testRunId}/tests/{testId}/screenshots"))
               .headerReplace("Content-Type", "image/png")
               .routeParam("testRunId", testRunId)
               .routeParam("testId", testId)
@@ -105,7 +105,7 @@ public class ZebrunnerApiClient {
 
     public List<TestDTO> getTestsByCiRunId(RerunCondition rerunCondition) {
 
-        GetRequest request = client.get(url("/api/v1/reporting/test-runs/{ciRunId}/tests"))
+        GetRequest request = client.get(url("test-runs/{ciRunId}/tests"))
                                    .routeParam("ciRunId", rerunCondition.getRunId());
 
         setTestIds(request, rerunCondition.getTestIds());
