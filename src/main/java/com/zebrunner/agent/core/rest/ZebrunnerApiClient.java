@@ -94,12 +94,13 @@ public class ZebrunnerApiClient {
               .asEmpty();
     }
 
-    public void sendScreenshot(byte[] screenshotBytes, String testRunId, String testId) {
+    public void sendScreenshot(byte[] screenshot, String testRunId, String testId, Long capturedAt) {
         client.post(url("test-runs/{testRunId}/tests/{testId}/screenshots"))
               .headerReplace("Content-Type", "image/png")
               .routeParam("testRunId", testRunId)
               .routeParam("testId", testId)
-              .body(screenshotBytes)
+              .header("x-zbr-screenshot-captured-at", capturedAt.toString())
+              .body(screenshot)
               .asEmpty();
     }
 
