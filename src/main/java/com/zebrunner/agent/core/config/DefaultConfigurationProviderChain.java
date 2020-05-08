@@ -7,11 +7,12 @@ public class DefaultConfigurationProviderChain extends ConfigurationProviderChai
     private static final DefaultConfigurationProviderChain INSTANCE = new DefaultConfigurationProviderChain();
 
     public DefaultConfigurationProviderChain() {
-        super(List.of(new EnvironmentConfigurationProvider(), new SystemPropertiesConfigurationProvider(), new PropertiesFileConfigurationProvider()));
-    }
-
-    public DefaultConfigurationProviderChain(List<? extends ConfigurationProvider> credentialsProviders) {
-        super(credentialsProviders);
+        super(List.of(
+                new EnvironmentConfigurationProvider(),
+                new SystemPropertiesConfigurationProvider(),
+                new YamlConfigurationProvider(),
+                new PropertiesConfigurationProvider()
+        ));
     }
 
     public static DefaultConfigurationProviderChain getInstance() {

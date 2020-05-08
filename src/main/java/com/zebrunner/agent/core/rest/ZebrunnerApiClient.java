@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// TODO: 5/5/20 avoid public visibility
 public class ZebrunnerApiClient {
 
     private final static String REPORTING_API_CONTEXT_PATH = "api/reporting";

@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation("com.konghq:unirest-java:3.6.01")
+    implementation("org.yaml:snakeyaml:1.26")
 
     compileOnly("log4j:log4j:1.2.17")
     compileOnly("org.apache.logging.log4j:log4j-core:2.13.2")

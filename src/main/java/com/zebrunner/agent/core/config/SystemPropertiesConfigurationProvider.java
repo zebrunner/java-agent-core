@@ -4,25 +4,30 @@ import com.zebrunner.agent.core.exception.TestAgentException;
 
 public class SystemPropertiesConfigurationProvider implements ConfigurationProvider {
 
-    private final static String HOSTNAME_PROPERTY = "zbr.hostname";
-    private final static String ACCESS_TOKEN_PROPERTY = "zbr.accessToken";
-    private final static String RUN_ID = "run_id";
+    private final static String ENABLED_PROPERTY = "reporting.enabled";
+    private final static String HOSTNAME_PROPERTY = "reporting.server.hostname";
+    private final static String ACCESS_TOKEN_PROPERTY = "reporting.server.accessToken";
+    private final static String RUN_ID_PROPERTY = "reporting.rerun.runId";
 
     @Override
-    public Configuration getConfiguration() {
+    public ReportingConfiguration getConfiguration() {
+        String enabled = System.getProperty(ENABLED_PROPERTY);
         String hostname = System.getProperty(HOSTNAME_PROPERTY);
         String accessToken = System.getProperty(ACCESS_TOKEN_PROPERTY);
-        String runId = System.getProperty(RUN_ID);
+        String runId = System.getProperty(RUN_ID_PROPERTY);
 
-        hostname = hostname != null ? hostname.trim() : null;
-        accessToken = accessToken != null ? accessToken.trim() : null;
-        runId = runId != null ? runId.trim() : null;
-
-        if (hostname == null || hostname.isEmpty() || accessToken == null || accessToken.isEmpty()) {
-            throw new TestAgentException("Unable to load agent configuration from system properties");
+        boolean enabledIsBoolean = enabled == null
+                || String.valueOf(true).equalsIgnoreCase(enabled)
+                || String.valueOf(false).equalsIgnoreCase(enabled);
+        if (!enabledIsBoolean) {
+            throw new TestAgentException("System properties configuration is malformed, skipping");
         }
 
-        return new Configuration(hostname, accessToken, runId);
+        Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
+        return ReportingConfiguration.builder()
+                                     .enabled(reportingEnabled)
+                                     .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
+                                     .rerun(new ReportingConfiguration.RerunConfiguration(runId)).build();
     }
 
 }

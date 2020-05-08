@@ -15,15 +15,22 @@ public class ReportingAppender extends AppenderSkeleton {
                                                                          .timestamp(e.getTimeStamp())
                                                                          .build();
 
-    private final LogsBuffer<LoggingEvent> logsBuffer;
-
-    public ReportingAppender() {
-        this.logsBuffer = new LogsBuffer<>(CONVERTER);
-    }
+    private static volatile LogsBuffer<LoggingEvent> logsBuffer;
 
     @Override
     protected void append(LoggingEvent event) {
-        logsBuffer.put(event);
+        getBuffer().put(event);
+    }
+
+    private static LogsBuffer<LoggingEvent> getBuffer() {
+        if (logsBuffer == null) {
+            synchronized (ReportingAppender.class) {
+                if (logsBuffer == null) {
+                    logsBuffer = LogsBuffer.create(CONVERTER);
+                }
+            }
+        }
+        return logsBuffer;
     }
 
     @Override

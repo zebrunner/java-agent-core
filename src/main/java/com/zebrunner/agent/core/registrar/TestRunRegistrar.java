@@ -1,5 +1,7 @@
 package com.zebrunner.agent.core.registrar;
 
+import com.zebrunner.agent.core.config.ConfigurationHolder;
+
 /**
  * Core Zebrunner Agent API allowing to track test run events in Zebrunner
  */
@@ -10,7 +12,7 @@ public interface TestRunRegistrar {
      * @return Zebrunner registrar instance
      */
     static TestRunRegistrar registrar() {
-        return ReportingRegistrar.getInstance();
+        return ConfigurationHolder.isEnabled() ? ReportingRegistrar.getInstance() : NoOpRegistrar.getInstance();
     }
 
     /**

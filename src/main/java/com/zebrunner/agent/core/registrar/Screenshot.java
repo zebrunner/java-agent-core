@@ -1,9 +1,12 @@
 package com.zebrunner.agent.core.registrar;
 
+import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 
+@Slf4j
 public final class Screenshot {
 
     private static final ZebrunnerApiClient client = ZebrunnerApiClient.getInstance();
@@ -17,12 +20,16 @@ public final class Screenshot {
      * @param capturedAt unix timestamp representing a moment in time when screenshot got captured in milliseconds
      */
     public static void upload(byte[] screenshot, Long capturedAt) {
-        capturedAt = capturedAt != null ? capturedAt : Instant.now().toEpochMilli();
+        if (ConfigurationHolder.isEnabled()) {
+            capturedAt = capturedAt != null ? capturedAt : Instant.now().toEpochMilli();
 
-        String testRunId = RunContext.getRun().getZebrunnerId();
-        String testId = RunContext.getCurrentTest().getZebrunnerId();
+            String testRunId = RunContext.getRun().getZebrunnerId();
+            String testId = RunContext.getCurrentTest().getZebrunnerId();
 
-        client.sendScreenshot(screenshot, testRunId, testId, capturedAt);
+            client.sendScreenshot(screenshot, testRunId, testId, capturedAt);
+        } else {
+            log.trace("Unable to upload screenshot. Reporting is disabled");
+        }
     }
 
 }

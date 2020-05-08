@@ -31,15 +31,13 @@ public final class ReportingAppender extends AbstractAppender {
                                                                      .timestamp(e.getTimeMillis())
                                                                      .build();
 
-    private final LogsBuffer<LogEvent> logsBuffer;
+    private static volatile LogsBuffer<LogEvent> logsBuffer;
 
     protected ReportingAppender(String name,
                                 Filter filter,
                                 Layout<? extends Serializable> layout,
                                 boolean ignoreExceptions) {
         super(name, filter, layout, ignoreExceptions, Property.EMPTY_ARRAY);
-
-        this.logsBuffer = new LogsBuffer<>(CONVERTER);
     }
 
     @PluginFactory
@@ -61,7 +59,18 @@ public final class ReportingAppender extends AbstractAppender {
 
     @Override
     public void append(LogEvent event) {
-        logsBuffer.put(event);
+        getBuffer().put(event);
+    }
+
+    private static LogsBuffer<LogEvent> getBuffer() {
+        if (logsBuffer == null) {
+            synchronized (ReportingAppender.class) {
+                if (logsBuffer == null) {
+                    logsBuffer = LogsBuffer.create(CONVERTER);
+                }
+            }
+        }
+        return logsBuffer;
     }
 
 }
