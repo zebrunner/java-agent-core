@@ -21,7 +21,7 @@ public class ZebrunnerApiClient {
 
     private final static String REPORTING_API_CONTEXT_PATH = "api/reporting";
     private final static String REPORTING_API_VERSION = "v1";
-    private final static String REPORTING_ENDPOINT_FOMAT = "%s/%s/%s/%s";
+    private final static String REPORTING_ENDPOINT_FORMAT = "%s/%s/%s/%s";
 
     private static ZebrunnerApiClient INSTANCE;
 
@@ -44,7 +44,7 @@ public class ZebrunnerApiClient {
     }
 
     private String url(String endpointPath) {
-        return String.format(REPORTING_ENDPOINT_FOMAT, apiHost, REPORTING_API_CONTEXT_PATH, REPORTING_API_VERSION, endpointPath);
+        return String.format(REPORTING_ENDPOINT_FORMAT, apiHost, REPORTING_API_CONTEXT_PATH, REPORTING_API_VERSION, endpointPath);
     }
 
     private UnirestInstance initClient(String accessToken) {
