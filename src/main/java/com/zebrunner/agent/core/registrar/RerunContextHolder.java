@@ -1,5 +1,6 @@
 package com.zebrunner.agent.core.registrar;
 
+import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 
 import java.util.List;
@@ -18,7 +19,15 @@ public final class RerunContextHolder {
     }
 
     public static boolean isRerun() {
-        return rerun ? rerun : RerunResolver.isRerun();
+        boolean result = false;
+        // if already checked
+        if (rerun) {
+            result = true;
+            // check if enabled
+        } else if (ConfigurationHolder.isEnabled()) {
+            result = RerunResolver.isRerun();
+        }
+        return result;
     }
 
     /**
