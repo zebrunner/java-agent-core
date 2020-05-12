@@ -8,7 +8,9 @@ import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 import kong.unirest.Config;
 import kong.unirest.GetRequest;
+import kong.unirest.HttpResponse;
 import kong.unirest.UnirestInstance;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 // TODO: 5/5/20 avoid public visibility
+@Slf4j
 public class ZebrunnerApiClient {
 
     private final static String REPORTING_API_CONTEXT_PATH = "api/reporting";
@@ -57,64 +60,87 @@ public class ZebrunnerApiClient {
     }
 
     public TestRunDTO registerTestRunStart(TestRunDTO testRun) {
-        return client.post(url("test-runs"))
-                     .body(testRun)
-                     .asObject(TestRunDTO.class)
-                     .getBody();
+        HttpResponse<TestRunDTO> response = client.post(url("test-runs"))
+                                                  .body(testRun)
+                                                  .asObject(TestRunDTO.class);
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return response.getBody();
     }
 
     public TestRunDTO registerTestRunFinish(TestRunDTO testRun) {
-        return client.put(url("test-runs/{testRunId}"))
-                     .body(testRun)
-                     .routeParam("testRunId", String.valueOf(testRun.getId()))
-                     .asObject(TestRunDTO.class)
-                     .getBody();
+        HttpResponse<TestRunDTO> response = client.put(url("test-runs/{testRunId}"))
+                                                  .body(testRun)
+                                                  .routeParam("testRunId", String.valueOf(testRun.getId()))
+                                                  .asObject(TestRunDTO.class);
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return response.getBody();
     }
 
     public TestDTO registerTestStart(Long testRunId, TestDTO test) {
-        return client.post(url("test-runs/{testRunId}/tests"))
-                     .body(test)
-                     .routeParam("testRunId", String.valueOf(testRunId))
-                     .asObject(TestDTO.class)
-                     .getBody();
+        HttpResponse<TestDTO> response = client.post(url("test-runs/{testRunId}/tests"))
+                                               .body(test)
+                                               .routeParam("testRunId", String.valueOf(testRunId))
+                                               .asObject(TestDTO.class);
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return response.getBody();
     }
 
     public TestDTO registerTestFinish(Long testRunId, TestDTO test) {
-        return client.put(url("test-runs/{testRunId}/tests/{testId}"))
-                     .routeParam("testRunId", String.valueOf(testRunId))
-                     .routeParam("testId", String.valueOf(test.getId()))
-                     .body(test)
-                     .asObject(TestDTO.class)
-                     .getBody();
+        HttpResponse<TestDTO> response = client.put(url("test-runs/{testRunId}/tests/{testId}"))
+                                               .routeParam("testRunId", String.valueOf(testRunId))
+                                               .routeParam("testId", String.valueOf(test.getId()))
+                                               .body(test)
+                                               .asObject(TestDTO.class);
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return response.getBody();
     }
 
+    @SuppressWarnings("rawtypes")
     public void sendLogs(Collection<Log> logs, String testRunId) {
-        client.post(url("test-runs/{testRunId}/logs"))
-              .routeParam("testRunId", testRunId)
-              .body(logs)
-              .asEmpty();
+        HttpResponse response = client.post(url("test-runs/{testRunId}/logs"))
+                                      .routeParam("testRunId", testRunId)
+                                      .body(logs)
+                                      .asEmpty();
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
     }
 
+    @SuppressWarnings("rawtypes")
     public void sendScreenshot(byte[] screenshot, String testRunId, String testId, Long capturedAt) {
-        client.post(url("test-runs/{testRunId}/tests/{testId}/screenshots"))
-              .headerReplace("Content-Type", "image/png")
-              .routeParam("testRunId", testRunId)
-              .routeParam("testId", testId)
-              .header("x-zbr-screenshot-captured-at", capturedAt.toString())
-              .body(screenshot)
-              .asEmpty();
+        HttpResponse response = client.post(url("test-runs/{testRunId}/tests/{testId}/screenshots"))
+                                      .headerReplace("Content-Type", "image/png")
+                                      .routeParam("testRunId", testRunId)
+                                      .routeParam("testId", testId)
+                                      .header("x-zbr-screenshot-captured-at", capturedAt.toString())
+                                      .body(screenshot)
+                                      .asEmpty();
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
     }
 
     public List<TestDTO> getTestsByCiRunId(RerunCondition rerunCondition) {
-
         GetRequest request = client.get(url("test-runs/{ciRunId}/tests"))
                                    .routeParam("ciRunId", rerunCondition.getRunId());
 
         setTestIds(request, rerunCondition.getTestIds());
         setStatuses(request, rerunCondition.getStatuses());
 
-        TestDTO[] tests =  request.asObject(TestDTO[].class).getBody();
-        return Arrays.asList(tests);
+        HttpResponse<TestDTO[]> response = request.asObject(TestDTO[].class);
+
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return Arrays.asList(response.getBody());
     }
 
     private void setTestIds(GetRequest request, Set<Long> testIds) {

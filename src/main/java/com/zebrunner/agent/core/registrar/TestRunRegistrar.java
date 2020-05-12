@@ -1,18 +1,27 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Core Zebrunner Agent API allowing to track test run events in Zebrunner
  */
 public interface TestRunRegistrar {
 
+    Logger LOGGER = LoggerFactory.getLogger(TestRunRegistrar.class);
+
     /**
      * Factory method allowing to obtain Zebrunner test run registrar
      * @return Zebrunner registrar instance
      */
     static TestRunRegistrar registrar() {
-        return ConfigurationHolder.isEnabled() ? ReportingRegistrar.getInstance() : NoOpRegistrar.getInstance();
+        if (ConfigurationHolder.isEnabled()) {
+            return ReportingRegistrar.getInstance();
+        } else {
+            LOGGER.warn("Reporting disabled: using no op test run registrar");
+            return NoOpTestRunRegistrar.getInstance();
+        }
     }
 
     /**

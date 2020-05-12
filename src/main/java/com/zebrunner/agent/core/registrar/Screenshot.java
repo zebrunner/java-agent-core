@@ -9,7 +9,7 @@ import java.time.Instant;
 @Slf4j
 public final class Screenshot {
 
-    private static final ZebrunnerApiClient client = ZebrunnerApiClient.getInstance();
+    private static final ZebrunnerApiClient client = ConfigurationHolder.isEnabled() ? ZebrunnerApiClient.getInstance() : null;
 
     /**
      * Sends screenshot captured in scope of current test execution to Zebrunner. Captured at timestamp accuracy
@@ -17,18 +17,18 @@ public final class Screenshot {
      * generated automatically
      *
      * @param screenshot screenshot bytes
-     * @param capturedAt unix timestamp representing a moment in time when screenshot got captured in milliseconds
+     * @param capturedAtMillis unix timestamp representing a moment in time when screenshot got captured in milliseconds
      */
-    public static void upload(byte[] screenshot, Long capturedAt) {
+    public static void upload(byte[] screenshot, Long capturedAtMillis) {
         if (ConfigurationHolder.isEnabled()) {
-            capturedAt = capturedAt != null ? capturedAt : Instant.now().toEpochMilli();
+            capturedAtMillis = capturedAtMillis != null ? capturedAtMillis : Instant.now().toEpochMilli();
 
             String testRunId = RunContext.getRun().getZebrunnerId();
             String testId = RunContext.getCurrentTest().getZebrunnerId();
 
-            client.sendScreenshot(screenshot, testRunId, testId, capturedAt);
+            client.sendScreenshot(screenshot, testRunId, testId, capturedAtMillis);
         } else {
-            log.trace("Unable to upload screenshot. Reporting is disabled");
+            log.trace("Screenshot taken: size={}, captureAtMillis={}", screenshot.length, capturedAtMillis);
         }
     }
 

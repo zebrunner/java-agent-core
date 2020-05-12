@@ -3,33 +3,32 @@ package com.zebrunner.agent.core.registrar;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class NoOpRegistrar implements TestRunRegistrar {
+public class NoOpTestRunRegistrar implements TestRunRegistrar {
 
-    private static final String MSG_NO_OP_COMPONENT_SWITCH = "Reporting disabled: switching to no op components";
-
-    private static final NoOpRegistrar INSTANCE = new NoOpRegistrar();
+    private static final NoOpTestRunRegistrar INSTANCE = new NoOpTestRunRegistrar();
 
     @Override
     public void start(TestRunStartDescriptor testRunStartDescriptor) {
-        log.trace(MSG_NO_OP_COMPONENT_SWITCH);
+        log.trace("Test run started: {}", testRunStartDescriptor);
     }
 
     @Override
     public void finish(TestRunFinishDescriptor testRunFinishDescriptor) {
-        log.trace(MSG_NO_OP_COMPONENT_SWITCH);
+        log.trace("Test run finished: {}", testRunFinishDescriptor);
     }
 
     @Override
     public void startTest(String uniqueId, TestStartDescriptor testStartDescriptor) {
-        log.trace(MSG_NO_OP_COMPONENT_SWITCH);
+        log.trace("Test started: {}", testStartDescriptor);
     }
 
     @Override
     public void finishTest(String uniqueId, TestFinishDescriptor testFinishDescriptor) {
-        log.trace(MSG_NO_OP_COMPONENT_SWITCH);
+        log.trace("Test finished: {}", testFinishDescriptor);
     }
 
-    public static NoOpRegistrar getInstance() {
+    public static NoOpTestRunRegistrar getInstance() {
         return INSTANCE;
     }
+
 }
