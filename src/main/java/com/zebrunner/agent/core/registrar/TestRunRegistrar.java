@@ -25,14 +25,6 @@ public interface TestRunRegistrar {
     }
 
     /**
-     * Factory method allowing to obtain registrar built for debug purposes
-     * @return debug registrar instance providing output to stdout
-     */
-    static TestRunRegistrar stdoutRegistrar() {
-        return StdoutRegistrar.getInstance();
-    }
-
-    /**
      * Registers test run start
      * @param testRunStartDescriptor test run start descriptor capturing state at the beginning of the run
      */
