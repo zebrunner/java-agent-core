@@ -4,6 +4,7 @@ import com.zebrunner.agent.core.appender.Log;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.registrar.Status;
 import com.zebrunner.agent.core.rerun.RerunCondition;
+import com.zebrunner.agent.core.rest.domain.AuthTokenDTO;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 import kong.unirest.Config;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,7 +35,9 @@ public class ZebrunnerApiClient {
 
     private ZebrunnerApiClient(String hostname, String accessToken) {
         this.apiHost = hostname;
-        this.client = initClient(accessToken);
+        this.client = initClient();
+
+        initAuthorization(accessToken);
     }
 
     public static synchronized ZebrunnerApiClient getInstance() {
@@ -50,13 +54,19 @@ public class ZebrunnerApiClient {
         return String.format(REPORTING_ENDPOINT_FORMAT, apiHost, REPORTING_API_CONTEXT_PATH, REPORTING_API_VERSION, endpointPath);
     }
 
-    private UnirestInstance initClient(String accessToken) {
+    private UnirestInstance initClient() {
         Config config = new Config();
-        config.addDefaultHeader("Authorization", "Bearer " + accessToken);
         config.addDefaultHeader("Content-Type", "application/json");
         config.addDefaultHeader("Accept", "application/json");
         config.setObjectMapper(new ObjectMapperImpl());
         return new UnirestInstance(config);
+    }
+
+    private void initAuthorization(String accessToken) {
+        AuthTokenDTO authTokenDTO = refreshToken(accessToken);
+
+        Config config = client.config();
+        config.addDefaultHeader("Authorization", "Bearer " + authTokenDTO.getAccessToken());
     }
 
     public TestRunDTO registerTestRunStart(TestRunDTO testRun) {
@@ -103,29 +113,39 @@ public class ZebrunnerApiClient {
         return response.getBody();
     }
 
-    @SuppressWarnings("rawtypes")
     public void sendLogs(Collection<Log> logs, String testRunId) {
-        HttpResponse response = client.post(url("test-runs/{testRunId}/logs"))
-                                      .routeParam("testRunId", testRunId)
-                                      .body(logs)
-                                      .asEmpty();
+        HttpResponse<?> response = client.post(url("test-runs/{testRunId}/logs"))
+                                         .routeParam("testRunId", testRunId)
+                                         .body(logs)
+                                         .asEmpty();
         if (!response.isSuccess()) {
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
     }
 
-    @SuppressWarnings("rawtypes")
     public void sendScreenshot(byte[] screenshot, String testRunId, String testId, Long capturedAt) {
-        HttpResponse response = client.post(url("test-runs/{testRunId}/tests/{testId}/screenshots"))
-                                      .headerReplace("Content-Type", "image/png")
-                                      .routeParam("testRunId", testRunId)
-                                      .routeParam("testId", testId)
-                                      .header("x-zbr-screenshot-captured-at", capturedAt.toString())
-                                      .body(screenshot)
-                                      .asEmpty();
+        HttpResponse<?> response = client.post(url("test-runs/{testRunId}/tests/{testId}/screenshots"))
+                                         .headerReplace("Content-Type", "image/png")
+                                         .routeParam("testRunId", testRunId)
+                                         .routeParam("testId", testId)
+                                         .header("x-zbr-screenshot-captured-at", capturedAt.toString())
+                                         .body(screenshot)
+                                         .asEmpty();
         if (!response.isSuccess()) {
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
+    }
+
+    public AuthTokenDTO refreshToken(String token) {
+        Properties properties = new Properties();
+        properties.put("refreshToken", token);
+        HttpResponse<AuthTokenDTO> response = client.post(url("api/auth/refresh"))
+                                                    .body(properties)
+                                                    .asObject(AuthTokenDTO.class);
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return response.getBody();
     }
 
     public List<TestDTO> getTestsByCiRunId(RerunCondition rerunCondition) {
