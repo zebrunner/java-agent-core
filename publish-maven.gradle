@@ -21,6 +21,7 @@ publishing {
 
             pom {
                 name = 'Zebrunner Agent core (Java)'
+                description = 'Zebrunnere Agent core component aimed to simplify development of agents for Java-based test frameworks'
                 url = 'https://github.com/zebrunner/java-agent-core'
                 organization {
                     name = 'Zebrunner'
