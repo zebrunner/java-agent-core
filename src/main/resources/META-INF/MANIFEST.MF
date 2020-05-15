@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Premain-Class: com.zebrunner.agent.core.agent.CoreAgent
+Archiver-Version: Plexus Archiver
+Can-Redefine-Classes: false
+Can-Retransform-Classes: true
+Build-Jdk: 1.8.0_152
