@@ -14,32 +14,37 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_ID_PROPERTY = "reporting.rerun.run-id";
 
     private static final String DEFAULT_FILE_NAME = "agent.properties";
-    private Properties agentProperties;
 
     @Override
     public ReportingConfiguration getConfiguration() {
 
-        if (agentProperties == null) {
-            agentProperties = loadProperties();
+        Properties agentProperties = loadProperties();
+
+        if (!agentProperties.isEmpty()) {
+
+            String enabled = agentProperties.getProperty(ENABLED_PROPERTY);
+            String hostname = agentProperties.getProperty(HOSTNAME_PROPERTY);
+            String accessToken = agentProperties.getProperty(ACCESS_TOKEN_PROPERTY);
+            String runId = agentProperties.getProperty(RUN_ID_PROPERTY);
+
+            boolean enabledIsBoolean = enabled == null
+                    || String.valueOf(true).equalsIgnoreCase(enabled)
+                    || String.valueOf(false).equalsIgnoreCase(enabled);
+            if (!enabledIsBoolean) {
+                throw new TestAgentException("Properties configuration is malformed, skipping");
+            }
+
+            Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
+            return ReportingConfiguration.builder()
+                                         .enabled(reportingEnabled)
+                                         .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
+                                         .rerun(new ReportingConfiguration.RerunConfiguration(runId))
+                                         .build();
         }
-
-        String enabled = agentProperties.getProperty(ENABLED_PROPERTY);
-        String hostname = agentProperties.getProperty(HOSTNAME_PROPERTY);
-        String accessToken = agentProperties.getProperty(ACCESS_TOKEN_PROPERTY);
-        String runId = agentProperties.getProperty(RUN_ID_PROPERTY);
-
-        boolean enabledIsBoolean = enabled == null
-                || String.valueOf(true).equalsIgnoreCase(enabled)
-                || String.valueOf(false).equalsIgnoreCase(enabled);
-        if (!enabledIsBoolean) {
-            throw new TestAgentException("Properties configuration is malformed, skipping");
-        }
-
-        Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
         return ReportingConfiguration.builder()
-                                     .enabled(reportingEnabled)
-                                     .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
-                                     .rerun(new ReportingConfiguration.RerunConfiguration(runId)).build();
+                                     .server(new ReportingConfiguration.ServerConfiguration())
+                                     .rerun(new ReportingConfiguration.RerunConfiguration())
+                                     .build();
     }
 
     private Properties loadProperties() {
