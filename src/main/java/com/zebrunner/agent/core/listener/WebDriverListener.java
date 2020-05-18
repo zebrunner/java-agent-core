@@ -1,9 +1,14 @@
 package com.zebrunner.agent.core.listener;
 
+import com.zebrunner.agent.core.listener.domain.StartSessionContext;
+import com.zebrunner.agent.core.listener.domain.WebDriverContext;
+
 public interface WebDriverListener extends AgentListener {
 
-    void onSessionCreate(String opaqueKey);
+    void onSessionStart(StartSessionContext context);
 
-    void onSessionStart(Object capabilities);
+    void onSessionQuit(WebDriverContext context);
+
+    void onSessionClose(WebDriverContext context);
 
 }
