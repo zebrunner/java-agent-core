@@ -45,14 +45,16 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
      */
     @Override
     public void put(E event) {
-        Log log = converter.apply(event);
-        log.setTestId(RunContext.getCurrentTest().getZebrunnerId());
+        if (RunContext.getCurrentTest() != null) {
+            Log log = converter.apply(event);
+            log.setTestId(RunContext.getCurrentTest().getZebrunnerId());
 
-        QUEUE.add(log);
+            QUEUE.add(log);
 
-        // lazily enables buffer and schedules flushes on the very first event to be buffered
-        if (EXECUTOR_ENABLED.compareAndSet(false, true)) {
-            scheduleFlush();
+            // lazily enables buffer and schedules flushes on the very first event to be buffered
+            if (EXECUTOR_ENABLED.compareAndSet(false, true)) {
+                scheduleFlush();
+            }
         }
     }
 
