@@ -18,32 +18,33 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private static final String[] DEFAULT_FILE_NAMES = {"agent.yaml", "agent.yml"};
     private static final Yaml YAML_MAPPER = new Yaml();
 
-    private static Map<String, Object> yamlProperties;
-
     @Override
     public ReportingConfiguration getConfiguration() {
-        if (yamlProperties == null) {
-            yamlProperties = loadYaml();
+        Map<String, Object> yamlProperties = loadYaml();
+
+        if (yamlProperties != null) {
+
+            String enabled = getProperty(yamlProperties, ENABLED_PROPERTY);
+            String hostname = getProperty(yamlProperties, HOSTNAME_PROPERTY);
+            String accessToken = getProperty(yamlProperties, ACCESS_TOKEN_PROPERTY);
+            String runId = getProperty(yamlProperties, RUN_ID_PROPERTY);
+
+            boolean enabledIsBoolean = enabled == null
+                    || String.valueOf(true).equalsIgnoreCase(enabled)
+                    || String.valueOf(false).equalsIgnoreCase(enabled);
+            if (!enabledIsBoolean) {
+                throw new TestAgentException("YAML configuration is malformed, skipping");
+            }
+
+            Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
+            return ReportingConfiguration.builder()
+                                         .enabled(reportingEnabled)
+                                         .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
+                                         .rerun(new ReportingConfiguration.RerunConfiguration(runId)).build();
         }
-
-        String enabled = getProperty(ENABLED_PROPERTY);
-        String hostname = getProperty(HOSTNAME_PROPERTY);
-        String accessToken = getProperty(ACCESS_TOKEN_PROPERTY);
-        String runId = getProperty(RUN_ID_PROPERTY);
-
-
-        boolean enabledIsBoolean = enabled == null
-                || String.valueOf(true).equalsIgnoreCase(enabled)
-                || String.valueOf(false).equalsIgnoreCase(enabled);
-        if (!enabledIsBoolean) {
-            throw new TestAgentException("YAML configuration is malformed, skipping");
-        }
-
-        Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
         return ReportingConfiguration.builder()
-                                     .enabled(reportingEnabled)
-                                     .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
-                                     .rerun(new ReportingConfiguration.RerunConfiguration(runId)).build();
+                                     .server(new ReportingConfiguration.ServerConfiguration())
+                                     .rerun(new ReportingConfiguration.RerunConfiguration()).build();
     }
 
     private static Map<String, Object> loadYaml() {
@@ -62,8 +63,9 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     }
 
     @SuppressWarnings("unchecked")
-    private static String getProperty(String key) {
+    private static String getProperty(Map<String, Object> yamlProperties, String key) {
         String result = null;
+
         String[] keySlices = key.split("\\.");
 
         Map<String, Object> slice = new HashMap<>(yamlProperties);
