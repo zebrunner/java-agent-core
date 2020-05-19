@@ -18,10 +18,10 @@ public class CoreAgent {
     private static final String CLOSE_METHOD_MAME = "close";
 
     public static void premain(String args, Instrumentation instrumentation) {
-        installZebrunnerTransformer(instrumentation);
+        registerSessionLifecycleCallbacks(instrumentation);
     }
 
-    private static void installZebrunnerTransformer(Instrumentation instrumentation) {
+    private static void registerSessionLifecycleCallbacks(Instrumentation instrumentation) {
         final TypeDescription startSession = TypePool.Default.ofSystemLoader()
                                                              .describe(StartSessionProxy.class.getName())
                                                              .resolve();
