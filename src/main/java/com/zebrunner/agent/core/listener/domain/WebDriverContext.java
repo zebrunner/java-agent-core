@@ -1,11 +1,11 @@
 package com.zebrunner.agent.core.listener.domain;
 
-import lombok.Setter;
+import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import org.openqa.selenium.Capabilities;
 
 @SuperBuilder
-@Setter
+@Getter
 public class WebDriverContext {
 
     private Capabilities actualCapabilities;

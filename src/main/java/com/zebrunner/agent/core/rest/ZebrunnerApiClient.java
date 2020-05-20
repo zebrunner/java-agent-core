@@ -7,12 +7,14 @@ import com.zebrunner.agent.core.rerun.RerunCondition;
 import com.zebrunner.agent.core.rest.domain.AuthTokenDTO;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
+import com.zebrunner.agent.core.rest.domain.TestSessionDTO;
 import kong.unirest.Config;
 import kong.unirest.GetRequest;
 import kong.unirest.HttpResponse;
 import kong.unirest.UnirestInstance;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -161,6 +163,37 @@ public class ZebrunnerApiClient {
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
         return Arrays.asList(response.getBody());
+    }
+
+    public TestSessionDTO startSession(TestSessionDTO testSession) {
+        if (testSession.getStartedAt() == null) {
+            testSession.setStartedAt(OffsetDateTime.now());
+        }
+        HttpResponse<TestSessionDTO> response = client.post(url("test-sessions"))
+                                                      .body(testSession)
+                                                      .asObject(TestSessionDTO.class);
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return  response.getBody();
+    }
+
+    public TestSessionDTO endSession(TestSessionDTO testSession) {
+        if (testSession.getEndedAt() == null) {
+            testSession.setEndedAt(OffsetDateTime.now());
+        }
+        return updateSession(testSession);
+    }
+
+    public TestSessionDTO updateSession(TestSessionDTO testSession) {
+        HttpResponse<TestSessionDTO> response = client.put(url("test-sessions/{testSessionId}"))
+                                                      .routeParam("testSessionId", testSession.getId().toString())
+                                                      .body(testSession)
+                                                      .asObject(TestSessionDTO.class);
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return  response.getBody();
     }
 
     private void setTestIds(GetRequest request, Set<Long> testIds) {

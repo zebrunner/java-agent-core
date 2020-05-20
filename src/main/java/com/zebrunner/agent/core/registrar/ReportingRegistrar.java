@@ -64,6 +64,7 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         TestDescriptor testDescriptor = TestDescriptor.create(String.valueOf(test.getId()), ts);
         RunContext.putTest(uniqueId, testDescriptor);
+        SessionRegistrar.addTestRef(String.valueOf(test.getId()));
     }
 
     @Override
@@ -71,8 +72,9 @@ class ReportingRegistrar implements TestRunRegistrar {
         TestRunDescriptor testRun = RunContext.getRun();
         TestDescriptor test = RunContext.getTest(uniqueId);
 
+        String zebrunnerId = test.getZebrunnerId();
         TestDTO result = TestDTO.builder()
-                                .id(Long.valueOf(test.getZebrunnerId()))
+                                .id(Long.valueOf(zebrunnerId))
                                 .result(tf.getStatus().name())
                                 .reason(tf.getStatusReason())
                                 .endedAt(tf.getEndedAt())
@@ -81,6 +83,8 @@ class ReportingRegistrar implements TestRunRegistrar {
         API_CLIENT.registerTestFinish(Long.valueOf(testRun.getZebrunnerId()), result);
 
         RunContext.completeTest(uniqueId, tf);
+        SessionRegistrar.addTestRef(zebrunnerId);
+        SessionRegistrar.clearTestRef(zebrunnerId);
     }
 
     public static ReportingRegistrar getInstance() {

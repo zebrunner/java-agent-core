@@ -5,7 +5,6 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.pool.TypePool;
-import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.lang.instrument.Instrumentation;
 
@@ -13,6 +12,7 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 
 public class CoreAgent {
 
+    private static final String REMOTE_WEB_DRIVER_CLASS_MAME = "org.openqa.selenium.remote.RemoteWebDriver";
     private static final String START_SESSION_METHOD_MAME = "startSession";
     private static final String QUIT_METHOD_MAME = "quit";
     private static final String CLOSE_METHOD_MAME = "close";
@@ -34,7 +34,7 @@ public class CoreAgent {
 
         new AgentBuilder.Default()
                 .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
-                .type(ElementMatchers.named(RemoteWebDriver.class.getName()))
+                .type(ElementMatchers.named(REMOTE_WEB_DRIVER_CLASS_MAME))
                 .transform((builder, type, classloader, module) -> builder.method(named(START_SESSION_METHOD_MAME))
                                                                           .intercept(MethodDelegation.to(startSession))
                                                                           .method(named(QUIT_METHOD_MAME))
