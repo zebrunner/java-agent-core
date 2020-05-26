@@ -2,6 +2,7 @@ package com.zebrunner.agent.core.rest;
 
 import com.zebrunner.agent.core.appender.Log;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.registrar.RerunContextHolder;
 import com.zebrunner.agent.core.registrar.Status;
 import com.zebrunner.agent.core.rerun.RerunCondition;
 import com.zebrunner.agent.core.rest.domain.AuthTokenDTO;
@@ -92,10 +93,12 @@ public class ZebrunnerApiClient {
         return response.getBody();
     }
 
-    public TestDTO registerTestStart(Long testRunId, TestDTO test) {
+    public TestDTO registerTestStart(Long testRunId, TestDTO test, boolean headless) {
         HttpResponse<TestDTO> response = client.post(url("test-runs/{testRunId}/tests"))
                                                .body(test)
                                                .routeParam("testRunId", String.valueOf(testRunId))
+                                               .queryString("headless", headless)
+                                               .queryString("rerun", RerunContextHolder.isRerun())
                                                .asObject(TestDTO.class);
         if (!response.isSuccess()) {
             throw new ServerException(response.getStatus(), response.getStatusText());
