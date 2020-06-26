@@ -45,24 +45,42 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void startTest(String uniqueId, TestStartDescriptor ts) {
+        startTest(uniqueId, ts, false);
+    }
+
+    @Override
+    public void startHeadlessTest(String uniqueId, TestStartDescriptor ts) {
+        startTest(uniqueId, ts, true);
+    }
+
+    private void startTest(String uniqueId, TestStartDescriptor ts, boolean headless) {
         TestRunDescriptor testRun = RunContext.getRun();
 
-        String owner = ts.getMaintainer();
-        // if owner was not provided try to detect owner by picking annotation value
-        owner = owner == null ? MaintainerProcessor.retrieveOwner(ts.getTestClass(), ts.getTestMethod()) : owner;
-
         TestDTO test = TestDTO.builder()
+                              .uuid(ts.getUuid())
                               .name(ts.getName())
                               .className(ts.getTestClass().getName())
                               .methodName(ts.getTestMethod().getName())
-                              .maintainer(owner)
-                              .uuid(ts.getUuid())
                               .startedAt(ts.getStartedAt())
                               .build();
 
-        test = API_CLIENT.registerTestStart(Long.valueOf(testRun.getZebrunnerId()), test);
+        if (!headless) {
+            String maintainer = ts.getMaintainer();
+            // if owner was not provided try to detect owner by picking annotation value
+            maintainer = maintainer == null ? MaintainerProcessor.retrieveOwner(ts.getTestClass(), ts.getTestMethod()) : maintainer;
+
+            test.setMaintainer(maintainer);
+
+            TestDescriptor headlessTest = RunContext.getCurrentTest();
+            if (headlessTest != null) {
+                test.setId(Long.valueOf(headlessTest.getZebrunnerId()));
+            }
+        }
+
+        test = API_CLIENT.registerTestStart(Long.valueOf(testRun.getZebrunnerId()), test, headless);
 
         TestDescriptor testDescriptor = TestDescriptor.create(String.valueOf(test.getId()), ts);
+
         RunContext.putTest(uniqueId, testDescriptor);
         SessionRegistrar.addTestRef(String.valueOf(test.getId()));
     }

@@ -44,6 +44,8 @@ public interface TestRunRegistrar {
      */
     void startTest(String uniqueId, TestStartDescriptor testStartDescriptor);
 
+    void startHeadlessTest(String uniqueId, TestStartDescriptor testStartDescriptor);
+
     /**
      * Registers test finish
      * @param uniqueId key that uniquely identifies specific test in scope of test run.

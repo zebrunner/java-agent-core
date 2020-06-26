@@ -23,6 +23,11 @@ public class NoOpTestRunRegistrar implements TestRunRegistrar {
     }
 
     @Override
+    public void startHeadlessTest(String uniqueId, TestStartDescriptor testStartDescriptor) {
+        log.trace("Headless test started: {}", testStartDescriptor);
+    }
+
+    @Override
     public void finishTest(String uniqueId, TestFinishDescriptor testFinishDescriptor) {
         log.trace("Test finished: {}", testFinishDescriptor);
     }
