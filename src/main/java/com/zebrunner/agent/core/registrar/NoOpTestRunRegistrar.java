@@ -23,6 +23,12 @@ public class NoOpTestRunRegistrar implements TestRunRegistrar {
     }
 
     @Override
+    public boolean isTestStarted(String uniqueId) {
+        log.trace("Is test started: {}", uniqueId);
+        return true;
+    }
+
+    @Override
     public void finishTest(String uniqueId, TestFinishDescriptor testFinishDescriptor) {
         log.trace("Test finished: {}", testFinishDescriptor);
     }
