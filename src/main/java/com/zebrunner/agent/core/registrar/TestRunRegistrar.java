@@ -45,6 +45,13 @@ public interface TestRunRegistrar {
     void startTest(String uniqueId, TestStartDescriptor testStartDescriptor);
 
     /**
+     * Checks whether a test with specific id has been started or not
+     * @param uniqueId key that uniquely identifies specific test in scope of test run.
+     * @return true - if the test has been started, otherwise - false
+     */
+    boolean isTestStarted(String uniqueId);
+
+    /**
      * Registers test finish
      * @param uniqueId key that uniquely identifies specific test in scope of test run.
      *                 Appropriate test start with matching id should be registered prior to test finish registration,

@@ -21,7 +21,6 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        .name(tr.getName())
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
-                                       .launchContext(new TestRunDTO.LaunchContextDTO("1", "1"))
                                        .build();
 
         testRun = API_CLIENT.registerTestRunStart(testRun);
@@ -64,6 +63,11 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         TestDescriptor testDescriptor = TestDescriptor.create(String.valueOf(test.getId()), ts);
         RunContext.putTest(uniqueId, testDescriptor);
+    }
+
+    @Override
+    public boolean isTestStarted(String uniqueId) {
+        return RunContext.getTest(uniqueId) != null;
     }
 
     @Override
