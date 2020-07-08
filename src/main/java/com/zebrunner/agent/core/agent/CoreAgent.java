@@ -6,8 +6,8 @@ import java.util.ServiceLoader;
 public class CoreAgent {
 
     public static void premain(String args, Instrumentation instrumentation) {
-        for (AgentDiscoverable agentDiscoverable : ServiceLoader.load(AgentDiscoverable.class)) {
-            agentDiscoverable.onPremain(args, instrumentation);
-        }
+        ServiceLoader.load(PremainInvocationListener.class)
+                     .forEach(listener -> listener.onPremain(args, instrumentation));
     }
+
 }

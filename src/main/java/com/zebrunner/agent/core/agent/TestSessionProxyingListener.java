@@ -10,7 +10,7 @@ import java.lang.instrument.Instrumentation;
 
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
-public class SessionDescriber implements AgentDiscoverable {
+public class TestSessionProxyingListener implements PremainInvocationListener {
 
     private static final String REMOTE_WEB_DRIVER_CLASS_MAME = "org.openqa.selenium.remote.RemoteWebDriver";
     private static final String START_SESSION_METHOD_MAME = "startSession";
@@ -19,19 +19,15 @@ public class SessionDescriber implements AgentDiscoverable {
 
     @Override
     public void onPremain(String args, Instrumentation instrumentation) {
-        registerSessionLifecycleCallbacks(instrumentation);
-    }
-
-    private static void registerSessionLifecycleCallbacks(Instrumentation instrumentation) {
-        final TypeDescription startSession = TypePool.Default.ofSystemLoader()
-                                                             .describe(StartSessionProxy.class.getName())
-                                                             .resolve();
-        final TypeDescription quitSession = TypePool.Default.ofSystemLoader()
-                                                            .describe(QuitSessionProxy.class.getName())
-                                                            .resolve();
-        final TypeDescription closeSession = TypePool.Default.ofSystemLoader()
-                                                             .describe(CloseSessionProxy.class.getName())
-                                                             .resolve();
+        TypeDescription startSession = TypePool.Default.ofSystemLoader()
+                                                       .describe(StartSessionProxy.class.getName())
+                                                       .resolve();
+        TypeDescription quitSession = TypePool.Default.ofSystemLoader()
+                                                      .describe(QuitSessionProxy.class.getName())
+                                                      .resolve();
+        TypeDescription closeSession = TypePool.Default.ofSystemLoader()
+                                                       .describe(CloseSessionProxy.class.getName())
+                                                       .resolve();
 
         new AgentBuilder.Default()
                 .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
@@ -44,4 +40,5 @@ public class SessionDescriber implements AgentDiscoverable {
                                                                           .intercept(MethodDelegation.to(closeSession)))
                 .installOn(instrumentation);
     }
+
 }
