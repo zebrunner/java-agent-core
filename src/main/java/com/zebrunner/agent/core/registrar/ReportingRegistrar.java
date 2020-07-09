@@ -21,6 +21,8 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        .name(tr.getName())
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
+                                       // temporarily returning back the launch context with id 1
+                                       .launchContext(new TestRunDTO.LaunchContextDTO("1", "1"))
                                        .build();
 
         testRun = API_CLIENT.registerTestRunStart(testRun);
