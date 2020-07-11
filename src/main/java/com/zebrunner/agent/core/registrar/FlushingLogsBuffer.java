@@ -29,7 +29,8 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
     private static Queue<Log> QUEUE = new ConcurrentLinkedQueue<>();
     private final Function<E, Log> converter;
 
-    /** Allocates a new {@code LogsBuffer} object bound to certain logging framework event type.
+    /**
+     * Allocates a new {@code LogsBuffer} object bound to certain logging framework event type.
      * <p>Theoretically (but unlikely) more than one logging framework may be used in a single test project.
      *
      * @param converter logging framework specific event converter
@@ -41,13 +42,14 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
 
     /**
      * Inserts specified event to the queue
+     *
      * @param event log event
      */
     @Override
     public void put(E event) {
         if (RunContext.getCurrentTest() != null) {
             Log log = converter.apply(event);
-            log.setTestId(RunContext.getCurrentTest().getZebrunnerId());
+            log.setTestId(String.valueOf(RunContext.getCurrentTest().getZebrunnerId()));
 
             QUEUE.add(log);
 
@@ -64,7 +66,7 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
 
     private synchronized static void flush() {
         if (!QUEUE.isEmpty()) {
-            String testRunId = RunContext.getRun().getZebrunnerId();
+            String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
             Queue<Log> logsBatch = QUEUE;
             QUEUE = new ConcurrentLinkedQueue<>();
             API_CLIENT.sendLogs(logsBatch, testRunId);

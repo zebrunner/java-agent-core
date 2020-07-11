@@ -12,9 +12,9 @@ import java.util.Map;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class TestDTO {
 
     private Long id;
@@ -30,4 +30,5 @@ public class TestDTO {
     private Map<String, String> additionalAttributes;
     private String result;
     private String reason;
+
 }

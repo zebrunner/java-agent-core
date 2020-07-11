@@ -8,11 +8,11 @@ import java.time.OffsetDateTime;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 class TestRunDescriptor {
 
-    private final String zebrunnerId;
+    private final Long zebrunnerId;
     private final TestRunStartDescriptor startDescriptor;
     private TestRunFinishDescriptor finishDescriptor;
 
-    static TestRunDescriptor create(String zebrunnerId, TestRunStartDescriptor startDescriptor) {
+    static TestRunDescriptor create(Long zebrunnerId, TestRunStartDescriptor startDescriptor) {
         return new TestRunDescriptor(zebrunnerId, startDescriptor);
     }
 
@@ -24,7 +24,7 @@ class TestRunDescriptor {
         return finishDescriptor != null;
     }
 
-    String getZebrunnerId() {
+    Long getZebrunnerId() {
         return zebrunnerId;
     }
 

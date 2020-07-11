@@ -2,16 +2,16 @@ package com.zebrunner.agent.core.registrar;
 
 class TestDescriptor {
 
-    private final String zebrunnerId;
+    private final Long zebrunnerId;
     private final TestStartDescriptor startDescriptor;
     private TestFinishDescriptor finishDescriptor;
 
-    private TestDescriptor(String zebrunnerId, TestStartDescriptor startDescriptor) {
+    private TestDescriptor(Long zebrunnerId, TestStartDescriptor startDescriptor) {
         this.zebrunnerId = zebrunnerId;
         this.startDescriptor = startDescriptor;
     }
 
-    static TestDescriptor create(String zebrunnerId, TestStartDescriptor startDescriptor) {
+    static TestDescriptor create(Long zebrunnerId, TestStartDescriptor startDescriptor) {
         return new TestDescriptor(zebrunnerId, startDescriptor);
     }
 
@@ -19,7 +19,7 @@ class TestDescriptor {
         this.finishDescriptor = finishDescriptor;
     }
 
-    String getZebrunnerId() {
+    Long getZebrunnerId() {
         return zebrunnerId;
     }
 

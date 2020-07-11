@@ -4,15 +4,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
 public class AuthTokenDTO {
 
-    private String type;
-    private String accessToken;
+    private Integer userId;
+
+    private String authTokenType;
+    private String authToken;
+    private int authTokenExpirationInSecs;
+
     private String refreshToken;
-    private int expiresIn;
-    private String tenant;
+
+    private String tenantName;
 
 }
