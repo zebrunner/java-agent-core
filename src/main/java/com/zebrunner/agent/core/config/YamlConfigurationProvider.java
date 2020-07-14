@@ -11,6 +11,7 @@ import java.util.Map;
 public class YamlConfigurationProvider implements ConfigurationProvider {
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
+    private final static String PROJECT_KEY_PROPERTY = "reporting.project-key";
     private final static String HOSTNAME_PROPERTY = "reporting.server.hostname";
     private final static String ACCESS_TOKEN_PROPERTY = "reporting.server.access-token";
     private final static String RUN_ID_PROPERTY = "reporting.rerun.run-id";
@@ -25,6 +26,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         if (yamlProperties != null) {
 
             String enabled = getProperty(yamlProperties, ENABLED_PROPERTY);
+            String projectKey = getProperty(yamlProperties, PROJECT_KEY_PROPERTY);
             String hostname = getProperty(yamlProperties, HOSTNAME_PROPERTY);
             String accessToken = getProperty(yamlProperties, ACCESS_TOKEN_PROPERTY);
             String runId = getProperty(yamlProperties, RUN_ID_PROPERTY);
@@ -39,6 +41,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
             Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
             return ReportingConfiguration.builder()
                                          .enabled(reportingEnabled)
+                                         .projectKey(projectKey)
                                          .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                          .rerun(new ReportingConfiguration.RerunConfiguration(runId)).build();
         }
@@ -50,7 +53,8 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private static Map<String, Object> loadYaml() {
         Map<String, Object> properties = null;
         for (String filename : DEFAULT_FILE_NAMES) {
-            try (InputStream resource = YamlConfigurationProvider.class.getClassLoader().getResourceAsStream(filename)) {
+            try (InputStream resource = YamlConfigurationProvider.class.getClassLoader()
+                                                                       .getResourceAsStream(filename)) {
                 if (resource != null) {
                     properties = YAML_MAPPER.load(resource);
                     break;

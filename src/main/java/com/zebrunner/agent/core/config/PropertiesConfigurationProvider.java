@@ -9,6 +9,7 @@ import java.util.Properties;
 public class PropertiesConfigurationProvider implements ConfigurationProvider {
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
+    private final static String PROJECT_KEY_PROPERTY = "reporting.project-key";
     private final static String HOSTNAME_PROPERTY = "reporting.server.hostname";
     private final static String ACCESS_TOKEN_PROPERTY = "reporting.server.access-token";
     private final static String RUN_ID_PROPERTY = "reporting.rerun.run-id";
@@ -17,12 +18,12 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 
     @Override
     public ReportingConfiguration getConfiguration() {
-
         Properties agentProperties = loadProperties();
 
         if (!agentProperties.isEmpty()) {
 
             String enabled = agentProperties.getProperty(ENABLED_PROPERTY);
+            String projectKey = agentProperties.getProperty(PROJECT_KEY_PROPERTY);
             String hostname = agentProperties.getProperty(HOSTNAME_PROPERTY);
             String accessToken = agentProperties.getProperty(ACCESS_TOKEN_PROPERTY);
             String runId = agentProperties.getProperty(RUN_ID_PROPERTY);
@@ -37,6 +38,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
             Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
             return ReportingConfiguration.builder()
                                          .enabled(reportingEnabled)
+                                         .projectKey(projectKey)
                                          .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                          .rerun(new ReportingConfiguration.RerunConfiguration(runId))
                                          .build();

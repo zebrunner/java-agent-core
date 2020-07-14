@@ -79,6 +79,7 @@ public class ZebrunnerApiClient {
     public TestRunDTO registerTestRunStart(TestRunDTO testRun) {
         HttpResponse<TestRunDTO> response = client.post(reporting("test-runs"))
                                                   .body(testRun)
+                                                  .queryString("projectKey", ConfigurationHolder.getProjectKey())
                                                   .asObject(TestRunDTO.class);
 
         if (!response.isSuccess()) {
