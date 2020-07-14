@@ -1,13 +1,13 @@
 package com.zebrunner.agent.core.config;
 
-import java.util.List;
+import java.util.Arrays;
 
 public class DefaultConfigurationProviderChain extends ConfigurationProviderChain {
 
     private static final DefaultConfigurationProviderChain INSTANCE = new DefaultConfigurationProviderChain();
 
     public DefaultConfigurationProviderChain() {
-        super(List.of(
+        super(Arrays.asList(
                 new EnvironmentConfigurationProvider(),
                 new SystemPropertiesConfigurationProvider(),
                 new YamlConfigurationProvider(),

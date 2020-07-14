@@ -71,10 +71,10 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             ReportingConfiguration.ServerConfiguration serverConfig = config.getServer();
             String hostname = serverConfig.getHostname();
             String accessToken = serverConfig.getHostname();
-            if (hostname != null && accessToken.isBlank()) {
+            if (hostname != null && accessToken.isEmpty()) {
                 serverConfig.setHostname(null);
             }
-            if (accessToken != null && accessToken.isBlank()) {
+            if (accessToken != null && accessToken.isEmpty()) {
                 serverConfig.setAccessToken(null);
             }
         }
@@ -86,7 +86,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         } else {
             ReportingConfiguration.RerunConfiguration rerunConfig = config.getRerun();
             String runId = rerunConfig.getRunId();
-            if (runId != null && runId.isBlank()) {
+            if (runId != null && runId.isEmpty()) {
                 rerunConfig.setRunId(null);
             }
         }
