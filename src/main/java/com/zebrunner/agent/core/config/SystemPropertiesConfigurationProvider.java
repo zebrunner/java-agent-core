@@ -5,6 +5,7 @@ import com.zebrunner.agent.core.exception.TestAgentException;
 public class SystemPropertiesConfigurationProvider implements ConfigurationProvider {
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
+    private final static String PROJECT_KEY_PROPERTY = "reporting.projectKey";
     private final static String HOSTNAME_PROPERTY = "reporting.server.hostname";
     private final static String ACCESS_TOKEN_PROPERTY = "reporting.server.accessToken";
     private final static String RUN_ID_PROPERTY = "reporting.rerun.runId";
@@ -12,6 +13,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
     @Override
     public ReportingConfiguration getConfiguration() {
         String enabled = System.getProperty(ENABLED_PROPERTY);
+        String projectKey = System.getProperty(PROJECT_KEY_PROPERTY);
         String hostname = System.getProperty(HOSTNAME_PROPERTY);
         String accessToken = System.getProperty(ACCESS_TOKEN_PROPERTY);
         String runId = System.getProperty(RUN_ID_PROPERTY);
@@ -26,6 +28,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
         return ReportingConfiguration.builder()
                                      .enabled(reportingEnabled)
+                                     .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId)).build();
     }

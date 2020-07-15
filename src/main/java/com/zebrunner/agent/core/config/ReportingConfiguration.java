@@ -8,9 +8,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
 public class ReportingConfiguration {
 
     private Boolean enabled;
+    private String projectKey;
     private ServerConfiguration server;
     private RerunConfiguration rerun;
 
@@ -18,17 +20,10 @@ public class ReportingConfiguration {
         return enabled == null || enabled;
     }
 
-    @Builder
-    public ReportingConfiguration(Boolean enabled, ServerConfiguration server, RerunConfiguration rerun) {
-        this.enabled = enabled;
-        this.server = server;
-        this.rerun = rerun;
-    }
-
     @Getter
     @Setter
-    @AllArgsConstructor
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class ServerConfiguration {
 
         private String hostname;
@@ -38,8 +33,8 @@ public class ReportingConfiguration {
 
     @Getter
     @Setter
-    @AllArgsConstructor
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class RerunConfiguration {
 
         private String runId;

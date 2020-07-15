@@ -1,14 +1,14 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.listener.AgentListenerHolder;
+import com.zebrunner.agent.core.listener.RerunListener;
 import com.zebrunner.agent.core.rerun.RerunCondition;
 import com.zebrunner.agent.core.rerun.RerunConditionResolver;
-import com.zebrunner.agent.core.rerun.RerunListener;
 import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 
 import java.util.List;
-import java.util.ServiceLoader;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -54,8 +54,9 @@ final class RerunResolver {
 
             RerunContextHolder.setTests(tests);
 
-            ServiceLoader<RerunListener> rerunListeners = ServiceLoader.load(RerunListener.class);
-            rerunListeners.forEach(rerunListener -> rerunListener.onRerun(tests));
+            for (RerunListener listener : AgentListenerHolder.getRerunListeners()) {
+                listener.onRerun(tests);
+            }
             return tests;
         });
     }

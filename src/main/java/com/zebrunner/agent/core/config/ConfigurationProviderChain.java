@@ -9,6 +9,8 @@ import java.util.List;
 @Slf4j
 public class ConfigurationProviderChain implements ConfigurationProvider {
 
+    private static final String DEFAULT_PROJECT = "UNKNOWN";
+
     private final List<ConfigurationProvider> providers = new LinkedList<>();
 
     public ConfigurationProviderChain(List<? extends ConfigurationProvider> credentialsProviders) {
@@ -52,6 +54,9 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
                 log.warn(e.getMessage());
             }
         }
+        if (config.getProjectKey() == null || config.getProjectKey().isEmpty()) {
+            config.setProjectKey(DEFAULT_PROJECT);
+        }
     }
 
     private static void normalize(ReportingConfiguration config) {
@@ -66,10 +71,10 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             ReportingConfiguration.ServerConfiguration serverConfig = config.getServer();
             String hostname = serverConfig.getHostname();
             String accessToken = serverConfig.getHostname();
-            if (hostname != null && accessToken.isBlank()) {
+            if (hostname != null && accessToken.isEmpty()) {
                 serverConfig.setHostname(null);
             }
-            if (accessToken != null && accessToken.isBlank()) {
+            if (accessToken != null && accessToken.isEmpty()) {
                 serverConfig.setAccessToken(null);
             }
         }
@@ -81,7 +86,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         } else {
             ReportingConfiguration.RerunConfiguration rerunConfig = config.getRerun();
             String runId = rerunConfig.getRunId();
-            if (runId != null && runId.isBlank()) {
+            if (runId != null && runId.isEmpty()) {
                 rerunConfig.setRunId(null);
             }
         }
@@ -90,12 +95,16 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
     /**
      * Sets values coming from provided configuration that were not set previously by providers with higher priority
      *
-     * @param config configuration assembled by previous configuration providers
+     * @param config         configuration assembled by previous configuration providers
      * @param providedConfig configuration from current configuration provider
      */
     private static void merge(ReportingConfiguration config, ReportingConfiguration providedConfig) {
         if (config.getEnabled() == null) {
             config.setEnabled(providedConfig.getEnabled());
+        }
+
+        if (config.getProjectKey() == null) {
+            config.setProjectKey(providedConfig.getProjectKey());
         }
 
         ReportingConfiguration.ServerConfiguration server = config.getServer();
@@ -112,6 +121,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         }
     }
 
+    // project-key is not considered as a mandatory property
     private static boolean areMandatoryArgsSet(ReportingConfiguration config) {
         ReportingConfiguration.ServerConfiguration server = config.getServer();
 
@@ -121,11 +131,12 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
 
     private static boolean areAllArgsSet(ReportingConfiguration config) {
         Boolean enabled = config.getEnabled();
+        String projectKey = config.getProjectKey();
         String hostname = config.getServer().getHostname();
         String accessToken = config.getServer().getAccessToken();
         String runId = config.getRerun().getRunId();
 
-        boolean allArgsExist = enabled != null && hostname != null && accessToken != null && runId != null;
+        boolean allArgsExist = enabled != null && projectKey != null && hostname != null && accessToken != null && runId != null;
 
         return !config.isEnabled() || allArgsExist;
     }

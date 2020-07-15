@@ -2,21 +2,25 @@ package com.zebrunner.agent.core.rest;
 
 import com.zebrunner.agent.core.appender.Log;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.registrar.RerunContextHolder;
 import com.zebrunner.agent.core.registrar.Status;
 import com.zebrunner.agent.core.rerun.RerunCondition;
 import com.zebrunner.agent.core.rest.domain.AuthTokenDTO;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
+import com.zebrunner.agent.core.rest.domain.TestSessionDTO;
 import kong.unirest.Config;
 import kong.unirest.GetRequest;
 import kong.unirest.HttpResponse;
 import kong.unirest.UnirestInstance;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,9 +28,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ZebrunnerApiClient {
 
-    private final static String REPORTING_API_CONTEXT_PATH = "api/reporting";
-    private final static String REPORTING_API_VERSION = "v1";
-    private final static String REPORTING_ENDPOINT_FORMAT = "%s/%s/%s/%s";
+    private final static String REPORTING_ENDPOINT_FORMAT = "%s/api/reporting/v1/%s";
+    private final static String IAM_ENDPOINT_FORMAT = "%s/api/iam/%s";
 
     private static ZebrunnerApiClient INSTANCE;
 
@@ -50,8 +53,12 @@ public class ZebrunnerApiClient {
         return INSTANCE;
     }
 
-    private String url(String endpointPath) {
-        return String.format(REPORTING_ENDPOINT_FORMAT, apiHost, REPORTING_API_CONTEXT_PATH, REPORTING_API_VERSION, endpointPath);
+    private String reporting(String endpointPath) {
+        return String.format(REPORTING_ENDPOINT_FORMAT, apiHost, endpointPath);
+    }
+
+    private String iam(String endpointPath) {
+        return String.format(IAM_ENDPOINT_FORMAT, apiHost, endpointPath);
     }
 
     private UnirestInstance initClient() {
@@ -66,13 +73,15 @@ public class ZebrunnerApiClient {
         AuthTokenDTO authTokenDTO = refreshToken(accessToken);
 
         Config config = client.config();
-        config.addDefaultHeader("Authorization", "Bearer " + authTokenDTO.getAccessToken());
+        config.addDefaultHeader("Authorization", authTokenDTO.getAuthTokenType() + " " + authTokenDTO.getAuthToken());
     }
 
     public TestRunDTO registerTestRunStart(TestRunDTO testRun) {
-        HttpResponse<TestRunDTO> response = client.post(url("test-runs"))
+        HttpResponse<TestRunDTO> response = client.post(reporting("test-runs"))
                                                   .body(testRun)
+                                                  .queryString("projectKey", ConfigurationHolder.getProjectKey())
                                                   .asObject(TestRunDTO.class);
+
         if (!response.isSuccess()) {
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
@@ -80,21 +89,39 @@ public class ZebrunnerApiClient {
     }
 
     public TestRunDTO registerTestRunFinish(TestRunDTO testRun) {
-        HttpResponse<TestRunDTO> response = client.put(url("test-runs/{testRunId}"))
+        HttpResponse<TestRunDTO> response = client.put(reporting("test-runs/{testRunId}"))
                                                   .body(testRun)
                                                   .routeParam("testRunId", String.valueOf(testRun.getId()))
                                                   .asObject(TestRunDTO.class);
+
         if (!response.isSuccess()) {
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
         return response.getBody();
     }
 
-    public TestDTO registerTestStart(Long testRunId, TestDTO test) {
-        HttpResponse<TestDTO> response = client.post(url("test-runs/{testRunId}/tests"))
+    public TestDTO registerTestStart(Long testRunId, TestDTO test, boolean headless) {
+        HttpResponse<TestDTO> response = client.post(reporting("test-runs/{testRunId}/tests"))
                                                .body(test)
                                                .routeParam("testRunId", String.valueOf(testRunId))
+                                               .queryString("headless", headless)
+                                               .queryString("rerun", RerunContextHolder.isRerun())
                                                .asObject(TestDTO.class);
+
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return response.getBody();
+    }
+
+    public TestDTO registerHeadlessTestUpdate(Long testRunId, TestDTO test) {
+        HttpResponse<TestDTO> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                               .routeParam("testRunId", String.valueOf(testRunId))
+                                               .routeParam("testId", String.valueOf(test.getId()))
+                                               .queryString("headless", true)
+                                               .body(test)
+                                               .asObject(TestDTO.class);
+
         if (!response.isSuccess()) {
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
@@ -102,11 +129,13 @@ public class ZebrunnerApiClient {
     }
 
     public TestDTO registerTestFinish(Long testRunId, TestDTO test) {
-        HttpResponse<TestDTO> response = client.put(url("test-runs/{testRunId}/tests/{testId}"))
+        HttpResponse<TestDTO> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
                                                .routeParam("testRunId", String.valueOf(testRunId))
                                                .routeParam("testId", String.valueOf(test.getId()))
+                                               .queryString("headless", false)
                                                .body(test)
                                                .asObject(TestDTO.class);
+
         if (!response.isSuccess()) {
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
@@ -114,7 +143,7 @@ public class ZebrunnerApiClient {
     }
 
     public void sendLogs(Collection<Log> logs, String testRunId) {
-        HttpResponse<?> response = client.post(url("test-runs/{testRunId}/logs"))
+        HttpResponse<?> response = client.post(reporting("test-runs/{testRunId}/logs"))
                                          .routeParam("testRunId", testRunId)
                                          .body(logs)
                                          .asEmpty();
@@ -124,7 +153,7 @@ public class ZebrunnerApiClient {
     }
 
     public void sendScreenshot(byte[] screenshot, String testRunId, String testId, Long capturedAt) {
-        HttpResponse<?> response = client.post(url("test-runs/{testRunId}/tests/{testId}/screenshots"))
+        HttpResponse<?> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}/screenshots"))
                                          .headerReplace("Content-Type", "image/png")
                                          .routeParam("testRunId", testRunId)
                                          .routeParam("testId", testId)
@@ -137,10 +166,10 @@ public class ZebrunnerApiClient {
     }
 
     public AuthTokenDTO refreshToken(String token) {
-        Properties properties = new Properties();
-        properties.put("refreshToken", token);
-        HttpResponse<AuthTokenDTO> response = client.post(url("api/auth/refresh"))
-                                                    .body(properties)
+        Map<String, String> request = new HashMap<>();
+        request.put("refreshToken", token);
+        HttpResponse<AuthTokenDTO> response = client.post(iam("v1/auth/refresh"))
+                                                    .body(request)
                                                     .asObject(AuthTokenDTO.class);
         if (!response.isSuccess()) {
             throw new ServerException(response.getStatus(), response.getStatusText());
@@ -149,7 +178,7 @@ public class ZebrunnerApiClient {
     }
 
     public List<TestDTO> getTestsByCiRunId(RerunCondition rerunCondition) {
-        GetRequest request = client.get(url("test-runs/{ciRunId}/tests"))
+        GetRequest request = client.get(reporting("test-runs/{ciRunId}/tests"))
                                    .routeParam("ciRunId", rerunCondition.getRunId());
 
         setTestIds(request, rerunCondition.getTestIds());
@@ -161,6 +190,37 @@ public class ZebrunnerApiClient {
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
         return Arrays.asList(response.getBody());
+    }
+
+    public TestSessionDTO startSession(TestSessionDTO testSession) {
+        if (testSession.getStartedAt() == null) {
+            testSession.setStartedAt(OffsetDateTime.now());
+        }
+        HttpResponse<TestSessionDTO> response = client.post(reporting("test-sessions"))
+                                                      .body(testSession)
+                                                      .asObject(TestSessionDTO.class);
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return response.getBody();
+    }
+
+    public TestSessionDTO endSession(TestSessionDTO testSession) {
+        if (testSession.getEndedAt() == null) {
+            testSession.setEndedAt(OffsetDateTime.now());
+        }
+        return updateSession(testSession);
+    }
+
+    public TestSessionDTO updateSession(TestSessionDTO testSession) {
+        HttpResponse<TestSessionDTO> response = client.put(reporting("test-sessions/{testSessionId}"))
+                                                      .routeParam("testSessionId", testSession.getId().toString())
+                                                      .body(testSession)
+                                                      .asObject(TestSessionDTO.class);
+        if (!response.isSuccess()) {
+            throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+        return response.getBody();
     }
 
     private void setTestIds(GetRequest request, Set<Long> testIds) {

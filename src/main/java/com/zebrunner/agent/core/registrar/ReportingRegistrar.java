@@ -21,11 +21,12 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        .name(tr.getName())
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
+                                       // temporarily returning back the launch context with id 1
                                        .build();
 
         testRun = API_CLIENT.registerTestRunStart(testRun);
 
-        TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(String.valueOf(testRun.getId()), tr);
+        TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(testRun.getId(), tr);
         RunContext.putRun(testRunDescriptor);
     }
 
@@ -34,7 +35,7 @@ class ReportingRegistrar implements TestRunRegistrar {
         TestRunDescriptor testRunDescriptor = RunContext.getRun();
 
         TestRunDTO testRun = TestRunDTO.builder()
-                                       .id(Long.valueOf(testRunDescriptor.getZebrunnerId()))
+                                       .id(testRunDescriptor.getZebrunnerId())
                                        .endedAt(finishDescriptor.getEndedAt())
                                        .build();
         API_CLIENT.registerTestRunFinish(testRun);
@@ -43,26 +44,50 @@ class ReportingRegistrar implements TestRunRegistrar {
     }
 
     @Override
-    public void startTest(String uniqueId, TestStartDescriptor ts) {
+    public void startHeadlessTest(String uniqueId, TestStartDescriptor ts) {
         TestRunDescriptor testRun = RunContext.getRun();
-
-        String owner = ts.getMaintainer();
-        // if owner was not provided try to detect owner by picking annotation value
-        owner = owner == null ? MaintainerProcessor.retrieveOwner(ts.getTestClass(), ts.getTestMethod()) : owner;
 
         TestDTO test = TestDTO.builder()
                               .name(ts.getName())
-                              .className(ts.getTestClass().getName())
-                              .methodName(ts.getTestMethod().getName())
-                              .maintainer(owner)
-                              .uuid(ts.getUuid())
                               .startedAt(ts.getStartedAt())
                               .build();
 
-        test = API_CLIENT.registerTestStart(Long.valueOf(testRun.getZebrunnerId()), test);
+        test = API_CLIENT.registerTestStart(testRun.getZebrunnerId(), test, true);
 
-        TestDescriptor testDescriptor = TestDescriptor.create(String.valueOf(test.getId()), ts);
+        TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
         RunContext.putTest(uniqueId, testDescriptor);
+        SessionRegistrar.addTestRef(String.valueOf(test.getId()));
+    }
+
+    @Override
+    public void startTest(String uniqueId, TestStartDescriptor ts) {
+        TestRunDescriptor testRun = RunContext.getRun();
+
+        TestDTO test = TestDTO.builder()
+                              .uuid(ts.getUuid())
+                              .name(ts.getName())
+                              .className(ts.getTestClass().getName())
+                              .methodName(ts.getTestMethod().getName())
+                              .startedAt(ts.getStartedAt())
+                              .build();
+
+        // if owner was not provided try to detect owner by picking annotation value
+        String maintainer = ts.getMaintainer() == null
+                ? MaintainerProcessor.retrieveOwner(ts.getTestClass(), ts.getTestMethod())
+                : ts.getMaintainer();
+        test.setMaintainer(maintainer);
+
+        TestDescriptor headlessTest = RunContext.getCurrentTest();
+        if (headlessTest != null) {
+            test.setId(headlessTest.getZebrunnerId());
+            test = API_CLIENT.registerHeadlessTestUpdate(testRun.getZebrunnerId(), test);
+        } else {
+            test = API_CLIENT.registerTestStart(testRun.getZebrunnerId(), test, false);
+        }
+
+        TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
+        RunContext.putTest(uniqueId, testDescriptor);
+        SessionRegistrar.addTestRef(String.valueOf(test.getId()));
     }
 
     @Override
@@ -75,16 +100,19 @@ class ReportingRegistrar implements TestRunRegistrar {
         TestRunDescriptor testRun = RunContext.getRun();
         TestDescriptor test = RunContext.getTest(uniqueId);
 
+        Long zebrunnerId = test.getZebrunnerId();
         TestDTO result = TestDTO.builder()
-                                .id(Long.valueOf(test.getZebrunnerId()))
+                                .id(zebrunnerId)
                                 .result(tf.getStatus().name())
                                 .reason(tf.getStatusReason())
                                 .endedAt(tf.getEndedAt())
                                 .build();
 
-        API_CLIENT.registerTestFinish(Long.valueOf(testRun.getZebrunnerId()), result);
+        API_CLIENT.registerTestFinish(testRun.getZebrunnerId(), result);
 
         RunContext.completeTest(uniqueId, tf);
+        SessionRegistrar.addTestRef(String.valueOf(zebrunnerId));
+        SessionRegistrar.clearTestRef(String.valueOf(zebrunnerId));
     }
 
     public static ReportingRegistrar getInstance() {

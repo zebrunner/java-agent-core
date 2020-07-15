@@ -36,7 +36,7 @@ public class RerunConditionResolver {
         }
 
         runId = runPatternSlices[0].trim();
-        if (runId.isBlank()) {
+        if (runId.isEmpty()) {
             throw new RuntimeException("Test run can not be empty");
         }
 
