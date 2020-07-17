@@ -10,13 +10,14 @@ import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 import com.zebrunner.agent.core.rest.domain.TestSessionDTO;
 import kong.unirest.Config;
+import kong.unirest.GenericType;
 import kong.unirest.GetRequest;
 import kong.unirest.HttpResponse;
+import kong.unirest.ObjectMapper;
 import kong.unirest.UnirestInstance;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.OffsetDateTime;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -35,10 +36,12 @@ public class ZebrunnerApiClient {
 
     private final String apiHost;
     private final UnirestInstance client;
+    private final ObjectMapper objectMapper;
 
     private ZebrunnerApiClient(String hostname, String accessToken) {
         this.apiHost = hostname;
         this.client = initClient();
+        this.objectMapper = new ObjectMapperImpl();
 
         initAuthorization(accessToken);
     }
@@ -77,90 +80,120 @@ public class ZebrunnerApiClient {
     }
 
     public TestRunDTO registerTestRunStart(TestRunDTO testRun) {
-        HttpResponse<TestRunDTO> response = client.post(reporting("test-runs"))
-                                                  .body(testRun)
-                                                  .queryString("projectKey", ConfigurationHolder.getProjectKey())
-                                                  .asObject(TestRunDTO.class);
+        HttpResponse<String> response = client.post(reporting("test-runs"))
+                                              .body(testRun)
+                                              .queryString("projectKey", ConfigurationHolder.getProjectKey())
+                                              .asString();
 
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to register test run start. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
-        return response.getBody();
+        return objectMapper.readValue(response.getBody(), TestRunDTO.class);
     }
 
     public TestRunDTO registerTestRunFinish(TestRunDTO testRun) {
-        HttpResponse<TestRunDTO> response = client.put(reporting("test-runs/{testRunId}"))
-                                                  .body(testRun)
-                                                  .routeParam("testRunId", String.valueOf(testRun.getId()))
-                                                  .asObject(TestRunDTO.class);
+        HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}"))
+                                              .body(testRun)
+                                              .routeParam("testRunId", String.valueOf(testRun.getId()))
+                                              .asString();
 
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to register test run finish. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
-        return response.getBody();
+        return objectMapper.readValue(response.getBody(), TestRunDTO.class);
     }
 
     public TestDTO registerTestStart(Long testRunId, TestDTO test, boolean headless) {
-        HttpResponse<TestDTO> response = client.post(reporting("test-runs/{testRunId}/tests"))
-                                               .body(test)
-                                               .routeParam("testRunId", String.valueOf(testRunId))
-                                               .queryString("headless", headless)
-                                               .queryString("rerun", RerunContextHolder.isRerun())
-                                               .asObject(TestDTO.class);
+        HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests"))
+                                              .body(test)
+                                              .routeParam("testRunId", String.valueOf(testRunId))
+                                              .queryString("headless", headless)
+                                              .queryString("rerun", RerunContextHolder.isRerun())
+                                              .asString();
 
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to register test start. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
-        return response.getBody();
+        return objectMapper.readValue(response.getBody(), TestDTO.class);
     }
 
     public TestDTO registerHeadlessTestUpdate(Long testRunId, TestDTO test) {
-        HttpResponse<TestDTO> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
-                                               .routeParam("testRunId", String.valueOf(testRunId))
-                                               .routeParam("testId", String.valueOf(test.getId()))
-                                               .queryString("headless", true)
-                                               .body(test)
-                                               .asObject(TestDTO.class);
+        HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                              .routeParam("testRunId", String.valueOf(testRunId))
+                                              .routeParam("testId", String.valueOf(test.getId()))
+                                              .queryString("headless", true)
+                                              .body(test)
+                                              .asString();
 
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to register test start. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
-        return response.getBody();
+        return objectMapper.readValue(response.getBody(), TestDTO.class);
     }
 
     public TestDTO registerTestFinish(Long testRunId, TestDTO test) {
-        HttpResponse<TestDTO> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
-                                               .routeParam("testRunId", String.valueOf(testRunId))
-                                               .routeParam("testId", String.valueOf(test.getId()))
-                                               .queryString("headless", false)
-                                               .body(test)
-                                               .asObject(TestDTO.class);
+        HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                              .routeParam("testRunId", String.valueOf(testRunId))
+                                              .routeParam("testId", String.valueOf(test.getId()))
+                                              .queryString("headless", false)
+                                              .body(test)
+                                              .asString();
 
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to register test finish. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
-        return response.getBody();
+        return objectMapper.readValue(response.getBody(), TestDTO.class);
     }
 
     public void sendLogs(Collection<Log> logs, String testRunId) {
-        HttpResponse<?> response = client.post(reporting("test-runs/{testRunId}/logs"))
-                                         .routeParam("testRunId", testRunId)
-                                         .body(logs)
-                                         .asEmpty();
+        HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/logs"))
+                                              .routeParam("testRunId", testRunId)
+                                              .body(logs)
+                                              .asString();
+
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to send logs. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
     }
 
     public void sendScreenshot(byte[] screenshot, String testRunId, String testId, Long capturedAt) {
-        HttpResponse<?> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}/screenshots"))
-                                         .headerReplace("Content-Type", "image/png")
-                                         .routeParam("testRunId", testRunId)
-                                         .routeParam("testId", testId)
-                                         .header("x-zbr-screenshot-captured-at", capturedAt.toString())
-                                         .body(screenshot)
-                                         .asEmpty();
+        HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}/screenshots"))
+                                              .headerReplace("Content-Type", "image/png")
+                                              .routeParam("testRunId", testRunId)
+                                              .routeParam("testId", testId)
+                                              .header("x-zbr-screenshot-captured-at", capturedAt.toString())
+                                              .body(screenshot)
+                                              .asString();
+
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to send screenshot. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
     }
@@ -168,13 +201,18 @@ public class ZebrunnerApiClient {
     public AuthTokenDTO refreshToken(String token) {
         Map<String, String> request = new HashMap<>();
         request.put("refreshToken", token);
-        HttpResponse<AuthTokenDTO> response = client.post(iam("v1/auth/refresh"))
-                                                    .body(request)
-                                                    .asObject(AuthTokenDTO.class);
+        HttpResponse<String> response = client.post(iam("v1/auth/refresh"))
+                                              .body(request)
+                                              .asString();
+
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to refresh access token. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
-        return response.getBody();
+        return objectMapper.readValue(response.getBody(), AuthTokenDTO.class);
     }
 
     public List<TestDTO> getTestsByCiRunId(RerunCondition rerunCondition) {
@@ -184,25 +222,35 @@ public class ZebrunnerApiClient {
         setTestIds(request, rerunCondition.getTestIds());
         setStatuses(request, rerunCondition.getStatuses());
 
-        HttpResponse<TestDTO[]> response = request.asObject(TestDTO[].class);
+        HttpResponse<String> response = request.asString();
 
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to get tests by ci run id. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
-        return Arrays.asList(response.getBody());
+        return objectMapper.readValue(response.getBody(), new GenericType<List<TestDTO>>() {
+        });
     }
 
     public TestSessionDTO startSession(TestSessionDTO testSession) {
         if (testSession.getStartedAt() == null) {
             testSession.setStartedAt(OffsetDateTime.now());
         }
-        HttpResponse<TestSessionDTO> response = client.post(reporting("test-sessions"))
-                                                      .body(testSession)
-                                                      .asObject(TestSessionDTO.class);
+        HttpResponse<String> response = client.post(reporting("test-sessions"))
+                                              .body(testSession)
+                                              .asString();
+
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to start test session. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
-        return response.getBody();
+        return objectMapper.readValue(response.getBody(), TestSessionDTO.class);
     }
 
     public TestSessionDTO endSession(TestSessionDTO testSession) {
@@ -213,14 +261,19 @@ public class ZebrunnerApiClient {
     }
 
     public TestSessionDTO updateSession(TestSessionDTO testSession) {
-        HttpResponse<TestSessionDTO> response = client.put(reporting("test-sessions/{testSessionId}"))
-                                                      .routeParam("testSessionId", testSession.getId().toString())
-                                                      .body(testSession)
-                                                      .asObject(TestSessionDTO.class);
+        HttpResponse<String> response = client.put(reporting("test-sessions/{testSessionId}"))
+                                              .routeParam("testSessionId", testSession.getId().toString())
+                                              .body(testSession)
+                                              .asString();
+
         if (!response.isSuccess()) {
+            log.error(
+                    "Not able to update test session. HTTP status: {}. Raw response: \n{}",
+                    response.getStatus(), response.getBody()
+            );
             throw new ServerException(response.getStatus(), response.getStatusText());
         }
-        return response.getBody();
+        return objectMapper.readValue(response.getBody(), TestSessionDTO.class);
     }
 
     private void setTestIds(GetRequest request, Set<Long> testIds) {
