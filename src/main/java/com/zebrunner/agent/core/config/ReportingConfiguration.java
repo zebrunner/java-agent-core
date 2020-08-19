@@ -11,13 +11,14 @@ import lombok.Setter;
 @Builder
 public class ReportingConfiguration {
 
-    private Boolean enabled;
+    private Boolean reportingEnabled;
     private String projectKey;
     private ServerConfiguration server;
+    private RunConfiguration run;
     private RerunConfiguration rerun;
 
-    public Boolean isEnabled() {
-        return enabled == null || enabled;
+    public boolean isReportingEnabled() {
+        return reportingEnabled == null || reportingEnabled;
     }
 
     @Getter
@@ -28,6 +29,18 @@ public class ReportingConfiguration {
 
         private String hostname;
         private String accessToken;
+
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RunConfiguration {
+
+        private String displayName;
+        private String build;
+        private String environment;
 
     }
 

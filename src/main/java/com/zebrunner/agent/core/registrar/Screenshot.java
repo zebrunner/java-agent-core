@@ -9,7 +9,7 @@ import java.time.Instant;
 @Slf4j
 public final class Screenshot {
 
-    private static final ZebrunnerApiClient API_CLIENT = ConfigurationHolder.isEnabled()
+    private static final ZebrunnerApiClient API_CLIENT = ConfigurationHolder.isReportingEnabled()
             ? ZebrunnerApiClient.getInstance()
             : null;
 
@@ -22,13 +22,13 @@ public final class Screenshot {
      * @param capturedAtMillis unix timestamp representing a moment in time when screenshot got captured in milliseconds
      */
     public static void upload(byte[] screenshot, Long capturedAtMillis) {
-        if (ConfigurationHolder.isEnabled()) {
+        if (ConfigurationHolder.isReportingEnabled()) {
             capturedAtMillis = capturedAtMillis != null ? capturedAtMillis : Instant.now().toEpochMilli();
 
             String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
             String testId = String.valueOf(RunContext.getCurrentTest().getZebrunnerId());
 
-            API_CLIENT.sendScreenshot(screenshot, testRunId, testId, capturedAtMillis);
+            API_CLIENT.uploadScreenshot(screenshot, testRunId, testId, capturedAtMillis);
         } else {
             log.trace("Screenshot taken: size={}, captureAtMillis={}", screenshot.length, capturedAtMillis);
         }

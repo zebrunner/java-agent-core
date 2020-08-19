@@ -24,7 +24,7 @@ public final class RerunContextHolder {
         if (rerun) {
             result = true;
             // check if enabled
-        } else if (ConfigurationHolder.isEnabled()) {
+        } else if (ConfigurationHolder.isReportingEnabled()) {
             result = RerunResolver.isRerun();
         }
         return result;

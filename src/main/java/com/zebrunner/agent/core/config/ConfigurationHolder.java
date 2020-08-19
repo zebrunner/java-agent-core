@@ -2,26 +2,34 @@ package com.zebrunner.agent.core.config;
 
 public class ConfigurationHolder {
 
-    private static final boolean ENABLED;
+    private static final boolean REPORTING_ENABLED;
     private static final String PROJECT_KEY;
     private static final String HOST;
     private static final String TOKEN;
-    private static final String RUN_ID;
+    private static final String RUN_DISPLAY_NAME;
+    private static final String RUN_BUILD;
+    private static final String RUN_ENVIRONMENT;
+    private static final String RERUN_RUN_ID;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
         ReportingConfiguration configuration = configurationProvider.getConfiguration();
 
-        ENABLED = configuration.isEnabled();
+        REPORTING_ENABLED = configuration.isReportingEnabled();
         PROJECT_KEY = configuration.getProjectKey();
 
         HOST = configuration.getServer().getHostname();
         TOKEN = configuration.getServer().getAccessToken();
-        RUN_ID = configuration.getRerun().getRunId();
+
+        RUN_DISPLAY_NAME = configuration.getRun().getDisplayName();
+        RUN_BUILD = configuration.getRun().getBuild();
+        RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
+
+        RERUN_RUN_ID = configuration.getRerun().getRunId();
     }
 
-    public static boolean isEnabled() {
-        return ENABLED;
+    public static boolean isReportingEnabled() {
+        return REPORTING_ENABLED;
     }
 
     public static String getProjectKey() {
@@ -36,8 +44,20 @@ public class ConfigurationHolder {
         return TOKEN;
     }
 
-    public static String getRunId() {
-        return RUN_ID;
+    public static String getRunDisplayName() {
+        return RUN_DISPLAY_NAME;
+    }
+
+    public static String getRunBuild() {
+        return RUN_BUILD;
+    }
+
+    public static String getRunEnvironment() {
+        return RUN_ENVIRONMENT;
+    }
+
+    public static String getRerunRunId() {
+        return RERUN_RUN_ID;
     }
 
 }
