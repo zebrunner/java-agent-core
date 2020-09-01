@@ -17,7 +17,7 @@ public interface TestRunRegistrar {
      * @return Zebrunner registrar instance
      */
     static TestRunRegistrar registrar() {
-        if (ConfigurationHolder.isEnabled()) {
+        if (ConfigurationHolder.isReportingEnabled()) {
             return ReportingRegistrar.getInstance();
         } else {
             LOGGER.warn("Reporting disabled: using no op test run registrar");

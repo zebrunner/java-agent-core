@@ -23,6 +23,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
     @Override
     public ReportingConfiguration getConfiguration() {
         ReportingConfiguration config = ReportingConfiguration.builder()
+                                                              .run(new ReportingConfiguration.RunConfiguration())
                                                               .server(new ReportingConfiguration.ServerConfiguration())
                                                               .rerun(new ReportingConfiguration.RerunConfiguration())
                                                               .build();
@@ -61,6 +62,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
 
     private static void normalize(ReportingConfiguration config) {
         normalizeServerConfiguration(config);
+        normalizeRunConfiguration(config);
         normalizeRerunConfiguration(config);
     }
 
@@ -76,6 +78,26 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             }
             if (accessToken != null && accessToken.isEmpty()) {
                 serverConfig.setAccessToken(null);
+            }
+        }
+    }
+
+    private static void normalizeRunConfiguration(ReportingConfiguration config) {
+        if (config.getRun() == null) {
+            config.setRerun(new ReportingConfiguration.RerunConfiguration());
+        } else {
+            ReportingConfiguration.RunConfiguration runConfig = config.getRun();
+            String displayName = runConfig.getDisplayName();
+            String build = runConfig.getBuild();
+            String environment = runConfig.getEnvironment();
+            if (displayName != null && displayName.isEmpty()) {
+                runConfig.setDisplayName(null);
+            }
+            if (build != null && build.isEmpty()) {
+                runConfig.setBuild(null);
+            }
+            if (environment != null && environment.isEmpty()) {
+                runConfig.setEnvironment(null);
             }
         }
     }
@@ -99,8 +121,8 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
      * @param providedConfig configuration from current configuration provider
      */
     private static void merge(ReportingConfiguration config, ReportingConfiguration providedConfig) {
-        if (config.getEnabled() == null) {
-            config.setEnabled(providedConfig.getEnabled());
+        if (config.getReportingEnabled() == null) {
+            config.setReportingEnabled(providedConfig.getReportingEnabled());
         }
 
         if (config.getProjectKey() == null) {
@@ -115,6 +137,17 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             server.setAccessToken(providedConfig.getServer().getAccessToken());
         }
 
+        ReportingConfiguration.RunConfiguration run = config.getRun();
+        if (run.getDisplayName() == null) {
+            run.setDisplayName(providedConfig.getRun().getDisplayName());
+        }
+        if (run.getBuild() == null) {
+            run.setBuild(providedConfig.getRun().getBuild());
+        }
+        if (run.getEnvironment() == null) {
+            run.setEnvironment(providedConfig.getRun().getEnvironment());
+        }
+
         ReportingConfiguration.RerunConfiguration rerun = config.getRerun();
         if (rerun.getRunId() == null) {
             rerun.setRunId(providedConfig.getRerun().getRunId());
@@ -126,19 +159,26 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         ReportingConfiguration.ServerConfiguration server = config.getServer();
 
         // no need to check anything if reporting is disabled
-        return !config.isEnabled() || (server.getHostname() != null && server.getAccessToken() != null);
+        return !config.isReportingEnabled() || (server.getHostname() != null && server.getAccessToken() != null);
     }
 
     private static boolean areAllArgsSet(ReportingConfiguration config) {
-        Boolean enabled = config.getEnabled();
+        Boolean enabled = config.getReportingEnabled();
         String projectKey = config.getProjectKey();
         String hostname = config.getServer().getHostname();
         String accessToken = config.getServer().getAccessToken();
+        String displayName = config.getRun().getDisplayName();
+        String build = config.getRun().getBuild();
+        String environment = config.getRun().getEnvironment();
         String runId = config.getRerun().getRunId();
 
-        boolean allArgsExist = enabled != null && projectKey != null && hostname != null && accessToken != null && runId != null;
+        boolean allArgsExist = enabled != null
+                && projectKey != null
+                && hostname != null && accessToken != null
+                && displayName != null && build != null && environment != null
+                && runId != null;
 
-        return !config.isEnabled() || allArgsExist;
+        return !config.isReportingEnabled() || allArgsExist;
     }
 
 }

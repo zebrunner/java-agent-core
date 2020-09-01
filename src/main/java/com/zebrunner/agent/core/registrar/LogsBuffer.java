@@ -12,7 +12,7 @@ public interface LogsBuffer<E> {
     Logger LOGGER = LoggerFactory.getLogger(TestRunRegistrar.class);
 
     static <E> LogsBuffer<E> create(Function<E, Log> converter) {
-        if (ConfigurationHolder.isEnabled()) {
+        if (ConfigurationHolder.isReportingEnabled()) {
             return new FlushingLogsBuffer<>(converter);
         } else {
             LOGGER.warn("Reporting disabled: using no op logs buffer");

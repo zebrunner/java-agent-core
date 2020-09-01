@@ -10,13 +10,16 @@ import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 import com.zebrunner.agent.core.rest.domain.TestSessionDTO;
 import kong.unirest.Config;
+import kong.unirest.ContentType;
 import kong.unirest.GenericType;
 import kong.unirest.GetRequest;
 import kong.unirest.HttpResponse;
 import kong.unirest.ObjectMapper;
+import kong.unirest.Unirest;
 import kong.unirest.UnirestInstance;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,6 +34,9 @@ public class ZebrunnerApiClient {
 
     private final static String REPORTING_ENDPOINT_FORMAT = "%s/api/reporting/v1/%s";
     private final static String IAM_ENDPOINT_FORMAT = "%s/api/iam/%s";
+
+    private static final String MULTIPART_MIME_TYPE = ContentType.MULTIPART_FORM_DATA.getMimeType();
+    private static final String IMAGE_PNG_MIME_TYPE = ContentType.IMAGE_PNG.getMimeType();
 
     private static ZebrunnerApiClient INSTANCE;
 
@@ -180,9 +186,9 @@ public class ZebrunnerApiClient {
         }
     }
 
-    public void sendScreenshot(byte[] screenshot, String testRunId, String testId, Long capturedAt) {
+    public void uploadScreenshot(byte[] screenshot, String testRunId, String testId, Long capturedAt) {
         HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}/screenshots"))
-                                              .headerReplace("Content-Type", "image/png")
+                                              .headerReplace("Content-Type", IMAGE_PNG_MIME_TYPE)
                                               .routeParam("testRunId", testRunId)
                                               .routeParam("testId", testId)
                                               .header("x-zbr-screenshot-captured-at", capturedAt.toString())
@@ -195,6 +201,21 @@ public class ZebrunnerApiClient {
                     response.getStatus(), response.getBody()
             );
             throw new ServerException(response.getStatus(), response.getStatusText());
+        }
+    }
+
+    public void uploadArtifact(InputStream artifact, String name, String testRunId, String testId) {
+        HttpResponse<String> response = Unirest.post(reporting("test-runs/{testRunId}/tests/{testId}/artifacts"))
+                                               .routeParam("testRunId", testRunId)
+                                               .routeParam("testId", testId)
+                                               .field("file", artifact, name)
+                                               .asString();
+
+        if (!response.isSuccess()) {
+            log.error(
+                    "Not able to send artifact with name {}. HTTP status: {}. Raw response: \n{}",
+                    name, response.getStatus(), response.getBody()
+            );
         }
     }
 

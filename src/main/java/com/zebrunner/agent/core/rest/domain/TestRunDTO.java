@@ -5,14 +5,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Value;
 
 import java.time.OffsetDateTime;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class TestRunDTO {
 
     private Long id;
@@ -21,17 +22,28 @@ public class TestRunDTO {
     private OffsetDateTime startedAt;
     private OffsetDateTime endedAt;
     private String framework;
-    // TODO: 3/23/20 add test run config
+    private Config config;
     private LaunchContextDTO launchContext;
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Value
     public static class LaunchContextDTO {
 
-        private String jobNumber;
-        private String upstreamJobNumber;
+        String jobNumber;
+        String upstreamJobNumber;
+
+    }
+
+    @Getter
+    public static class Config {
+
+        private final String environment;
+        private final String build;
+
+        public Config(String environment, String build) {
+            this.environment = environment;
+            this.build = build;
+        }
+
     }
 
 }

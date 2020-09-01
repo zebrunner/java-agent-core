@@ -1,5 +1,6 @@
 package com.zebrunner.agent.core.registrar;
 
+import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.reporting.MaintainerProcessor;
 import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
@@ -16,12 +17,20 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void start(TestRunStartDescriptor tr) {
+        String name = ConfigurationHolder.getRunDisplayName();
+        if (name == null) {
+            name = tr.getName();
+        }
+
         TestRunDTO testRun = TestRunDTO.builder()
                                        .uuid(RerunResolver.getRunId())
-                                       .name(tr.getName())
+                                       .name(name)
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
-                                       // temporarily returning back the launch context with id 1
+                                       .config(new TestRunDTO.Config(
+                                               ConfigurationHolder.getRunEnvironment(),
+                                               ConfigurationHolder.getRunBuild()
+                                       ))
                                        .build();
 
         testRun = API_CLIENT.registerTestRunStart(testRun);

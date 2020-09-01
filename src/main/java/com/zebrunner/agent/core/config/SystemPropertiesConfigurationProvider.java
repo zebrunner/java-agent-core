@@ -6,8 +6,14 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
     private final static String PROJECT_KEY_PROPERTY = "reporting.projectKey";
+
     private final static String HOSTNAME_PROPERTY = "reporting.server.hostname";
     private final static String ACCESS_TOKEN_PROPERTY = "reporting.server.accessToken";
+
+    private final static String RUN_DISPLAY_NAME_PROPERTY = "reporting.run.displayName";
+    private final static String RUN_BUILD_PROPERTY = "reporting.run.build";
+    private final static String RUN_ENVIRONMENT_PROPERTY = "reporting.run.environment";
+
     private final static String RUN_ID_PROPERTY = "reporting.rerun.runId";
 
     @Override
@@ -16,21 +22,23 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         String projectKey = System.getProperty(PROJECT_KEY_PROPERTY);
         String hostname = System.getProperty(HOSTNAME_PROPERTY);
         String accessToken = System.getProperty(ACCESS_TOKEN_PROPERTY);
+        String displayName = System.getProperty(RUN_DISPLAY_NAME_PROPERTY);
+        String build = System.getProperty(RUN_BUILD_PROPERTY);
+        String environment = System.getProperty(RUN_ENVIRONMENT_PROPERTY);
         String runId = System.getProperty(RUN_ID_PROPERTY);
 
-        boolean enabledIsBoolean = enabled == null
-                || String.valueOf(true).equalsIgnoreCase(enabled)
-                || String.valueOf(false).equalsIgnoreCase(enabled);
-        if (!enabledIsBoolean) {
+        if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("System properties configuration is malformed, skipping");
         }
 
         Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
         return ReportingConfiguration.builder()
-                                     .enabled(reportingEnabled)
+                                     .reportingEnabled(reportingEnabled)
                                      .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
-                                     .rerun(new ReportingConfiguration.RerunConfiguration(runId)).build();
+                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
+                                     .rerun(new ReportingConfiguration.RerunConfiguration(runId))
+                                     .build();
     }
 
 }
