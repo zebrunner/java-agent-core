@@ -1,7 +1,8 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.reporting.MaintainerProcessor;
+import com.zebrunner.agent.core.registrar.label.CompositeLabelResolver;
+import com.zebrunner.agent.core.registrar.label.LabelResolver;
 import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
@@ -9,6 +10,7 @@ import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 class ReportingRegistrar implements TestRunRegistrar {
 
     private static final ReportingRegistrar INSTANCE = new ReportingRegistrar();
+    private static final LabelResolver LABEL_RESOLVER = new CompositeLabelResolver();
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
     static {
@@ -17,14 +19,9 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void start(TestRunStartDescriptor tr) {
-        String name = ConfigurationHolder.getRunDisplayName();
-        if (name == null) {
-            name = tr.getName();
-        }
-
         TestRunDTO testRun = TestRunDTO.builder()
                                        .uuid(RerunResolver.getRunId())
-                                       .name(name)
+                                       .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
                                        .config(new TestRunDTO.Config(
@@ -77,6 +74,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .name(ts.getName())
                               .className(ts.getTestClass().getName())
                               .methodName(ts.getTestMethod().getName())
+                              .labels(LABEL_RESOLVER.resolve(ts.getTestClass(), ts.getTestMethod()))
                               .startedAt(ts.getStartedAt())
                               .build();
 

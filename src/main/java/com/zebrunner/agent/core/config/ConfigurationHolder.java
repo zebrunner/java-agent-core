@@ -44,8 +44,8 @@ public class ConfigurationHolder {
         return TOKEN;
     }
 
-    public static String getRunDisplayName() {
-        return RUN_DISPLAY_NAME;
+    public static String getRunDisplayNameOr(String displayName) {
+        return RUN_DISPLAY_NAME != null ? RUN_DISPLAY_NAME : displayName;
     }
 
     public static String getRunBuild() {

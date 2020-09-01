@@ -13,6 +13,7 @@ import kong.unirest.Config;
 import kong.unirest.ContentType;
 import kong.unirest.GenericType;
 import kong.unirest.GetRequest;
+import kong.unirest.HeaderNames;
 import kong.unirest.HttpResponse;
 import kong.unirest.ObjectMapper;
 import kong.unirest.Unirest;
@@ -35,12 +36,10 @@ public class ZebrunnerApiClient {
     private final static String REPORTING_ENDPOINT_FORMAT = "%s/api/reporting/v1/%s";
     private final static String IAM_ENDPOINT_FORMAT = "%s/api/iam/%s";
 
-    private static final String MULTIPART_MIME_TYPE = ContentType.MULTIPART_FORM_DATA.getMimeType();
-    private static final String IMAGE_PNG_MIME_TYPE = ContentType.IMAGE_PNG.getMimeType();
-
     private static ZebrunnerApiClient INSTANCE;
 
     private final String apiHost;
+    private final String authToken;
     private final UnirestInstance client;
     private final ObjectMapper objectMapper;
 
@@ -49,7 +48,11 @@ public class ZebrunnerApiClient {
         this.client = initClient();
         this.objectMapper = new ObjectMapperImpl();
 
-        initAuthorization(accessToken);
+        AuthTokenDTO authTokenDTO = refreshToken(accessToken);
+        authToken = authTokenDTO.getAuthTokenType() + " " + authTokenDTO.getAuthToken();
+
+        Config config = client.config();
+        config.addDefaultHeader(HeaderNames.AUTHORIZATION, authToken);
     }
 
     public static synchronized ZebrunnerApiClient getInstance() {
@@ -76,13 +79,6 @@ public class ZebrunnerApiClient {
         config.addDefaultHeader("Accept", "application/json");
         config.setObjectMapper(new ObjectMapperImpl());
         return new UnirestInstance(config);
-    }
-
-    private void initAuthorization(String accessToken) {
-        AuthTokenDTO authTokenDTO = refreshToken(accessToken);
-
-        Config config = client.config();
-        config.addDefaultHeader("Authorization", authTokenDTO.getAuthTokenType() + " " + authTokenDTO.getAuthToken());
     }
 
     public TestRunDTO registerTestRunStart(TestRunDTO testRun) {
@@ -188,7 +184,7 @@ public class ZebrunnerApiClient {
 
     public void uploadScreenshot(byte[] screenshot, String testRunId, String testId, Long capturedAt) {
         HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}/screenshots"))
-                                              .headerReplace("Content-Type", IMAGE_PNG_MIME_TYPE)
+                                              .headerReplace("Content-Type", ContentType.IMAGE_PNG.getMimeType())
                                               .routeParam("testRunId", testRunId)
                                               .routeParam("testId", testId)
                                               .header("x-zbr-screenshot-captured-at", capturedAt.toString())
@@ -206,6 +202,7 @@ public class ZebrunnerApiClient {
 
     public void uploadArtifact(InputStream artifact, String name, String testRunId, String testId) {
         HttpResponse<String> response = Unirest.post(reporting("test-runs/{testRunId}/tests/{testId}/artifacts"))
+                                               .header(HeaderNames.AUTHORIZATION, authToken)
                                                .routeParam("testRunId", testRunId)
                                                .routeParam("testId", testId)
                                                .field("file", artifact, name)
