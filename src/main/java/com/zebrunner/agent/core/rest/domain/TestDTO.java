@@ -26,7 +26,7 @@ public class TestDTO {
     private OffsetDateTime endedAt;
     private String maintainer;
     private String testCase;
-    private List<String> tags;
+    private Map<String, List<String>> labels;
     private Map<String, String> additionalAttributes;
     private String result;
     private String reason;

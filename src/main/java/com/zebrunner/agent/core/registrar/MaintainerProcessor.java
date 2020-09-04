@@ -1,11 +1,13 @@
-package com.zebrunner.agent.core.reporting;
+package com.zebrunner.agent.core.registrar;
+
+import com.zebrunner.agent.core.annotation.Maintainer;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Method;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MaintainerProcessor {
-
-    private MaintainerProcessor() {
-    }
 
     /**
      * Retrieves owner from {@link Maintainer} annotation declared on test class or on test method
@@ -13,7 +15,8 @@ public final class MaintainerProcessor {
      * 1. Test method owner
      * 2. Test class owner
      * 3. Suite owner
-     * @param klass test class
+     *
+     * @param klass  test class
      * @param method test method
      * @return maintainer name, email or id
      */
@@ -23,7 +26,7 @@ public final class MaintainerProcessor {
         if (method != null && method.isAnnotationPresent(Maintainer.class)) {
             maintainer = method.getDeclaredAnnotation(Maintainer.class);
         } else if (klass != null && klass.isAnnotationPresent(Maintainer.class)) {
-            maintainer = klass.getDeclaredAnnotation(Maintainer.class);
+            maintainer = klass.getAnnotation(Maintainer.class);
         }
 
         return maintainer != null ? maintainer.value() : null;
