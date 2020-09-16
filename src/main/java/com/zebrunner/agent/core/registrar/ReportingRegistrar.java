@@ -3,6 +3,8 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.registrar.label.CompositeLabelResolver;
 import com.zebrunner.agent.core.registrar.label.LabelResolver;
+import com.zebrunner.agent.core.registrar.maintainer.ChainedMaintainerResolver;
+import com.zebrunner.agent.core.registrar.maintainer.MaintainerResolver;
 import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
@@ -11,6 +13,7 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     private static final ReportingRegistrar INSTANCE = new ReportingRegistrar();
     private static final LabelResolver LABEL_RESOLVER = new CompositeLabelResolver();
+    private static final MaintainerResolver MAINTAINER_RESOLVER = new ChainedMaintainerResolver();
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
     static {
@@ -74,15 +77,10 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .name(ts.getName())
                               .className(ts.getTestClass().getName())
                               .methodName(ts.getTestMethod().getName())
+                              .maintainer(MAINTAINER_RESOLVER.resolve(ts.getTestClass(), ts.getTestMethod()))
                               .labels(LABEL_RESOLVER.resolve(ts.getTestClass(), ts.getTestMethod()))
                               .startedAt(ts.getStartedAt())
                               .build();
-
-        // if owner was not provided try to detect owner by picking annotation value
-        String maintainer = ts.getMaintainer() == null
-                ? MaintainerProcessor.retrieveOwner(ts.getTestClass(), ts.getTestMethod())
-                : ts.getMaintainer();
-        test.setMaintainer(maintainer);
 
         TestDescriptor headlessTest = RunContext.getCurrentTest();
         if (headlessTest != null) {
