@@ -18,7 +18,7 @@ public class ReportingConfiguration {
     private RerunConfiguration rerun;
 
     public boolean isReportingEnabled() {
-        return reportingEnabled == null || reportingEnabled;
+        return reportingEnabled != null && reportingEnabled;
     }
 
     @Getter

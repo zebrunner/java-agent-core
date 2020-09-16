@@ -172,13 +172,11 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         String environment = config.getRun().getEnvironment();
         String runId = config.getRerun().getRunId();
 
-        boolean allArgsExist = enabled != null
+        return enabled != null
                 && projectKey != null
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null
                 && runId != null;
-
-        return !config.isReportingEnabled() || allArgsExist;
     }
 
 }

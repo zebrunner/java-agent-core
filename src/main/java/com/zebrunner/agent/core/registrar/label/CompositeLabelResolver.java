@@ -1,29 +1,38 @@
 package com.zebrunner.agent.core.registrar.label;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CompositeLabelResolver implements LabelResolver {
+public final class CompositeLabelResolver implements LabelResolver {
 
-    private final List<LabelResolver> downstreamResolvers = Arrays.asList(
-            new TestLabelResolver(),
-            new PriorityLabelResolver(),
-            new JiraReferenceLabelResolver(),
-            new XRayReferenceLabelResolver(),
-            new QTestReferenceLabelResolver(),
-            new TestRailReferenceLabelResolver()
-    );
+    private static final Set<LabelResolver> RESOLVERS = new HashSet<>();
+
+    static {
+        addResolver(new TestLabelResolver());
+        addResolver(new PriorityLabelResolver());
+        addResolver(new JiraReferenceLabelResolver());
+        addResolver(new XRayReferenceLabelResolver());
+        addResolver(new QTestReferenceLabelResolver());
+        addResolver(new TestRailReferenceLabelResolver());
+    }
+
+    public static void addResolver(LabelResolver labelResolver) {
+        if (!(labelResolver instanceof CompositeLabelResolver)) {
+            RESOLVERS.add(labelResolver);
+        }
+    }
 
     @Override
     public Map<String, List<String>> resolve(Class<?> clazz, Method method) {
-        return downstreamResolvers.stream()
-                                  .map(labelResolver -> labelResolver.resolve(clazz, method))
-                                  .filter(Objects::nonNull)
-                                  .flatMap(map -> map.entrySet().stream())
-                                  .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return RESOLVERS.stream()
+                        .map(labelResolver -> labelResolver.resolve(clazz, method))
+                        .filter(Objects::nonNull)
+                        .flatMap(map -> map.entrySet().stream())
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

@@ -1,6 +1,5 @@
 package com.zebrunner.agent.core.registrar;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -14,7 +13,6 @@ import java.time.OffsetDateTime;
  */
 @Getter
 @ToString
-@AllArgsConstructor
 @RequiredArgsConstructor
 public class TestStartDescriptor {
 
@@ -31,13 +29,6 @@ public class TestStartDescriptor {
      * from test metadata that is supplied by test framework and otherwise tracked manually on agent side.
      */
     private final OffsetDateTime startedAt;
-
-    /**
-     * A person who is responsible for this test maintenance. This value is optional and can be explicitly set.
-     * If it is not set agent will perform a lookup of {@link com.zebrunner.agent.core.reporting.Maintainer} annotation
-     * on test methods and classes and will try to derive maintainer from there. Otherwise it will be left empty.
-     */
-    private String maintainer;
 
     /**
      * Test class. This one can be obtained either from test metadata supplied by test framework or

@@ -1,4 +1,4 @@
-package com.zebrunner.agent.core.registrar;
+package com.zebrunner.agent.core.registrar.maintainer;
 
 import com.zebrunner.agent.core.annotation.Maintainer;
 import lombok.AccessLevel;
@@ -6,21 +6,11 @@ import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Method;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class MaintainerProcessor {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public final class AnnotationMaintainerResolver implements MaintainerResolver {
 
-    /**
-     * Retrieves owner from {@link Maintainer} annotation declared on test class or on test method
-     * Priorities:
-     * 1. Test method owner
-     * 2. Test class owner
-     * 3. Suite owner
-     *
-     * @param klass  test class
-     * @param method test method
-     * @return maintainer name, email or id
-     */
-    public static String retrieveOwner(Class<?> klass, Method method) {
+    @Override
+    public String resolve(Class<?> klass, Method method) {
         Maintainer maintainer = null;
 
         if (method != null && method.isAnnotationPresent(Maintainer.class)) {
