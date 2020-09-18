@@ -13,9 +13,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Slf4j
 public final class Artifact {
+
+    private static final Executor UPLOAD_EXECUTOR = Executors.newFixedThreadPool(10);
 
     private static final ZebrunnerApiClient API_CLIENT = ConfigurationHolder.isReportingEnabled()
             ? ZebrunnerApiClient.getInstance()
@@ -26,7 +30,7 @@ public final class Artifact {
             String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
             String testId = String.valueOf(RunContext.getCurrentTest().getZebrunnerId());
 
-            API_CLIENT.uploadArtifact(artifact, name, testRunId, testId);
+            UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadArtifact(artifact, name, testRunId, testId));
         } else {
             log.trace("Artifact is taken: name={}", name);
         }
