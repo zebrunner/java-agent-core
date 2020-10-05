@@ -25,4 +25,15 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.10")
 }
 
+jar {
+    manifest {
+        attributes(
+                "Premain-Class": "com.zebrunner.agent.core.agent.CoreAgent",
+                "Can-Redefine-Classes": false,
+                "Can-Retransform-Classes": true,
+                "Build-Jdk": "1.8.0_152"
+        )
+    }
+}
+
 apply from: 'publish-maven.gradle'
