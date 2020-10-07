@@ -13,20 +13,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public final class Artifact {
 
-    private static final ZebrunnerApiClient API_CLIENT = ConfigurationHolder.isReportingEnabled()
-            ? ZebrunnerApiClient.getInstance()
-            : null;
+    private static final ExecutorService UPLOAD_EXECUTOR;
+    private static final ZebrunnerApiClient API_CLIENT;
+
+    static {
+        UPLOAD_EXECUTOR = Executors.newFixedThreadPool(10);
+        API_CLIENT = ConfigurationHolder.isReportingEnabled()
+                ? ZebrunnerApiClient.getInstance()
+                : null;
+
+        Runtime.getRuntime().addShutdownHook(new Thread(Artifact::shutdown));
+    }
 
     public static void upload(InputStream artifact, String name) {
         if (ConfigurationHolder.isReportingEnabled()) {
             String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
             String testId = String.valueOf(RunContext.getCurrentTest().getZebrunnerId());
 
-            API_CLIENT.uploadArtifact(artifact, name, testRunId, testId);
+            UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadArtifact(artifact, name, testRunId, testId));
         } else {
             log.trace("Artifact is taken: name={}", name);
         }
@@ -49,6 +60,15 @@ public final class Artifact {
             upload(Files.newInputStream(artifact), name);
         } catch (IOException e) {
             throw new ArtifactUploadException("Unable to upload artifact with name " + name, e);
+        }
+    }
+
+    private static void shutdown() {
+        UPLOAD_EXECUTOR.shutdown();
+        try {
+            UPLOAD_EXECUTOR.awaitTermination(60, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
         }
     }
 
