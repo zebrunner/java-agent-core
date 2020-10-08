@@ -3,7 +3,6 @@ package com.zebrunner.agent.core.agent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.pool.TypePool;
 
 import java.lang.instrument.Instrumentation;
@@ -31,7 +30,7 @@ public class TestSessionProxyingListener implements PremainInvocationListener {
 
         new AgentBuilder.Default()
                 .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
-                .type(ElementMatchers.named(REMOTE_WEB_DRIVER_CLASS_MAME))
+                .type(named(REMOTE_WEB_DRIVER_CLASS_MAME))
                 .transform((builder, type, classloader, module) -> builder.method(named(START_SESSION_METHOD_MAME))
                                                                           .intercept(MethodDelegation.to(startSession))
                                                                           .method(named(QUIT_METHOD_MAME))

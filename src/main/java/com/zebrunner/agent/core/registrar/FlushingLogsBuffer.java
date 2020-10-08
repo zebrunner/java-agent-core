@@ -26,7 +26,7 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
     private static final AtomicBoolean EXECUTOR_ENABLED = new AtomicBoolean();
 
-    private static Queue<Log> QUEUE = new ConcurrentLinkedQueue<>();
+    private static volatile Queue<Log> QUEUE = new ConcurrentLinkedQueue<>();
     private final Function<E, Log> converter;
 
     /**
@@ -64,7 +64,7 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
         FLUSH_EXECUTOR.scheduleWithFixedDelay(FlushingLogsBuffer::flush, 1, 1, TimeUnit.SECONDS);
     }
 
-    private synchronized static void flush() {
+    private static void flush() {
         if (!QUEUE.isEmpty()) {
             String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
             Queue<Log> logsBatch = QUEUE;
