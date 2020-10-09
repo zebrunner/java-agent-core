@@ -68,7 +68,6 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
         RunContext.putTest(uniqueId, testDescriptor);
-        SessionRegistrar.addTestRef(String.valueOf(test.getId()));
     }
 
     @Override
@@ -94,7 +93,6 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
         RunContext.putTest(uniqueId, testDescriptor);
-        SessionRegistrar.addTestRef(String.valueOf(test.getId()));
     }
 
     @Override
@@ -125,8 +123,6 @@ class ReportingRegistrar implements TestRunRegistrar {
         API_CLIENT.registerTestFinish(testRun.getZebrunnerId(), result);
 
         RunContext.completeTest(uniqueId, tf);
-        SessionRegistrar.addTestRef(String.valueOf(zebrunnerId));
-        SessionRegistrar.clearTestRef(String.valueOf(zebrunnerId));
     }
 
     public static ReportingRegistrar getInstance() {

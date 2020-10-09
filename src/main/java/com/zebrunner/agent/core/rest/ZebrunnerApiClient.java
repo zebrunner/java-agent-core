@@ -8,7 +8,6 @@ import com.zebrunner.agent.core.rerun.RerunCondition;
 import com.zebrunner.agent.core.rest.domain.AuthTokenDTO;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
-import com.zebrunner.agent.core.rest.domain.TestSessionDTO;
 import kong.unirest.Config;
 import kong.unirest.ContentType;
 import kong.unirest.GenericType;
@@ -21,7 +20,6 @@ import kong.unirest.UnirestInstance;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
-import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -251,47 +249,6 @@ public class ZebrunnerApiClient {
         }
         return objectMapper.readValue(response.getBody(), new GenericType<List<TestDTO>>() {
         });
-    }
-
-    public TestSessionDTO startSession(TestSessionDTO testSession) {
-        if (testSession.getStartedAt() == null) {
-            testSession.setStartedAt(OffsetDateTime.now());
-        }
-        HttpResponse<String> response = client.post(reporting("test-sessions"))
-                                              .body(testSession)
-                                              .asString();
-
-        if (!response.isSuccess()) {
-            log.error(
-                    "Not able to start test session. HTTP status: {}. Raw response: \n{}",
-                    response.getStatus(), response.getBody()
-            );
-            throw new ServerException(response.getStatus(), response.getStatusText());
-        }
-        return objectMapper.readValue(response.getBody(), TestSessionDTO.class);
-    }
-
-    public TestSessionDTO endSession(TestSessionDTO testSession) {
-        if (testSession.getEndedAt() == null) {
-            testSession.setEndedAt(OffsetDateTime.now());
-        }
-        return updateSession(testSession);
-    }
-
-    public TestSessionDTO updateSession(TestSessionDTO testSession) {
-        HttpResponse<String> response = client.put(reporting("test-sessions/{testSessionId}"))
-                                              .routeParam("testSessionId", testSession.getId().toString())
-                                              .body(testSession)
-                                              .asString();
-
-        if (!response.isSuccess()) {
-            log.error(
-                    "Not able to update test session. HTTP status: {}. Raw response: \n{}",
-                    response.getStatus(), response.getBody()
-            );
-            throw new ServerException(response.getStatus(), response.getStatusText());
-        }
-        return objectMapper.readValue(response.getBody(), TestSessionDTO.class);
     }
 
     private void setTestIds(GetRequest request, Set<Long> testIds) {
