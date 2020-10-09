@@ -21,7 +21,7 @@ publishing {
 
             pom {
                 name = 'Zebrunner Agent core (Java)'
-                description = 'Zebrunnere Agent core component aimed to simplify development of agents for Java-based test frameworks'
+                description = 'Zebrunner Agent core component aimed to simplify development of agents for Java-based test frameworks'
                 url = 'https://github.com/zebrunner/java-agent-core'
                 organization {
                     name = 'Zebrunner'
@@ -43,6 +43,11 @@ publishing {
                         id = 'brutskov'
                         name = 'Bogdan Rutskov'
                         email = 'brutskov@zebrunner.com'
+                    }
+                    developer {
+                        id = 'sbrenko'
+                        name = 'Sergey Brenko'
+                        email = 'sbrenko@zebrunner.com'
                     }
                 }
                 scm {
