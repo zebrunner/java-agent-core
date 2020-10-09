@@ -27,7 +27,7 @@ public class TestDTO {
     private String maintainer;
     private String testCase;
     private Map<String, List<String>> labels;
-    private Map<String, String> additionalAttributes;
+    private List<ArtifactReferenceDTO> artifactReferences;
     private String result;
     private String reason;
 

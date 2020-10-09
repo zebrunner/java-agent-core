@@ -9,6 +9,9 @@ import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 
+import java.util.List;
+import java.util.Map;
+
 class ReportingRegistrar implements TestRunRegistrar {
 
     private static final ReportingRegistrar INSTANCE = new ReportingRegistrar();
@@ -78,7 +81,6 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .className(ts.getTestClass().getName())
                               .methodName(ts.getTestMethod().getName())
                               .maintainer(MAINTAINER_RESOLVER.resolve(ts.getTestClass(), ts.getTestMethod()))
-                              .labels(LABEL_RESOLVER.resolve(ts.getTestClass(), ts.getTestMethod()))
                               .startedAt(ts.getStartedAt())
                               .build();
 
@@ -103,14 +105,21 @@ class ReportingRegistrar implements TestRunRegistrar {
     @Override
     public void finishTest(String uniqueId, TestFinishDescriptor tf) {
         TestRunDescriptor testRun = RunContext.getRun();
-        TestDescriptor test = RunContext.getTest(uniqueId);
+        TestDescriptor testDescriptor = RunContext.getTest(uniqueId);
 
-        Long zebrunnerId = test.getZebrunnerId();
+        TestStartDescriptor testStartDescriptor = testDescriptor.getStartDescriptor();
+        Map<String, List<String>> labels = LABEL_RESOLVER.resolve(
+                testStartDescriptor.getTestClass(), testStartDescriptor.getTestMethod()
+        );
+
+        Long zebrunnerId = testDescriptor.getZebrunnerId();
         TestDTO result = TestDTO.builder()
                                 .id(zebrunnerId)
                                 .result(tf.getStatus().name())
                                 .reason(tf.getStatusReason())
                                 .endedAt(tf.getEndedAt())
+                                .labels(labels)
+                                .artifactReferences(ArtifactReference.popAll())
                                 .build();
 
         API_CLIENT.registerTestFinish(testRun.getZebrunnerId(), result);

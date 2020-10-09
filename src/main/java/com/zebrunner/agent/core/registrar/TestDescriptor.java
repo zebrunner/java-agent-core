@@ -19,6 +19,10 @@ class TestDescriptor {
         this.finishDescriptor = finishDescriptor;
     }
 
+    TestStartDescriptor getStartDescriptor() {
+        return startDescriptor;
+    }
+
     Long getZebrunnerId() {
         return zebrunnerId;
     }
