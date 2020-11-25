@@ -8,16 +8,20 @@ import com.zebrunner.agent.core.registrar.maintainer.MaintainerResolver;
 import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
 import com.zebrunner.agent.core.rest.domain.TestDTO;
 import com.zebrunner.agent.core.rest.domain.TestRunDTO;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+@Slf4j
 class ReportingRegistrar implements TestRunRegistrar {
 
     private static final ReportingRegistrar INSTANCE = new ReportingRegistrar();
     private static final LabelResolver LABEL_RESOLVER = new CompositeLabelResolver();
     private static final MaintainerResolver MAINTAINER_RESOLVER = new ChainedMaintainerResolver();
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
+    private static final String CI_RUN_ID = System.getProperty("ci_run_id");
 
     static {
         RerunResolver.resolve();
@@ -25,8 +29,9 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void start(TestRunStartDescriptor tr) {
+        log.info("Ci run id = '{}'", CI_RUN_ID);
         TestRunDTO testRun = TestRunDTO.builder()
-                                       .uuid(RerunResolver.getRunId())
+                                       .uuid(Optional.ofNullable(RerunResolver.getRunId()).orElse(CI_RUN_ID))
                                        .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
