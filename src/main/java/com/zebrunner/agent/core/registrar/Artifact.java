@@ -2,7 +2,7 @@ package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.exception.ArtifactUploadException;
-import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
+import com.zebrunner.agent.core.client.ZebrunnerApiClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
@@ -34,8 +34,8 @@ public final class Artifact {
 
     public static void upload(InputStream artifact, String name) {
         if (ConfigurationHolder.isReportingEnabled()) {
-            String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
-            String testId = String.valueOf(RunContext.getCurrentTest().getZebrunnerId());
+            Long testRunId = RunContext.getRun().getZebrunnerId();
+            Long testId = RunContext.getCurrentTest().getZebrunnerId();
 
             UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadArtifact(artifact, name, testRunId, testId));
         } else {

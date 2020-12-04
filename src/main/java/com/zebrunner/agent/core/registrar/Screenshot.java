@@ -1,7 +1,7 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
+import com.zebrunner.agent.core.client.ZebrunnerApiClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -25,8 +25,8 @@ public final class Screenshot {
         if (ConfigurationHolder.isReportingEnabled()) {
             capturedAtMillis = capturedAtMillis != null ? capturedAtMillis : Instant.now().toEpochMilli();
 
-            String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
-            String testId = String.valueOf(RunContext.getCurrentTest().getZebrunnerId());
+            Long testRunId = RunContext.getRun().getZebrunnerId();
+            Long testId = RunContext.getCurrentTest().getZebrunnerId();
 
             API_CLIENT.uploadScreenshot(screenshot, testRunId, testId, capturedAtMillis);
         } else {

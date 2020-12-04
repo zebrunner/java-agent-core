@@ -1,6 +1,6 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.appender.Log;
+import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 
 import java.util.function.Function;

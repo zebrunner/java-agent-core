@@ -1,5 +1,10 @@
 package com.zebrunner.agent.core.config;
 
+import com.zebrunner.agent.core.config.provider.EnvironmentConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.PropertiesConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.SystemPropertiesConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.YamlConfigurationProvider;
+
 import java.util.Arrays;
 
 public class DefaultConfigurationProviderChain extends ConfigurationProviderChain {

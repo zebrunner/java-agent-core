@@ -1,7 +1,7 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.appender.Log;
-import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
+import com.zebrunner.agent.core.logging.Log;
+import com.zebrunner.agent.core.client.ZebrunnerApiClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Queue;
@@ -66,7 +66,7 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
 
     private static void flush() {
         if (!QUEUE.isEmpty()) {
-            String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
+            Long testRunId = RunContext.getRun().getZebrunnerId();
             Queue<Log> logsBatch = QUEUE;
             QUEUE = new ConcurrentLinkedQueue<>();
             API_CLIENT.sendLogs(logsBatch, testRunId);

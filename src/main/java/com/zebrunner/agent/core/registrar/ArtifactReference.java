@@ -1,6 +1,6 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.rest.domain.ArtifactReferenceDTO;
+import com.zebrunner.agent.core.client.domain.ArtifactReferenceDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

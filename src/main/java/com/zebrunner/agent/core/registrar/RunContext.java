@@ -1,5 +1,9 @@
 package com.zebrunner.agent.core.registrar;
 
+import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestRunDescriptor;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,29 +22,29 @@ class RunContext {
      */
     private static final ThreadLocal<TestDescriptor> threadTest = new ThreadLocal<>();
 
-    static void putRun(TestRunDescriptor testRunDescriptor) {
-        testRun = testRunDescriptor;
+    static void setRun(TestRunDescriptor testRunDescriptor) {
+        RunContext.testRun = testRunDescriptor;
     }
 
     static TestRunDescriptor getRun() {
         return testRun;
     }
 
-    static void putTest(String uniqueId, TestDescriptor testDescriptor) {
-        tests.put(uniqueId, testDescriptor);
+    static void addTest(String id, TestDescriptor testDescriptor) {
+        tests.put(id, testDescriptor);
         threadTest.set(testDescriptor);
     }
 
-    static TestDescriptor getTest(String uniqueId) {
-        return tests.get(uniqueId);
+    static TestDescriptor getTest(String id) {
+        return tests.get(id);
     }
 
     static TestDescriptor getCurrentTest() {
         return threadTest.get();
     }
 
-    static void completeTest(String uniqueId, TestFinishDescriptor tf) {
-        getTest(uniqueId).complete(tf);
+    static void completeTest(String id, TestFinishDescriptor tf) {
+        getTest(id).complete(tf);
         threadTest.remove();
     }
 
