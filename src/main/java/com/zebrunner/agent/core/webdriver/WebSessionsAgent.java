@@ -1,5 +1,6 @@
 package com.zebrunner.agent.core.webdriver;
 
+import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
@@ -14,6 +15,7 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 import static net.bytebuddy.matcher.ElementMatchers.not;
 
+@Slf4j
 public class WebSessionsAgent {
 
     private static final String REMOTE_WEB_DRIVER_CLASS_MAME = "org.openqa.selenium.remote.RemoteWebDriver";
@@ -37,6 +39,7 @@ public class WebSessionsAgent {
     // resetInputState, getKeyboard, getMouse, getFileDetector, get
 
     public static void premain(String args, Instrumentation instrumentation) {
+        log.debug("Web sessions agent starts to add interceptors for RemoteWebDriver");
         new AgentBuilder.Default()
                 .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
                 .type(named(REMOTE_WEB_DRIVER_CLASS_MAME))
@@ -56,18 +59,21 @@ public class WebSessionsAgent {
     }
 
     private static TypeDescription publicMethodsInterceptor() {
+        log.debug("Creating interceptor for public methods.");
         return TypePool.Default.ofSystemLoader()
                                .describe(PublicMethodInvocationInterceptor.class.getName())
                                .resolve();
     }
 
     private static TypeDescription startSessionInterceptor() {
+        log.debug("Creating interceptor for 'start' method.");
         return TypePool.Default.ofSystemLoader()
                                .describe(StartSessionInterceptor.class.getName())
                                .resolve();
     }
 
     private static TypeDescription closeSessionInterceptor() {
+        log.debug("Creating interceptor for 'quit' and 'close' methods.");
         return TypePool.Default.ofSystemLoader()
                                .describe(CloseSessionInterceptor.class.getName())
                                .resolve();
