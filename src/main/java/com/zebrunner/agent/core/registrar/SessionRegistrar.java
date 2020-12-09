@@ -32,8 +32,8 @@ class SessionRegistrar implements WebSessionRegistrar {
         TestSessionDTO testSession = TestSessionDTO.builder()
                                                    .sessionId(sessionId)
                                                    .startedAt(Instant.now())
-                                                   .desiredCapabilities(context.getDesiredCapabilities())
-                                                   .capabilities(context.getCapabilities())
+                                                   .capabilities(context.getCapabilities().asMap())
+                                                   .desiredCapabilities(context.getDesiredCapabilities().asMap())
                                                    .build();
 
         TestDescriptor currentTest = RunContext.getCurrentTest();
