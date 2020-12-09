@@ -1,11 +1,12 @@
 package com.zebrunner.agent.core.registrar;
 
+import com.zebrunner.agent.core.client.ZebrunnerApiClient;
+import com.zebrunner.agent.core.client.domain.TestSessionDTO;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import com.zebrunner.agent.core.registrar.descriptor.SessionCloseDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.SessionStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
-import com.zebrunner.agent.core.client.ZebrunnerApiClient;
-import com.zebrunner.agent.core.client.domain.TestSessionDTO;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 class SessionRegistrar implements WebSessionRegistrar {
 
     private static final SessionRegistrar INSTANCE = new SessionRegistrar();
@@ -28,6 +30,7 @@ class SessionRegistrar implements WebSessionRegistrar {
 
     @Override
     public void registerStart(SessionStartDescriptor context) {
+        log.debug("Registering test session start. {}", context);
         String sessionId = context.getSessionId();
         TestSessionDTO testSession = TestSessionDTO.builder()
                                                    .sessionId(sessionId)
@@ -45,10 +48,13 @@ class SessionRegistrar implements WebSessionRegistrar {
 
         sessionIdToSession.put(testSession.getSessionId(), testSession);
         threadSessionIds.get().add(testSession.getSessionId());
+
+        log.debug("Registration of test session start completed. {}", context);
     }
 
     @Override
     public void registerClose(SessionCloseDescriptor context) {
+        log.debug("Registering test session close. {}", context);
         TestSessionDTO testSession = sessionIdToSession.get(context.getSessionId());
         if (testSession == null) {
             throw new TestAgentException("Unable to end session. It is not started yet");
@@ -60,6 +66,8 @@ class SessionRegistrar implements WebSessionRegistrar {
 
         sessionIdToSession.remove(context.getSessionId());
         threadSessionIds.get().remove(context.getSessionId());
+
+        log.debug("Registration of test session close completed. {}", context);
     }
 
     @Override
@@ -76,11 +84,13 @@ class SessionRegistrar implements WebSessionRegistrar {
     }
 
     private void link(String sessionId, Long zebrunnerId) {
+        log.info("Linking test '{}' to session '{}'", zebrunnerId, sessionId);
         TestSessionDTO testSession = sessionIdToSession.get(sessionId);
         if (testSession != null) {
             Set<Long> testIds = testSession.getTestIds();
 
             if (testIds.add(zebrunnerId)) {
+                log.info("Sending request to link test '{}' to session '{}'", zebrunnerId, sessionId);
                 apiClient.updateSession(RunContext.getRun().getZebrunnerId(), testSession);
             }
         }
