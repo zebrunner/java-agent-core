@@ -84,13 +84,12 @@ class SessionRegistrar implements WebSessionRegistrar {
     }
 
     private void link(String sessionId, Long zebrunnerId) {
-        log.info("Linking test '{}' to session '{}'", zebrunnerId, sessionId);
         TestSessionDTO testSession = sessionIdToSession.get(sessionId);
         if (testSession != null) {
             Set<Long> testIds = testSession.getTestIds();
 
             if (testIds.add(zebrunnerId)) {
-                log.info("Sending request to link test '{}' to session '{}'", zebrunnerId, sessionId);
+                log.debug("Linking test '{}' to session '{}'", zebrunnerId, sessionId);
                 apiClient.updateSession(RunContext.getRun().getZebrunnerId(), testSession);
             }
         }
