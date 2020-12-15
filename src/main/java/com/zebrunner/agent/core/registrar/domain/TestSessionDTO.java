@@ -1,4 +1,4 @@
-package com.zebrunner.agent.core.client.domain;
+package com.zebrunner.agent.core.registrar.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

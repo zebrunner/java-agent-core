@@ -1,7 +1,6 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.client.ZebrunnerApiClient;
-import com.zebrunner.agent.core.client.domain.TestSessionDTO;
+import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import com.zebrunner.agent.core.registrar.descriptor.SessionCloseDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.SessionStartDescriptor;
@@ -15,7 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-class SessionRegistrar implements WebSessionRegistrar {
+class SessionRegistrar implements DriverSessionRegistrar {
 
     private static final SessionRegistrar INSTANCE = new SessionRegistrar();
 

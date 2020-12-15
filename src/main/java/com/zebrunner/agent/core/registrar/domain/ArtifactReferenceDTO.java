@@ -1,4 +1,4 @@
-package com.zebrunner.agent.core.client.domain;
+package com.zebrunner.agent.core.registrar.domain;
 
 import lombok.Value;
 
@@ -6,6 +6,6 @@ import lombok.Value;
 public class ArtifactReferenceDTO {
 
     String name;
-    String reference;
+    String value;
 
 }

@@ -1,50 +1,52 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.label.CompositeLabelResolver;
+import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Label {
 
-    private static final ThreadLocal<Map<String, List<String>>> LABELS
-            = InheritableThreadLocal.withInitial(HashMap::new);
+    private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
-    static {
-        CompositeLabelResolver.addResolver(($, $$) -> pop());
+    public static void attachToTestRun(String name, String... values) {
+        Set<LabelDTO> labels = validateAndConvert(name, values);
+        Long runId = RunContext.getRun().getZebrunnerId();
+
+        API_CLIENT.attachLabelsToTestRun(runId, labels);
     }
 
-    private static Map<String, List<String>> pop() {
-        Map<String, List<String>> labels = LABELS.get();
-        LABELS.remove();
-        return labels;
+    public static void attachToTest(String name, String... values) {
+        Set<LabelDTO> labels = validateAndConvert(name, values);
+        Long runId = RunContext.getRun().getZebrunnerId();
+        Long testId = RunContext.getCurrentTest().getZebrunnerId();
+
+        API_CLIENT.attachLabelsToTest(runId, testId, labels);
     }
 
-    public static void attach(String name, String value) {
+    private static Set<LabelDTO> validateAndConvert(String name, String[] values) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Label name is not provided.");
         }
-        if (value == null || value.trim().isEmpty()) {
-            throw new IllegalArgumentException("Label value is not provided.");
+        if (values == null || values.length == 0) {
+            throw new IllegalArgumentException("Label values are not provided.");
         }
 
-        LABELS.get()
-              .computeIfAbsent(name, $ -> new ArrayList<>())
-              .add(value);
-    }
+        Set<LabelDTO> labels = Arrays.stream(values)
+                                     .filter(Objects::nonNull)
+                                     .map(value -> new LabelDTO(name, value))
+                                     .collect(Collectors.toSet());
 
-    public static void attach(String name, String... values) {
-        if (values == null) {
-            throw new IllegalArgumentException("Label value is not provided.");
+        if (labels.isEmpty()) {
+            throw new IllegalArgumentException("Label values are not provided.");
         }
-        for (String value : values) {
-            attach(name, value);
-        }
+
+        return labels;
     }
 
 }

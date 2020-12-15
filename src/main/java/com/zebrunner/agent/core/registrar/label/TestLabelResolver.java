@@ -1,6 +1,7 @@
 package com.zebrunner.agent.core.registrar.label;
 
 import com.zebrunner.agent.core.annotation.TestLabel;
+import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -16,11 +17,18 @@ import java.util.stream.Stream;
 public class TestLabelResolver implements LabelResolver {
 
     @Override
-    public Map<String, List<String>> resolve(Class<?> clazz, Method method) {
+    public List<LabelDTO> resolve(Class<?> clazz, Method method) {
+        // method-level labels override class-level labels for the same key.
+        // that is why it is much easier to collect labels into map first,
+        // and then convert them to dto's
         Map<String, List<String>> labels = getAnnotations(clazz);
         labels.putAll(getAnnotations(method));
 
-        return labels;
+        return labels.entrySet()
+                     .stream()
+                     .flatMap(keyToValues -> keyToValues.getValue().stream()
+                                                        .map(value -> new LabelDTO(keyToValues.getKey(), value)))
+                     .collect(Collectors.toList());
     }
 
     private Map<String, List<String>> getAnnotations(AnnotatedElement annotatedElement) {

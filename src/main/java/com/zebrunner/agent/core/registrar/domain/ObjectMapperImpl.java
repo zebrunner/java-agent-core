@@ -1,4 +1,4 @@
-package com.zebrunner.agent.core.client;
+package com.zebrunner.agent.core.registrar.domain;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -10,7 +10,7 @@ import kong.unirest.ObjectMapper;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 
-final class ObjectMapperImpl implements ObjectMapper {
+public final class ObjectMapperImpl implements ObjectMapper {
 
     private final Gson gson;
 
@@ -53,4 +53,5 @@ final class ObjectMapperImpl implements ObjectMapper {
     public String writeValue(Object value) {
         return gson.toJson(value);
     }
+
 }

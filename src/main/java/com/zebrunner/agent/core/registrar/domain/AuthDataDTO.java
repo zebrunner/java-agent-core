@@ -1,4 +1,4 @@
-package com.zebrunner.agent.core.client.domain;
+package com.zebrunner.agent.core.registrar.domain;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AuthTokenDTO {
+public class AuthDataDTO {
 
     private Integer userId;
 

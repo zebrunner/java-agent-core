@@ -1,21 +1,18 @@
 package com.zebrunner.agent.core.registrar;
 
+import com.zebrunner.agent.core.registrar.domain.TestDTO;
+import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunFinishDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestRunFinishDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
 import com.zebrunner.agent.core.registrar.label.CompositeLabelResolver;
 import com.zebrunner.agent.core.registrar.maintainer.ChainedMaintainerResolver;
-import com.zebrunner.agent.core.client.ZebrunnerApiClient;
-import com.zebrunner.agent.core.client.domain.TestDTO;
-import com.zebrunner.agent.core.client.domain.TestRunDTO;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -34,7 +31,7 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     private final ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
     private final CompositeLabelResolver labelResolver = new CompositeLabelResolver();
-    private final WebSessionRegistrar webSessionRegistrar = WebSessionRegistrar.getInstance();
+    private final DriverSessionRegistrar driverSessionRegistrar = DriverSessionRegistrar.getInstance();
     private final ChainedMaintainerResolver maintainerResolver = new ChainedMaintainerResolver();
 
     @Override
@@ -79,7 +76,7 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
         RunContext.addTest(id, testDescriptor);
-        webSessionRegistrar.linkAllCurrentToTest(test.getId());
+        driverSessionRegistrar.linkAllCurrentToTest(test.getId());
     }
 
     @Override
@@ -91,6 +88,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .methodName(ts.getTestMethod().getName())
                               .maintainer(maintainerResolver.resolve(ts.getTestClass(), ts.getTestMethod()))
                               .startedAt(ts.getStartedAt())
+                              .labels(labelResolver.resolve(ts.getTestClass(), ts.getTestMethod()))
                               .build();
 
         TestDescriptor headlessTest = RunContext.getCurrentTest();
@@ -103,7 +101,7 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
         RunContext.addTest(id, testDescriptor);
-        webSessionRegistrar.linkAllCurrentToTest(test.getId());
+        driverSessionRegistrar.linkAllCurrentToTest(test.getId());
     }
 
     @Override
@@ -113,21 +111,11 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerTestFinish(String id, TestFinishDescriptor tf) {
-        TestDescriptor testDescriptor = RunContext.getTest(id);
-
-        TestStartDescriptor testStartDescriptor = testDescriptor.getStartDescriptor();
-        Map<String, List<String>> labels = labelResolver.resolve(
-                testStartDescriptor.getTestClass(), testStartDescriptor.getTestMethod()
-        );
-
-        Long zebrunnerId = testDescriptor.getZebrunnerId();
         TestDTO result = TestDTO.builder()
-                                .id(zebrunnerId)
+                                .id(RunContext.getTest(id).getZebrunnerId())
                                 .result(tf.getStatus().name())
                                 .reason(tf.getStatusReason())
                                 .endedAt(tf.getEndedAt())
-                                .labels(labels)
-                                .artifactReferences(ArtifactReference.popAll())
                                 .build();
 
         apiClient.registerTestFinish(RunContext.getRun().getZebrunnerId(), result);

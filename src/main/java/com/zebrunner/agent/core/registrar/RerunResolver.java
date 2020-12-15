@@ -3,8 +3,7 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.listener.AgentListenerHolder;
 import com.zebrunner.agent.core.listener.RerunListener;
-import com.zebrunner.agent.core.client.ZebrunnerApiClient;
-import com.zebrunner.agent.core.client.domain.TestDTO;
+import com.zebrunner.agent.core.registrar.domain.TestDTO;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

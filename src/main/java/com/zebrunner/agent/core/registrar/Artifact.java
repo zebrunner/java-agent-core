@@ -1,8 +1,9 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.exception.ArtifactUploadException;
-import com.zebrunner.agent.core.client.ZebrunnerApiClient;
+import com.zebrunner.agent.core.registrar.domain.ArtifactReferenceDTO;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
@@ -18,58 +19,104 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Artifact {
 
-    private static final ExecutorService UPLOAD_EXECUTOR;
-    private static final ZebrunnerApiClient API_CLIENT;
+    private static final ExecutorService UPLOAD_EXECUTOR = Executors.newFixedThreadPool(8);
+    private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
     static {
-        UPLOAD_EXECUTOR = Executors.newFixedThreadPool(10);
-        API_CLIENT = ConfigurationHolder.isReportingEnabled()
-                ? ZebrunnerApiClient.getInstance()
-                : null;
-
         Runtime.getRuntime().addShutdownHook(new Thread(Artifact::shutdown));
-    }
-
-    public static void upload(InputStream artifact, String name) {
-        if (ConfigurationHolder.isReportingEnabled()) {
-            Long testRunId = RunContext.getRun().getZebrunnerId();
-            Long testId = RunContext.getCurrentTest().getZebrunnerId();
-
-            UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadArtifact(artifact, name, testRunId, testId));
-        } else {
-            log.trace("Artifact is taken: name={}", name);
-        }
-    }
-
-    public static void upload(byte[] artifact, String name) {
-        upload(new ByteArrayInputStream(artifact), name);
-    }
-
-    public static void upload(File artifact, String name) {
-        try {
-            upload(new FileInputStream(artifact), name);
-        } catch (FileNotFoundException e) {
-            throw new ArtifactUploadException("Unable to upload artifact with name " + name, e);
-        }
-    }
-
-    public static void upload(Path artifact, String name) {
-        try {
-            upload(Files.newInputStream(artifact), name);
-        } catch (IOException e) {
-            throw new ArtifactUploadException("Unable to upload artifact with name " + name, e);
-        }
     }
 
     private static void shutdown() {
         UPLOAD_EXECUTOR.shutdown();
         try {
-            UPLOAD_EXECUTOR.awaitTermination(60, TimeUnit.SECONDS);
+            if (!UPLOAD_EXECUTOR.awaitTermination(60, TimeUnit.SECONDS)) {
+                UPLOAD_EXECUTOR.shutdownNow();
+            }
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    public static void attachToTestRun(String name, InputStream artifact) {
+        Long testRunId = RunContext.getRun().getZebrunnerId();
+
+        UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadTestRunArtifact(artifact, name, testRunId));
+    }
+
+    public static void attachToTestRun(String name, byte[] artifact) {
+        attachToTestRun(name, new ByteArrayInputStream(artifact));
+    }
+
+    public static void attachToTestRun(String name, File artifact) {
+        try {
+            attachToTestRun(name, new FileInputStream(artifact));
+        } catch (FileNotFoundException e) {
+            throw new ArtifactUploadException("Unable to upload artifact with name " + name, e);
+        }
+    }
+
+    public static void attachToTestRun(String name, Path artifact) {
+        try {
+            attachToTestRun(name, Files.newInputStream(artifact));
+        } catch (IOException e) {
+            throw new ArtifactUploadException("Unable to upload artifact with name " + name, e);
+        }
+    }
+
+    public static void attachReferenceToTestRun(String name, String reference) {
+        ArtifactReferenceDTO artifactReference = validateAndConvert(name, reference);
+        Long runId = RunContext.getRun().getZebrunnerId();
+
+        API_CLIENT.attachArtifactReferenceToTestRun(runId, artifactReference);
+    }
+
+    public static void attachToTest(String name, InputStream artifact) {
+        Long testRunId = RunContext.getRun().getZebrunnerId();
+        Long testId = RunContext.getCurrentTest().getZebrunnerId();
+
+        UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadTestArtifact(artifact, name, testRunId, testId));
+    }
+
+    public static void attachToTest(String name, byte[] artifact) {
+        attachToTest(name, new ByteArrayInputStream(artifact));
+    }
+
+    public static void attachToTest(String name, File artifact) {
+        try {
+            attachToTest(name, new FileInputStream(artifact));
+        } catch (FileNotFoundException e) {
+            throw new ArtifactUploadException("Unable to upload artifact with name " + name, e);
+        }
+    }
+
+    public static void attachToTest(String name, Path artifact) {
+        try {
+            attachToTest(name, Files.newInputStream(artifact));
+        } catch (IOException e) {
+            throw new ArtifactUploadException("Unable to upload artifact with name " + name, e);
+        }
+    }
+
+    public static void attachReferenceToTest(String name, String reference) {
+        ArtifactReferenceDTO artifactReference = validateAndConvert(name, reference);
+        Long runId = RunContext.getRun().getZebrunnerId();
+        Long testId = RunContext.getCurrentTest().getZebrunnerId();
+
+        API_CLIENT.attachArtifactReferenceToTest(runId, testId, artifactReference);
+    }
+
+    private static ArtifactReferenceDTO validateAndConvert(String name, String reference) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Artifact reference name is not provided.");
+        }
+        if (reference == null || reference.trim().isEmpty()) {
+            throw new IllegalArgumentException("Artifact reference is not provided.");
+        }
+
+        return new ArtifactReferenceDTO(name, reference);
     }
 
 }

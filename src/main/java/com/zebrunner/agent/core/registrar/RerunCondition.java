@@ -6,8 +6,8 @@ import lombok.Getter;
 
 import java.util.Set;
 
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public class RerunCondition {
 
     private final String runId;

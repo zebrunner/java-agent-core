@@ -16,7 +16,7 @@ import static net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 import static net.bytebuddy.matcher.ElementMatchers.not;
 
 @Slf4j
-public class WebSessionsAgent {
+public class DriverSessionsAgent {
 
     private static final String REMOTE_WEB_DRIVER_CLASS_MAME = "org.openqa.selenium.remote.RemoteWebDriver";
 

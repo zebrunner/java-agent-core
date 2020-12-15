@@ -1,4 +1,4 @@
-package com.zebrunner.agent.core.client.domain;
+package com.zebrunner.agent.core.registrar.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +8,6 @@ import lombok.Setter;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -26,7 +25,7 @@ public class TestDTO {
     private OffsetDateTime endedAt;
     private String maintainer;
     private String testCase;
-    private Map<String, List<String>> labels;
+    private List<LabelDTO> labels;
     private List<ArtifactReferenceDTO> artifactReferences;
     private String result;
     private String reason;

@@ -1,6 +1,6 @@
 package com.zebrunner.agent.core.webdriver;
 
-import com.zebrunner.agent.core.registrar.WebSessionRegistrar;
+import com.zebrunner.agent.core.registrar.DriverSessionRegistrar;
 import com.zebrunner.agent.core.registrar.descriptor.SessionCloseDescriptor;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
 
 public class CloseSessionInterceptor {
 
-    private static final WebSessionRegistrar REGISTRAR = WebSessionRegistrar.getInstance();
+    private static final DriverSessionRegistrar REGISTRAR = DriverSessionRegistrar.getInstance();
 
     @RuntimeType
     public static void onSessionClose(@This final RemoteWebDriver driver,
