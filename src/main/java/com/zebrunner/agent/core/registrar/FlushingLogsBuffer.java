@@ -1,8 +1,10 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.logging.Log;
+import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -46,9 +48,11 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
      */
     @Override
     public void put(E event) {
-        if (RunContext.getCurrentTest() != null) {
+        Optional<TestDescriptor> currentTest = RunContext.getCurrentTest();
+
+        if (currentTest.isPresent()) {
             Log log = converter.apply(event);
-            log.setTestId(String.valueOf(RunContext.getCurrentTest().getZebrunnerId()));
+            log.setTestId(String.valueOf(currentTest.get().getZebrunnerId()));
 
             QUEUE.add(log);
 

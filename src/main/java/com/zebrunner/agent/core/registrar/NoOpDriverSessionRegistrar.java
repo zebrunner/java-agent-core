@@ -23,7 +23,7 @@ class NoOpDriverSessionRegistrar implements DriverSessionRegistrar {
     }
 
     @Override
-    public void linkAllCurrentToTest(Long zebrunnerId) {
+    public void linkAllCurrentToTest(Long zebrunnerTestId) {
     }
 
     @Override

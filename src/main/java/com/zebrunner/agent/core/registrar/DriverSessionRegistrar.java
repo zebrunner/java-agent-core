@@ -18,7 +18,7 @@ public interface DriverSessionRegistrar {
 
     void registerClose(SessionCloseDescriptor context);
 
-    void linkAllCurrentToTest(Long zebrunnerId);
+    void linkAllCurrentToTest(Long zebrunnerTestId);
 
     void linkToCurrentTest(String sessionId);
 

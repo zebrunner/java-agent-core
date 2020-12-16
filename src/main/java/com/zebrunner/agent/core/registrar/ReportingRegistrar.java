@@ -1,7 +1,5 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.domain.TestDTO;
-import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
@@ -9,6 +7,8 @@ import com.zebrunner.agent.core.registrar.descriptor.TestRunDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunFinishDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
+import com.zebrunner.agent.core.registrar.domain.TestDTO;
+import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.registrar.label.CompositeLabelResolver;
 import com.zebrunner.agent.core.registrar.maintainer.ChainedMaintainerResolver;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +22,14 @@ class ReportingRegistrar implements TestRunRegistrar {
         RerunResolver.resolve();
     }
 
-    private static final ReportingRegistrar INSTANCE = new ReportingRegistrar();
     private static final String CI_RUN_ID = System.getProperty("ci_run_id");
+    private static volatile ReportingRegistrar instance;
 
     public static ReportingRegistrar getInstance() {
-        return INSTANCE;
+        if (instance == null) {
+            instance = new ReportingRegistrar();
+        }
+        return instance;
     }
 
     private final ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
@@ -91,9 +94,11 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .labels(labelResolver.resolve(ts.getTestClass(), ts.getTestMethod()))
                               .build();
 
-        TestDescriptor headlessTest = RunContext.getCurrentTest();
-        if (headlessTest != null) {
-            test.setId(headlessTest.getZebrunnerId());
+        Long headlessTestId = RunContext.getCurrentTest()
+                                        .map(TestDescriptor::getZebrunnerId)
+                                        .orElse(null);
+        if (headlessTestId != null) {
+            test.setId(headlessTestId);
             test = apiClient.registerHeadlessTestUpdate(RunContext.getRun().getZebrunnerId(), test);
         } else {
             test = apiClient.registerTestStart(RunContext.getRun().getZebrunnerId(), test, false);
@@ -111,16 +116,19 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerTestFinish(String id, TestFinishDescriptor tf) {
-        TestDTO result = TestDTO.builder()
-                                .id(RunContext.getTest(id).getZebrunnerId())
-                                .result(tf.getStatus().name())
-                                .reason(tf.getStatusReason())
-                                .endedAt(tf.getEndedAt())
-                                .build();
+        TestDescriptor test = RunContext.getTest(id);
+        if (test != null) {
+            TestDTO result = TestDTO.builder()
+                                    .id(test.getZebrunnerId())
+                                    .result(tf.getStatus().name())
+                                    .reason(tf.getStatusReason())
+                                    .endedAt(tf.getEndedAt())
+                                    .build();
 
-        apiClient.registerTestFinish(RunContext.getRun().getZebrunnerId(), result);
+            apiClient.registerTestFinish(RunContext.getRun().getZebrunnerId(), result);
 
-        RunContext.completeTest(id, tf);
+            RunContext.completeTest(id, tf);
+        }
     }
 
 }

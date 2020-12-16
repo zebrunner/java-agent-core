@@ -1,5 +1,6 @@
 package com.zebrunner.agent.core.registrar;
 
+import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -24,9 +25,10 @@ public class Label {
     public static void attachToTest(String name, String... values) {
         Set<LabelDTO> labels = validateAndConvert(name, values);
         Long runId = RunContext.getRun().getZebrunnerId();
-        Long testId = RunContext.getCurrentTest().getZebrunnerId();
 
-        API_CLIENT.attachLabelsToTest(runId, testId, labels);
+        RunContext.getCurrentTest()
+                  .map(TestDescriptor::getZebrunnerId)
+                  .ifPresent(testId -> API_CLIENT.attachLabelsToTest(runId, testId, labels));
     }
 
     private static Set<LabelDTO> validateAndConvert(String name, String[] values) {

@@ -1,5 +1,6 @@
 package com.zebrunner.agent.core.registrar;
 
+import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -16,12 +17,12 @@ public final class Screenshot {
      * @param capturedAtMillis unix timestamp representing a moment in time when screenshot got captured in milliseconds
      */
     public static void upload(byte[] screenshot, Long capturedAtMillis) {
-        capturedAtMillis = capturedAtMillis != null ? capturedAtMillis : System.currentTimeMillis();
-
+        Long capturedAt = capturedAtMillis != null ? capturedAtMillis : System.currentTimeMillis();
         Long testRunId = RunContext.getRun().getZebrunnerId();
-        Long testId = RunContext.getCurrentTest().getZebrunnerId();
 
-        API_CLIENT.uploadScreenshot(screenshot, testRunId, testId, capturedAtMillis);
+        RunContext.getCurrentTest()
+                  .map(TestDescriptor::getZebrunnerId)
+                  .ifPresent(testId -> API_CLIENT.uploadScreenshot(screenshot, testRunId, testId, capturedAt));
     }
 
 }

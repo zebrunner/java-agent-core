@@ -1,10 +1,10 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import com.zebrunner.agent.core.registrar.descriptor.SessionCloseDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.SessionStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
+import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -38,10 +38,9 @@ class SessionRegistrar implements DriverSessionRegistrar {
                                                    .desiredCapabilities(context.getDesiredCapabilities().asMap())
                                                    .build();
 
-        TestDescriptor currentTest = RunContext.getCurrentTest();
-        if (currentTest != null) {
-            testSession.getTestIds().add(currentTest.getZebrunnerId());
-        }
+        RunContext.getCurrentTest()
+                  .map(TestDescriptor::getZebrunnerId)
+                  .ifPresent(testSession.getTestIds()::add);
 
         testSession = apiClient.startSession(RunContext.getRun().getZebrunnerId(), testSession);
 
@@ -70,16 +69,15 @@ class SessionRegistrar implements DriverSessionRegistrar {
     }
 
     @Override
-    public void linkAllCurrentToTest(Long zebrunnerId) {
-        threadSessionIds.get().forEach(sessionId -> link(sessionId, zebrunnerId));
+    public void linkAllCurrentToTest(Long zebrunnerTestId) {
+        threadSessionIds.get().forEach(sessionId -> link(sessionId, zebrunnerTestId));
     }
 
     @Override
     public void linkToCurrentTest(String sessionId) {
-        TestDescriptor currentTest = RunContext.getCurrentTest();
-        if (currentTest != null) {
-            link(sessionId, currentTest.getZebrunnerId());
-        }
+        RunContext.getCurrentTest()
+                  .map(TestDescriptor::getZebrunnerId)
+                  .ifPresent(currentTestId -> link(sessionId, currentTestId));
     }
 
     private void link(String sessionId, Long zebrunnerId) {

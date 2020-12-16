@@ -21,7 +21,6 @@ import kong.unirest.JsonNode;
 import kong.unirest.ObjectMapper;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestInstance;
-import kong.unirest.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
@@ -175,6 +174,23 @@ class ZebrunnerApiClient {
             return objectMapper.readValue(response.getBody(), TestDTO.class);
         } else {
             return null;
+        }
+    }
+
+    void revertTestRegistration(Long testRunId, Long testId) {
+        if (client != null) {
+            HttpResponse<String> response = client.delete(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                                  .routeParam("testRunId", testRunId.toString())
+                                                  .routeParam("testId", testId.toString())
+                                                  .asString();
+
+            if (!response.isSuccess()) {
+                log.error(
+                        "Not able to revert test registration. HTTP status: {}. Raw response: \n{}",
+                        response.getStatus(), response.getBody()
+                );
+                throw new ServerException(response.getStatus(), response.getStatusText());
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.exception.ArtifactUploadException;
+import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import com.zebrunner.agent.core.registrar.domain.ArtifactReferenceDTO;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -75,9 +76,12 @@ public final class Artifact {
 
     public static void attachToTest(String name, InputStream artifact) {
         Long testRunId = RunContext.getRun().getZebrunnerId();
-        Long testId = RunContext.getCurrentTest().getZebrunnerId();
 
-        UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadTestArtifact(artifact, name, testRunId, testId));
+        RunContext.getCurrentTest()
+                  .map(TestDescriptor::getZebrunnerId)
+                  .ifPresent(testId -> UPLOAD_EXECUTOR.execute(
+                          () -> API_CLIENT.uploadTestArtifact(artifact, name, testRunId, testId))
+                  );
     }
 
     public static void attachToTest(String name, byte[] artifact) {
@@ -103,9 +107,10 @@ public final class Artifact {
     public static void attachReferenceToTest(String name, String reference) {
         ArtifactReferenceDTO artifactReference = validateAndConvert(name, reference);
         Long runId = RunContext.getRun().getZebrunnerId();
-        Long testId = RunContext.getCurrentTest().getZebrunnerId();
 
-        API_CLIENT.attachArtifactReferenceToTest(runId, testId, artifactReference);
+        RunContext.getCurrentTest()
+                  .map(TestDescriptor::getZebrunnerId)
+                  .ifPresent(testId -> API_CLIENT.attachArtifactReferenceToTest(runId, testId, artifactReference));
     }
 
     private static ArtifactReferenceDTO validateAndConvert(String name, String reference) {
