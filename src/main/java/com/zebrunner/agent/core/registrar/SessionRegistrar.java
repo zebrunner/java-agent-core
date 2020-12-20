@@ -42,7 +42,7 @@ class SessionRegistrar implements DriverSessionRegistrar {
                   .map(TestDescriptor::getZebrunnerId)
                   .ifPresent(testSession.getTestIds()::add);
 
-        testSession = apiClient.startSession(RunContext.getRun().getZebrunnerId(), testSession);
+        testSession = apiClient.startSession(RunContext.getZebrunnerRunId(), testSession);
 
         sessionIdToSession.put(testSession.getSessionId(), testSession);
         threadSessionIds.get().add(testSession.getSessionId());
@@ -60,7 +60,7 @@ class SessionRegistrar implements DriverSessionRegistrar {
 
         testSession.setEndedAt(Instant.now());
 
-        apiClient.updateSession(RunContext.getRun().getZebrunnerId(), testSession);
+        apiClient.updateSession(RunContext.getZebrunnerRunId(), testSession);
 
         sessionIdToSession.remove(context.getSessionId());
         threadSessionIds.get().remove(context.getSessionId());
@@ -87,7 +87,7 @@ class SessionRegistrar implements DriverSessionRegistrar {
 
             if (testIds.add(zebrunnerId)) {
                 log.debug("Linking test '{}' to session '{}'", zebrunnerId, sessionId);
-                apiClient.updateSession(RunContext.getRun().getZebrunnerId(), testSession);
+                apiClient.updateSession(RunContext.getZebrunnerRunId(), testSession);
             }
         }
     }

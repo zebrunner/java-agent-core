@@ -60,7 +60,7 @@ class ReportingRegistrar implements TestRunRegistrar {
     @Override
     public void registerFinish(TestRunFinishDescriptor finishDescriptor) {
         TestRunDTO testRun = TestRunDTO.builder()
-                                       .id(RunContext.getRun().getZebrunnerId())
+                                       .id(RunContext.getZebrunnerRunId())
                                        .endedAt(finishDescriptor.getEndedAt())
                                        .build();
         apiClient.registerTestRunFinish(testRun);
@@ -75,7 +75,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .startedAt(ts.getStartedAt())
                               .build();
 
-        test = apiClient.registerTestStart(RunContext.getRun().getZebrunnerId(), test, true);
+        test = apiClient.registerTestStart(RunContext.getZebrunnerRunId(), test, true);
 
         TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
         RunContext.addTest(id, testDescriptor);
@@ -99,9 +99,9 @@ class ReportingRegistrar implements TestRunRegistrar {
                                         .orElse(null);
         if (headlessTestId != null) {
             test.setId(headlessTestId);
-            test = apiClient.registerHeadlessTestUpdate(RunContext.getRun().getZebrunnerId(), test);
+            test = apiClient.registerHeadlessTestUpdate(RunContext.getZebrunnerRunId(), test);
         } else {
-            test = apiClient.registerTestStart(RunContext.getRun().getZebrunnerId(), test, false);
+            test = apiClient.registerTestStart(RunContext.getZebrunnerRunId(), test, false);
         }
 
         TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
@@ -125,7 +125,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                                     .endedAt(tf.getEndedAt())
                                     .build();
 
-            apiClient.registerTestFinish(RunContext.getRun().getZebrunnerId(), result);
+            apiClient.registerTestFinish(RunContext.getZebrunnerRunId(), result);
 
             RunContext.completeTest(id, tf);
         }

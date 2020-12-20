@@ -1,7 +1,6 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunDescriptor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -11,10 +10,11 @@ public class CurrentTest {
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
     public static void revertRegistration() {
-        TestRunDescriptor run = RunContext.getRun();
+        Long runId = RunContext.getZebrunnerRunId();
+
         RunContext.removeCurrentTest()
                   .map(TestDescriptor::getZebrunnerId)
-                  .ifPresent(currentTestId -> API_CLIENT.revertTestRegistration(run.getZebrunnerId(), currentTestId));
+                  .ifPresent(currentTestId -> API_CLIENT.revertTestRegistration(runId, currentTestId));
     }
 
 }

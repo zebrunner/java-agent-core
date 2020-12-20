@@ -69,17 +69,19 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
 
     private static void flush() {
         if (!QUEUE.isEmpty()) {
-            Long testRunId = RunContext.getRun().getZebrunnerId();
+            Long runId = RunContext.getZebrunnerRunId();
             Queue<Log> logsBatch = QUEUE;
             QUEUE = new ConcurrentLinkedQueue<>();
-            API_CLIENT.sendLogs(logsBatch, testRunId);
+            API_CLIENT.sendLogs(logsBatch, runId);
         }
     }
 
     private static void shutdown() {
         FLUSH_EXECUTOR.shutdown();
         try {
-            FLUSH_EXECUTOR.awaitTermination(10, TimeUnit.SECONDS);
+            if (!FLUSH_EXECUTOR.awaitTermination(10, TimeUnit.SECONDS)) {
+                FLUSH_EXECUTOR.shutdownNow();
+            }
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
         }

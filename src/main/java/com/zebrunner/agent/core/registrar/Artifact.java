@@ -42,7 +42,7 @@ public final class Artifact {
     }
 
     public static void attachToTestRun(String name, InputStream artifact) {
-        Long testRunId = RunContext.getRun().getZebrunnerId();
+        Long testRunId = RunContext.getZebrunnerRunId();
 
         UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadTestRunArtifact(artifact, name, testRunId));
     }
@@ -69,18 +69,18 @@ public final class Artifact {
 
     public static void attachReferenceToTestRun(String name, String reference) {
         ArtifactReferenceDTO artifactReference = validateAndConvert(name, reference);
-        Long runId = RunContext.getRun().getZebrunnerId();
+        Long runId = RunContext.getZebrunnerRunId();
 
         API_CLIENT.attachArtifactReferenceToTestRun(runId, artifactReference);
     }
 
     public static void attachToTest(String name, InputStream artifact) {
-        Long testRunId = RunContext.getRun().getZebrunnerId();
+        Long runId = RunContext.getZebrunnerRunId();
 
         RunContext.getCurrentTest()
                   .map(TestDescriptor::getZebrunnerId)
                   .ifPresent(testId -> UPLOAD_EXECUTOR.execute(
-                          () -> API_CLIENT.uploadTestArtifact(artifact, name, testRunId, testId))
+                          () -> API_CLIENT.uploadTestArtifact(artifact, name, runId, testId))
                   );
     }
 
@@ -106,7 +106,7 @@ public final class Artifact {
 
     public static void attachReferenceToTest(String name, String reference) {
         ArtifactReferenceDTO artifactReference = validateAndConvert(name, reference);
-        Long runId = RunContext.getRun().getZebrunnerId();
+        Long runId = RunContext.getZebrunnerRunId();
 
         RunContext.getCurrentTest()
                   .map(TestDescriptor::getZebrunnerId)

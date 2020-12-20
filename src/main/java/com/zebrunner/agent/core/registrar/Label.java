@@ -17,14 +17,14 @@ public class Label {
 
     public static void attachToTestRun(String name, String... values) {
         Set<LabelDTO> labels = validateAndConvert(name, values);
-        Long runId = RunContext.getRun().getZebrunnerId();
+        Long runId = RunContext.getZebrunnerRunId();
 
         API_CLIENT.attachLabelsToTestRun(runId, labels);
     }
 
     public static void attachToTest(String name, String... values) {
         Set<LabelDTO> labels = validateAndConvert(name, values);
-        Long runId = RunContext.getRun().getZebrunnerId();
+        Long runId = RunContext.getZebrunnerRunId();
 
         RunContext.getCurrentTest()
                   .map(TestDescriptor::getZebrunnerId)

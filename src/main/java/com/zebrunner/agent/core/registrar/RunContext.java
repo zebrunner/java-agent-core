@@ -27,6 +27,10 @@ class RunContext {
         return testRun;
     }
 
+    static Long getZebrunnerRunId() {
+        return testRun != null ? testRun.getZebrunnerId() : null;
+    }
+
     static void addTest(String id, TestDescriptor testDescriptor) {
         TESTS.put(id, testDescriptor);
         THREAD_LOCAL_TEST.set(testDescriptor);

@@ -18,11 +18,11 @@ public final class Screenshot {
      */
     public static void upload(byte[] screenshot, Long capturedAtMillis) {
         Long capturedAt = capturedAtMillis != null ? capturedAtMillis : System.currentTimeMillis();
-        Long testRunId = RunContext.getRun().getZebrunnerId();
+        Long runId = RunContext.getZebrunnerRunId();
 
         RunContext.getCurrentTest()
                   .map(TestDescriptor::getZebrunnerId)
-                  .ifPresent(testId -> API_CLIENT.uploadScreenshot(screenshot, testRunId, testId, capturedAt));
+                  .ifPresent(testId -> API_CLIENT.uploadScreenshot(screenshot, runId, testId, capturedAt));
     }
 
 }
