@@ -2,17 +2,22 @@ package com.zebrunner.agent.core.webdriver;
 
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.NameMatcher;
 import net.bytebuddy.pool.TypePool;
 
 import java.lang.instrument.Instrumentation;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static net.bytebuddy.implementation.MethodDelegation.to;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.isStatic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
-import static net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 import static net.bytebuddy.matcher.ElementMatchers.not;
 
 @Slf4j
@@ -25,10 +30,10 @@ public class DriverSessionsAgent {
     private static final String CLOSE_METHOD_MAME = "close";
 
     // getSessionId and getCapabilities are used by the agent interceptors
-    private static final String[] PUBLIC_METHODS_TO_NOT_INTERCEPT = {
+    private static final Set<String> PUBLIC_METHODS_TO_NOT_INTERCEPT = new HashSet<>(Arrays.asList(
             START_SESSION_METHOD_MAME, QUIT_METHOD_MAME, CLOSE_METHOD_MAME, "getSessionId", "getCapabilities",
             "wait", "equals", "hashCode", "getClass", "notify", "notifyAll", "toString"
-    };
+    ));
     // the rest of the public methods
     // setFileDetector, getErrorHandler, setErrorHandler, getCommandExecutor, getTitle, getCurrentUrl, getScreenshotAs,
     // findElements, findElement, findElementById, findElementsById, findElementByLinkText, findElementsByLinkText,
@@ -39,16 +44,27 @@ public class DriverSessionsAgent {
     // resetInputState, getKeyboard, getMouse, getFileDetector, get
 
     public static void premain(String args, Instrumentation instrumentation) {
-        log.debug("Web sessions agent starts to add interceptors for RemoteWebDriver");
-        new AgentBuilder.Default()
-                .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
-                .type(named(REMOTE_WEB_DRIVER_CLASS_MAME))
-                .transform((builder, type, classloader, module) -> addInterceptors(builder))
-                .installOn(instrumentation);
+        try {
+            log.info("Zebrunner driver sessions agent is enabled.");
+            new AgentBuilder.Default()
+                    .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
+                    .type(named(REMOTE_WEB_DRIVER_CLASS_MAME))
+                    .transform((builder, type, classloader, module) -> addInterceptors(builder))
+                    .installOn(instrumentation);
+        } catch (Exception e) {
+            log.error("Could not add interceptors for RemoteWebDriver", e);
+        }
+    }
+
+    public static ElementMatcher<? super MethodDescription> isPublicMethodToIntercept() {
+        return isPublic()
+                .and(not(isStatic()))
+                .and(not(new NameMatcher<>(PUBLIC_METHODS_TO_NOT_INTERCEPT::contains)));
     }
 
     private static DynamicType.Builder<?> addInterceptors(DynamicType.Builder<?> builder) {
-        return builder.method(isPublic().and(not(isStatic())).and(not(namedOneOf(PUBLIC_METHODS_TO_NOT_INTERCEPT))))
+        log.info("Zebrunner driver sessions agent is adding interceptors for RemoteWebDriver.");
+        return builder.method(isPublicMethodToIntercept())
                       .intercept(to(publicMethodsInterceptor()))
                       .method(named(START_SESSION_METHOD_MAME))
                       .intercept(to(startSessionInterceptor()))
