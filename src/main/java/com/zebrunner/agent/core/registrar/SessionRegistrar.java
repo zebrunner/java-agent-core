@@ -1,6 +1,5 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.exception.TestAgentException;
 import com.zebrunner.agent.core.registrar.descriptor.SessionCloseDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.SessionStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
@@ -44,8 +43,11 @@ class SessionRegistrar implements DriverSessionRegistrar {
 
         testSession = apiClient.startSession(RunContext.getZebrunnerRunId(), testSession);
 
-        sessionIdToSession.put(testSession.getSessionId(), testSession);
-        threadSessionIds.get().add(testSession.getSessionId());
+        // if reporting is enabled and test run was actually registered
+        if (testSession != null) {
+            sessionIdToSession.put(testSession.getSessionId(), testSession);
+            threadSessionIds.get().add(testSession.getSessionId());
+        }
 
         log.debug("Registration of test session start completed. {}", context);
     }
@@ -54,16 +56,14 @@ class SessionRegistrar implements DriverSessionRegistrar {
     public void registerClose(SessionCloseDescriptor context) {
         log.debug("Registering test session close. {}", context);
         TestSessionDTO testSession = sessionIdToSession.get(context.getSessionId());
-        if (testSession == null) {
-            throw new TestAgentException("Unable to end session. It is not started yet");
+        if (testSession != null) {
+            testSession.setEndedAt(Instant.now());
+
+            apiClient.updateSession(RunContext.getZebrunnerRunId(), testSession);
+
+            sessionIdToSession.remove(context.getSessionId());
+            threadSessionIds.get().remove(context.getSessionId());
         }
-
-        testSession.setEndedAt(Instant.now());
-
-        apiClient.updateSession(RunContext.getZebrunnerRunId(), testSession);
-
-        sessionIdToSession.remove(context.getSessionId());
-        threadSessionIds.get().remove(context.getSessionId());
 
         log.debug("Registration of test session close completed. {}", context);
     }
