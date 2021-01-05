@@ -53,8 +53,11 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         testRun = apiClient.registerTestRunStart(testRun);
 
-        TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(testRun.getId(), tr);
-        RunContext.setRun(testRunDescriptor);
+        // if reporting is enabled and test run was actually registered
+        if (testRun != null) {
+            TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(testRun.getId(), tr);
+            RunContext.setRun(testRunDescriptor);
+        }
     }
 
     @Override
@@ -65,7 +68,10 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        .build();
         apiClient.registerTestRunFinish(testRun);
 
-        RunContext.getRun().complete(finishDescriptor);
+        TestRunDescriptor run = RunContext.getRun();
+        if (run != null) {
+            run.complete(finishDescriptor);
+        }
     }
 
     @Override
@@ -77,9 +83,12 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         test = apiClient.registerTestStart(RunContext.getZebrunnerRunId(), test, true);
 
-        TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
-        RunContext.addTest(id, testDescriptor);
-        driverSessionRegistrar.linkAllCurrentToTest(test.getId());
+        // if reporting is enabled and test was actually registered
+        if (test != null) {
+            TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
+            RunContext.addTest(id, testDescriptor);
+            driverSessionRegistrar.linkAllCurrentToTest(test.getId());
+        }
     }
 
     @Override
@@ -104,9 +113,12 @@ class ReportingRegistrar implements TestRunRegistrar {
             test = apiClient.registerTestStart(RunContext.getZebrunnerRunId(), test, false);
         }
 
-        TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
-        RunContext.addTest(id, testDescriptor);
-        driverSessionRegistrar.linkAllCurrentToTest(test.getId());
+        // if reporting is enabled and test was actually registered
+        if (test != null) {
+            TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
+            RunContext.addTest(id, testDescriptor);
+            driverSessionRegistrar.linkAllCurrentToTest(test.getId());
+        }
     }
 
     @Override
