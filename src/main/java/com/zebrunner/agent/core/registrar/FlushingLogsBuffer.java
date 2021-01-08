@@ -1,9 +1,10 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.appender.Log;
-import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
+import com.zebrunner.agent.core.logging.Log;
+import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -47,9 +48,11 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
      */
     @Override
     public void put(E event) {
-        if (RunContext.getCurrentTest() != null) {
+        Optional<TestDescriptor> currentTest = RunContext.getCurrentTest();
+
+        if (currentTest.isPresent()) {
             Log log = converter.apply(event);
-            log.setTestId(String.valueOf(RunContext.getCurrentTest().getZebrunnerId()));
+            log.setTestId(String.valueOf(currentTest.get().getZebrunnerId()));
 
             QUEUE.add(log);
 
@@ -66,17 +69,19 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
 
     private static void flush() {
         if (!QUEUE.isEmpty()) {
-            String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
+            Long runId = RunContext.getZebrunnerRunId();
             Queue<Log> logsBatch = QUEUE;
             QUEUE = new ConcurrentLinkedQueue<>();
-            API_CLIENT.sendLogs(logsBatch, testRunId);
+            API_CLIENT.sendLogs(logsBatch, runId);
         }
     }
 
     private static void shutdown() {
         FLUSH_EXECUTOR.shutdown();
         try {
-            FLUSH_EXECUTOR.awaitTermination(10, TimeUnit.SECONDS);
+            if (!FLUSH_EXECUTOR.awaitTermination(10, TimeUnit.SECONDS)) {
+                FLUSH_EXECUTOR.shutdownNow();
+            }
         } catch (InterruptedException e) {
             log.error(e.getMessage(), e);
         }

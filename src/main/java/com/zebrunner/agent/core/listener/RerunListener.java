@@ -1,6 +1,6 @@
 package com.zebrunner.agent.core.listener;
 
-import com.zebrunner.agent.core.rest.domain.TestDTO;
+import com.zebrunner.agent.core.registrar.domain.TestDTO;
 
 import java.util.List;
 

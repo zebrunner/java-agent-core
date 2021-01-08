@@ -3,10 +3,7 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.listener.AgentListenerHolder;
 import com.zebrunner.agent.core.listener.RerunListener;
-import com.zebrunner.agent.core.rerun.RerunCondition;
-import com.zebrunner.agent.core.rerun.RerunConditionResolver;
-import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
-import com.zebrunner.agent.core.rest.domain.TestDTO;
+import com.zebrunner.agent.core.registrar.domain.TestDTO;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -43,10 +40,11 @@ final class RerunResolver {
 
     /**
      * Build test run plan according to rerun condition, initializes rerun context and loads available rerun listeners.
+     *
      * @param runPattern pattern to be used to build rerun plan
      */
     private static void processRerun(String runPattern) {
-        ZebrunnerApiClient apiClient = ReportingRegistrar.getApiClient();
+        ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
         testToRerunFuture = CompletableFuture.supplyAsync(() -> {
             RerunCondition rerunCondition = RerunConditionResolver.resolve(runPattern);
             runId = rerunCondition.getRunId();
@@ -70,4 +68,5 @@ final class RerunResolver {
         }
         return result;
     }
+
 }
