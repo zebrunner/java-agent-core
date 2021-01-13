@@ -9,7 +9,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.util.concurrent.Callable;
 
-public class CloseSessionInterceptor {
+public class QuitSessionInterceptor {
 
     private static final DriverSessionRegistrar REGISTRAR = DriverSessionRegistrar.getInstance();
 
