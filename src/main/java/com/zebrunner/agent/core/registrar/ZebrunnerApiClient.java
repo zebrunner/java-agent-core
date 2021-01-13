@@ -204,7 +204,7 @@ class ZebrunnerApiClient {
                                                   .asString();
 
             if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not send test logs.", response));
+                log.error(formatErrorMessage("Could not send a batch of test logs.", response));
             }
         }
     }
@@ -220,7 +220,7 @@ class ZebrunnerApiClient {
                                                   .asString();
 
             if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not send a screenshot.", response));
+                log.error(formatErrorMessage("Could not upload a screenshot.", response));
             }
         }
     }
