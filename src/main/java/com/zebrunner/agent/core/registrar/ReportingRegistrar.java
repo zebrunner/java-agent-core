@@ -49,6 +49,15 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                ConfigurationHolder.getRunEnvironment(),
                                                ConfigurationHolder.getRunBuild()
                                        ))
+                                       .jenkinsContext(new TestRunDTO.JenkinsContext(
+                                               System.getProperty("ci_url"),
+                                               Integer.parseInt(System.getProperty("ci_build")),
+                                               System.getProperty("ci_parent_url"),
+                                               Optional.ofNullable(System.getProperty("ci_parent_build"))
+                                                       .filter(parentBuild -> !parentBuild.isEmpty())
+                                                       .map(Integer::parseInt)
+                                                       .orElse(null)
+                                       ))
                                        .build();
 
         testRun = apiClient.registerTestRunStart(testRun);
