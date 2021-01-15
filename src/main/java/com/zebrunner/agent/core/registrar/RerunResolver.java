@@ -47,6 +47,7 @@ final class RerunResolver {
         ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
         testToRerunFuture = CompletableFuture.supplyAsync(() -> {
             RerunCondition rerunCondition = RerunConditionResolver.resolve(runPattern);
+
             runId = rerunCondition.getRunId();
             List<TestDTO> tests = apiClient.getTestsByCiRunId(rerunCondition);
 
@@ -62,7 +63,7 @@ final class RerunResolver {
     private static <F> F getFutureResult(CompletableFuture<F> completableFuture) {
         F result = null;
         try {
-            result = completableFuture.get(15, TimeUnit.SECONDS);
+            result = completableFuture.get(30, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }

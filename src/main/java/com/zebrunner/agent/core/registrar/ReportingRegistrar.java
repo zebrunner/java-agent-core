@@ -51,12 +51,9 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        ))
                                        .jenkinsContext(new TestRunDTO.JenkinsContext(
                                                System.getProperty("ci_url"),
-                                               Integer.parseInt(System.getProperty("ci_build")),
+                                               getIntegerSystemProperty("ci_build"),
                                                System.getProperty("ci_parent_url"),
-                                               Optional.ofNullable(System.getProperty("ci_parent_build"))
-                                                       .filter(parentBuild -> !parentBuild.isEmpty())
-                                                       .map(Integer::parseInt)
-                                                       .orElse(null)
+                                               getIntegerSystemProperty("ci_parent_build")
                                        ))
                                        .build();
 
@@ -67,6 +64,13 @@ class ReportingRegistrar implements TestRunRegistrar {
             TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(testRun.getId(), tr);
             RunContext.setRun(testRunDescriptor);
         }
+    }
+
+    private Integer getIntegerSystemProperty(String propertyName) {
+        return Optional.ofNullable(System.getProperty(propertyName))
+                       .filter(parentBuild -> !parentBuild.isEmpty())
+                       .map(Integer::parseInt)
+                       .orElse(null);
     }
 
     @Override
@@ -90,7 +94,11 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .startedAt(ts.getStartedAt())
                               .build();
 
-        test = apiClient.registerTestStart(RunContext.getZebrunnerRunId(), test, true);
+        if (ts.getZebrunnerId() != null) {
+            test = apiClient.registerTestRerunStart(RunContext.getZebrunnerRunId(), ts.getZebrunnerId(), test, true);
+        } else {
+            test = apiClient.registerTestStart(RunContext.getZebrunnerRunId(), test, true);
+        }
 
         // if reporting is enabled and test was actually registered
         if (test != null) {
@@ -103,7 +111,7 @@ class ReportingRegistrar implements TestRunRegistrar {
     @Override
     public void registerTestStart(String id, TestStartDescriptor ts) {
         TestDTO test = TestDTO.builder()
-                              .uuid(ts.getUuid())
+                              .correlationData(ts.getCorrelationData())
                               .name(ts.getName())
                               .className(ts.getTestClass().getName())
                               .methodName(ts.getTestMethod().getName())
@@ -118,6 +126,8 @@ class ReportingRegistrar implements TestRunRegistrar {
         if (headlessTestId != null) {
             test.setId(headlessTestId);
             test = apiClient.registerHeadlessTestUpdate(RunContext.getZebrunnerRunId(), test);
+        } else if (ts.getZebrunnerId() != null) {
+            test = apiClient.registerTestRerunStart(RunContext.getZebrunnerRunId(), ts.getZebrunnerId(), test, false);
         } else {
             test = apiClient.registerTestStart(RunContext.getZebrunnerRunId(), test, false);
         }

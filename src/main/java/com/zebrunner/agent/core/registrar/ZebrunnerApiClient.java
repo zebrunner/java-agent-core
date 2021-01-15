@@ -138,11 +138,28 @@ class ZebrunnerApiClient {
                                                   .body(test)
                                                   .routeParam("testRunId", testRunId.toString())
                                                   .queryString("headless", headless)
-                                                  .queryString("rerun", RerunContextHolder.isRerun())
                                                   .asString();
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not register start of the test.", response));
+            }
+            return objectMapper.readValue(response.getBody(), TestDTO.class);
+        } else {
+            return null;
+        }
+    }
+
+    TestDTO registerTestRerunStart(Long testRunId, Long testId, TestDTO test, boolean headless) {
+        if (client != null) {
+            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                                  .body(test)
+                                                  .routeParam("testRunId", testRunId.toString())
+                                                  .routeParam("testId", testId.toString())
+                                                  .queryString("headless", headless)
+                                                  .asString();
+
+            if (!response.isSuccess()) {
+                throw new ServerException(formatErrorMessage("Could not register start of rerun of the test.", response));
             }
             return objectMapper.readValue(response.getBody(), TestDTO.class);
         } else {

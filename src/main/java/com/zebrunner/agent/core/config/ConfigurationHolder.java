@@ -25,7 +25,17 @@ public class ConfigurationHolder {
         RUN_BUILD = configuration.getRun().getBuild();
         RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
 
-        RERUN_RUN_ID = configuration.getRerun().getRunId();
+        String rerunFailures = System.getProperty("rerun_failures");
+        if ("true".equalsIgnoreCase(rerunFailures)) {
+            String ciRunId = System.getProperty("ci_run_id");
+            if (ciRunId != null) {
+                RERUN_RUN_ID = ciRunId + ":[failed,skipped,aborted,in_progress]";
+            } else {
+                RERUN_RUN_ID = configuration.getRerun().getRunId();
+            }
+        } else {
+            RERUN_RUN_ID = configuration.getRerun().getRunId();
+        }
     }
 
     public static boolean isReportingEnabled() {
