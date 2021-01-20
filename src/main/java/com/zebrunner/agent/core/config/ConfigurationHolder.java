@@ -10,6 +10,7 @@ public class ConfigurationHolder {
     private static final String RUN_BUILD;
     private static final String RUN_ENVIRONMENT;
     private static final String RERUN_RUN_ID;
+    private static final String SLACK_CHANNELS;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
@@ -26,6 +27,8 @@ public class ConfigurationHolder {
         RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
 
         RERUN_RUN_ID = configuration.getRerun().getRunId();
+
+        SLACK_CHANNELS = configuration.getNotification().getSlack().getChannels();
     }
 
     public static boolean isReportingEnabled() {
@@ -58,6 +61,10 @@ public class ConfigurationHolder {
 
     public static String getRerunRunId() {
         return RERUN_RUN_ID;
+    }
+
+    public static String getSlackChannels() {
+        return SLACK_CHANNELS;
     }
 
 }

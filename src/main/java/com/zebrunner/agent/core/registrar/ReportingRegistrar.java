@@ -11,8 +11,9 @@ import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-class ReportingRegistrar implements TestRunRegistrar {
+public class ReportingRegistrar implements TestRunRegistrar {
 
     private static final ReportingRegistrar INSTANCE = new ReportingRegistrar();
     private static final LabelResolver LABEL_RESOLVER = new CompositeLabelResolver();
@@ -23,18 +24,31 @@ class ReportingRegistrar implements TestRunRegistrar {
         RerunResolver.resolve();
     }
 
+    private enum NotificationKey {
+
+        SLACK_CHANNELS
+
+    }
+
     @Override
     public void start(TestRunStartDescriptor tr) {
-        TestRunDTO testRun = TestRunDTO.builder()
-                                       .uuid(RerunResolver.getRunId())
-                                       .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
-                                       .framework(tr.getFramework())
-                                       .startedAt(tr.getStartedAt())
-                                       .config(new TestRunDTO.Config(
-                                               ConfigurationHolder.getRunEnvironment(),
-                                               ConfigurationHolder.getRunBuild()
-                                       ))
-                                       .build();
+        TestRunDTO.TestRunDTOBuilder testRunBuilder = TestRunDTO.builder()
+                                                                .uuid(RerunResolver.getRunId())
+                                                                .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
+                                                                .framework(tr.getFramework())
+                                                                .startedAt(tr.getStartedAt())
+                                                                .config(new TestRunDTO.Config(
+                                                                        ConfigurationHolder.getRunEnvironment(),
+                                                                        ConfigurationHolder.getRunBuild()
+                                                                ));
+
+        String slackChannels = ConfigurationHolder.getSlackChannels();
+        if (slackChannels != null) {
+            testRunBuilder.notifications(Set.of(
+                    new TestRunDTO.NotificationDTO(NotificationKey.SLACK_CHANNELS.name(), ConfigurationHolder.getSlackChannels())
+            ));
+        }
+        TestRunDTO testRun = testRunBuilder.build();
 
         testRun = API_CLIENT.registerTestRunStart(testRun);
 

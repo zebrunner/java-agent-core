@@ -26,6 +26,9 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
                                                               .run(new ReportingConfiguration.RunConfiguration())
                                                               .server(new ReportingConfiguration.ServerConfiguration())
                                                               .rerun(new ReportingConfiguration.RerunConfiguration())
+                                                              .notification(new ReportingConfiguration.NotificationConfiguration(
+                                                                      new ReportingConfiguration.NotificationConfiguration.Slack()
+                                                              ))
                                                               .build();
         assembleConfiguration(config);
         if (areMandatoryArgsSet(config)) {
@@ -64,6 +67,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         normalizeServerConfiguration(config);
         normalizeRunConfiguration(config);
         normalizeRerunConfiguration(config);
+        normalizeNotificationConfiguration(config);
     }
 
     private static void normalizeServerConfiguration(ReportingConfiguration config) {
@@ -114,6 +118,25 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         }
     }
 
+    private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
+        if (config.getNotification() == null) {
+            config.setNotification(new ReportingConfiguration.NotificationConfiguration(
+                    new ReportingConfiguration.NotificationConfiguration.Slack()
+            ));
+        } else {
+            ReportingConfiguration.NotificationConfiguration notificationConfiguration = config.getNotification();
+            if (notificationConfiguration.getSlack() == null) {
+                notificationConfiguration.setSlack(new ReportingConfiguration.NotificationConfiguration.Slack());
+            } else {
+                ReportingConfiguration.NotificationConfiguration.Slack slackConfig = config.getNotification().getSlack();
+                String slackChannels = slackConfig.getChannels();
+                if (slackChannels != null && slackChannels.isEmpty()) {
+                    slackConfig.setChannels(null);
+                }
+            }
+        }
+    }
+
     /**
      * Sets values coming from provided configuration that were not set previously by providers with higher priority
      *
@@ -152,6 +175,12 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         if (rerun.getRunId() == null) {
             rerun.setRunId(providedConfig.getRerun().getRunId());
         }
+
+        ReportingConfiguration.NotificationConfiguration.Slack slackConfig = providedConfig.getNotification().getSlack();
+        if (slackConfig.getChannels() != null) {
+            config.getNotification().getSlack().setChannels(slackConfig.getChannels());
+        }
+
     }
 
     // project-key is not considered as a mandatory property
@@ -171,12 +200,14 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         String build = config.getRun().getBuild();
         String environment = config.getRun().getEnvironment();
         String runId = config.getRerun().getRunId();
+        String slackChannels = config.getNotification().getSlack().getChannels();
 
         return enabled != null
                 && projectKey != null
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null
-                && runId != null;
+                && runId != null
+                && slackChannels != null;
     }
 
 }

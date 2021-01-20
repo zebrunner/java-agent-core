@@ -5,11 +5,15 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class YamlConfigurationProvider implements ConfigurationProvider {
+
+    private final static String PROPERTY_SEPARATOR = ",";
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
     private final static String PROJECT_KEY_PROPERTY = "reporting.project-key";
@@ -22,6 +26,8 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_ENVIRONMENT_PROPERTY = "reporting.run.environment";
 
     private final static String RERUN_RUN_ID_PROPERTY = "reporting.rerun.run-id";
+
+    private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack.channels";
 
     private static final String[] DEFAULT_FILE_NAMES = {"agent.yaml", "agent.yml"};
     private static final Yaml YAML_MAPPER = new Yaml();
@@ -38,6 +44,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String build = getProperty(yamlProperties, RUN_BUILD_PROPERTY);
         String environment = getProperty(yamlProperties, RUN_ENVIRONMENT_PROPERTY);
         String runId = getProperty(yamlProperties, RERUN_RUN_ID_PROPERTY);
+        String slackChannels = parseListToString(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("YAML configuration is malformed, skipping");
@@ -50,6 +57,9 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(
+                                             new ReportingConfiguration.NotificationConfiguration.Slack(slackChannels)
+                                     ))
                                      .build();
     }
 
@@ -91,6 +101,39 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
             }
         }
         return result;
+    }
+
+    /**
+     *  Remove brackets and spaces from list-provided property.
+     *
+     * <p>
+     *     Get yaml properties map and find value by full path.
+     *     Use substring(1, propertiesAsString.length() - 1) cause of getting raw list as [item1, item2, ..., itemn]
+     *     then split by separator and remove additional spaces.
+     *
+     *     If no value with path was found, return null for next agent's processing.
+     * </p>
+     *
+     * @param properties yaml properties map
+     * @param path full path to map's value. Has next format: key1.key2.key3...
+     * @return null if no property was found or joined string without brackets and spaces in following format: item1,item2,...,itemn
+     */
+    private String parseListToString(Map<String, Object> properties, String path) {
+        String propertyListAsString = getProperty(properties, path);
+
+        if (propertyListAsString == null) {
+            return null;
+        }
+
+        String bracketsRegex = "\\[(.*?)]";
+        if (propertyListAsString.matches(bracketsRegex)) {
+            return Arrays.stream(propertyListAsString.substring(1, propertyListAsString.length() - 1).split(PROPERTY_SEPARATOR))
+                         .map(String::trim)
+                         .filter(channel -> !channel.isEmpty())
+                         .collect(Collectors.joining(PROPERTY_SEPARATOR));
+        } else {
+            return propertyListAsString.trim();
+        }
     }
 
 }

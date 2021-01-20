@@ -20,6 +20,8 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 
     private final static String RUN_ID_PROPERTY = "reporting.rerun.run-id";
 
+    private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack.channels";
+
     private static final String DEFAULT_FILE_NAME = "agent.properties";
 
     @Override
@@ -34,6 +36,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         String build = agentProperties.getProperty(RUN_BUILD_PROPERTY);
         String environment = agentProperties.getProperty(RUN_ENVIRONMENT_PROPERTY);
         String runId = agentProperties.getProperty(RUN_ID_PROPERTY);
+        String slackChannels = agentProperties.getProperty(NOTIFICATION_SLACK_CHANNELS_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Properties configuration is malformed, skipping");
@@ -46,6 +49,9 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(
+                                             new ReportingConfiguration.NotificationConfiguration.Slack(slackChannels)
+                                     ))
                                      .build();
     }
 

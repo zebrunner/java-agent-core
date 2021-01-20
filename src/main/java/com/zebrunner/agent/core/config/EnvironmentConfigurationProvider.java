@@ -16,6 +16,8 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
 
     private final static String RUN_ID_VARIABLE = "REPORTING_RERUN_RUN_ID";
 
+    private final static String NOTIFICATION_SLACK_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_SLACK_CHANNELS";
+
     @Override
     public ReportingConfiguration getConfiguration() {
         String enabled = System.getenv(ENABLED_VARIABLE);
@@ -26,6 +28,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
         String build = System.getenv(RUN_BUILD_PROPERTY);
         String environment = System.getenv(RUN_ENVIRONMENT_PROPERTY);
         String runId = System.getenv(RUN_ID_VARIABLE);
+        String slackChannels = System.getenv(NOTIFICATION_SLACK_CHANNELS_VARIABLE);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Environment configuration is malformed, skipping");
@@ -38,6 +41,9 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(
+                                             new ReportingConfiguration.NotificationConfiguration.Slack(slackChannels)
+                                     ))
                                      .build();
     }
 
