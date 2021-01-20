@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ReportingRegistrar implements TestRunRegistrar {
+class ReportingRegistrar implements TestRunRegistrar {
 
     private static final ReportingRegistrar INSTANCE = new ReportingRegistrar();
     private static final LabelResolver LABEL_RESOLVER = new CompositeLabelResolver();
