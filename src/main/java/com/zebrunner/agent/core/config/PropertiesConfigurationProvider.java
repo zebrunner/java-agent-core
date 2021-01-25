@@ -4,9 +4,14 @@ import com.zebrunner.agent.core.exception.TestAgentException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PropertiesConfigurationProvider implements ConfigurationProvider {
+
+    private final static String VALUE_SEPARATORS = "[,;]";
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
     private final static String PROJECT_KEY_PROPERTY = "reporting.project-key";
@@ -20,7 +25,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
 
     private final static String RUN_ID_PROPERTY = "reporting.rerun.run-id";
 
-    private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack.channels";
+    private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
 
     private static final String DEFAULT_FILE_NAME = "agent.properties";
 
@@ -36,7 +41,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         String build = agentProperties.getProperty(RUN_BUILD_PROPERTY);
         String environment = agentProperties.getProperty(RUN_ENVIRONMENT_PROPERTY);
         String runId = agentProperties.getProperty(RUN_ID_PROPERTY);
-        String slackChannels = agentProperties.getProperty(NOTIFICATION_SLACK_CHANNELS_PROPERTY);
+        Set<String> slackChannels = getPropertyValueAsSet(agentProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY, VALUE_SEPARATORS);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Properties configuration is malformed, skipping");
@@ -49,9 +54,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
-                                     .notification(new ReportingConfiguration.NotificationConfiguration(
-                                             new ReportingConfiguration.NotificationConfiguration.Slack(slackChannels)
-                                     ))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels))
                                      .build();
     }
 
@@ -65,6 +68,19 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
             throw new TestAgentException("Unable to load agent configuration from properties file");
         }
         return properties;
+    }
+
+    private Set<String> getPropertyValueAsSet(Properties properties, String key, String separator) {
+        String propertyListAsString = properties.getProperty(key);
+
+        if (propertyListAsString == null) {
+            return Set.of();
+        }
+
+        return Arrays.stream(propertyListAsString.split(separator))
+                     .filter(channel -> !channel.isBlank())
+                     .map(String::trim)
+                     .collect(Collectors.toSet());
     }
 
 }

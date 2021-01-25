@@ -1,5 +1,7 @@
 package com.zebrunner.agent.core.config;
 
+import java.util.Set;
+
 public class ConfigurationHolder {
 
     private static final boolean REPORTING_ENABLED;
@@ -10,7 +12,7 @@ public class ConfigurationHolder {
     private static final String RUN_BUILD;
     private static final String RUN_ENVIRONMENT;
     private static final String RERUN_RUN_ID;
-    private static final String SLACK_CHANNELS;
+    private static final Set<String> SLACK_CHANNELS;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
@@ -28,7 +30,7 @@ public class ConfigurationHolder {
 
         RERUN_RUN_ID = configuration.getRerun().getRunId();
 
-        SLACK_CHANNELS = configuration.getNotification().getSlack().getChannels();
+        SLACK_CHANNELS = configuration.getNotification().getSlackChannels();
     }
 
     public static boolean isReportingEnabled() {
@@ -63,7 +65,7 @@ public class ConfigurationHolder {
         return RERUN_RUN_ID;
     }
 
-    public static String getSlackChannels() {
+    public static Set<String> getSlackChannels() {
         return SLACK_CHANNELS;
     }
 

@@ -12,6 +12,7 @@ import com.zebrunner.agent.core.rest.domain.TestRunDTO;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 class ReportingRegistrar implements TestRunRegistrar {
 
@@ -20,14 +21,11 @@ class ReportingRegistrar implements TestRunRegistrar {
     private static final MaintainerResolver MAINTAINER_RESOLVER = new ChainedMaintainerResolver();
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
+    private static final int CHANNELS_LIMIT = 4;
+    private static final String SLACK_CHANNELS_NOTIFICATION_TYPE = "SLACK_CHANNELS";
+
     static {
         RerunResolver.resolve();
-    }
-
-    private enum NotificationKey {
-
-        SLACK_CHANNELS
-
     }
 
     @Override
@@ -42,12 +40,12 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                                         ConfigurationHolder.getRunBuild()
                                                                 ));
 
-        String slackChannels = ConfigurationHolder.getSlackChannels();
-        if (slackChannels != null) {
-            testRunBuilder.notifications(Set.of(
-                    new TestRunDTO.NotificationDTO(NotificationKey.SLACK_CHANNELS.name(), ConfigurationHolder.getSlackChannels())
-            ));
-        }
+        Set<TestRunDTO.NotificationDTO> slackChannels = ConfigurationHolder.getSlackChannels()
+                                                                           .stream()
+                                                                           .limit(CHANNELS_LIMIT)
+                                                                           .map(channel -> new TestRunDTO.NotificationDTO(SLACK_CHANNELS_NOTIFICATION_TYPE, channel))
+                                                                           .collect(Collectors.toSet());
+        testRunBuilder.notifications(slackChannels);
         TestRunDTO testRun = testRunBuilder.build();
 
         testRun = API_CLIENT.registerTestRunStart(testRun);

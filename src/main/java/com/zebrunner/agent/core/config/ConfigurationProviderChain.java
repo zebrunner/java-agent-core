@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 public class ConfigurationProviderChain implements ConfigurationProvider {
@@ -26,9 +27,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
                                                               .run(new ReportingConfiguration.RunConfiguration())
                                                               .server(new ReportingConfiguration.ServerConfiguration())
                                                               .rerun(new ReportingConfiguration.RerunConfiguration())
-                                                              .notification(new ReportingConfiguration.NotificationConfiguration(
-                                                                      new ReportingConfiguration.NotificationConfiguration.Slack()
-                                                              ))
+                                                              .notification(new ReportingConfiguration.NotificationConfiguration(Set.of()))
                                                               .build();
         assembleConfiguration(config);
         if (areMandatoryArgsSet(config)) {
@@ -120,19 +119,12 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
 
     private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
         if (config.getNotification() == null) {
-            config.setNotification(new ReportingConfiguration.NotificationConfiguration(
-                    new ReportingConfiguration.NotificationConfiguration.Slack()
-            ));
+            config.setNotification(new ReportingConfiguration.NotificationConfiguration(Set.of()));
         } else {
             ReportingConfiguration.NotificationConfiguration notificationConfiguration = config.getNotification();
-            if (notificationConfiguration.getSlack() == null) {
-                notificationConfiguration.setSlack(new ReportingConfiguration.NotificationConfiguration.Slack());
-            } else {
-                ReportingConfiguration.NotificationConfiguration.Slack slackConfig = config.getNotification().getSlack();
-                String slackChannels = slackConfig.getChannels();
-                if (slackChannels != null && slackChannels.isEmpty()) {
-                    slackConfig.setChannels(null);
-                }
+
+            if(notificationConfiguration.getSlackChannels() == null) {
+                notificationConfiguration.setSlackChannels(Set.of());
             }
         }
     }
@@ -176,9 +168,9 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             rerun.setRunId(providedConfig.getRerun().getRunId());
         }
 
-        ReportingConfiguration.NotificationConfiguration.Slack slackConfig = providedConfig.getNotification().getSlack();
-        if (slackConfig.getChannels() != null) {
-            config.getNotification().getSlack().setChannels(slackConfig.getChannels());
+        Set<String> slackChannels = providedConfig.getNotification().getSlackChannels();
+        if (slackChannels != null && !slackChannels.isEmpty()) {
+            config.getNotification().setSlackChannels(slackChannels);
         }
 
     }
@@ -200,7 +192,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         String build = config.getRun().getBuild();
         String environment = config.getRun().getEnvironment();
         String runId = config.getRerun().getRunId();
-        String slackChannels = config.getNotification().getSlack().getChannels();
+        Set<String> slackChannels = config.getNotification().getSlackChannels();
 
         return enabled != null
                 && projectKey != null
