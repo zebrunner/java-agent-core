@@ -3,8 +3,8 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunFinishDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +53,13 @@ public interface TestRunRegistrar {
      * @param testStartDescriptor test start descriptor
      */
     void registerTestStart(String id, TestStartDescriptor testStartDescriptor);
+
+    /**
+     * Checks if there is a started test within current execution thread.
+     *
+     * @return true - if there is a started test, otherwise - false
+     */
+    boolean isTestStarted();
 
     /**
      * Checks whether a test with specific id has been started or not

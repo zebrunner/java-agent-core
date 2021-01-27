@@ -89,22 +89,25 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerHeadlessTestStart(String id, TestStartDescriptor ts) {
-        TestDTO test = TestDTO.builder()
-                              .name(ts.getName())
-                              .startedAt(ts.getStartedAt())
-                              .build();
+        if (RunContext.getCurrentTest().isPresent()) { // we should not register the same headless test twice
+            TestDTO test = TestDTO.builder()
+                                  .name(ts.getName())
+                                  .startedAt(ts.getStartedAt())
+                                  .build();
 
-        if (ts.getZebrunnerId() != null) {
-            test = apiClient.registerTestRerunStart(RunContext.getZebrunnerRunId(), ts.getZebrunnerId(), test, true);
-        } else {
-            test = apiClient.registerTestStart(RunContext.getZebrunnerRunId(), test, true);
-        }
+            Long zebrunnerRunId = RunContext.getZebrunnerRunId();
+            if (ts.getZebrunnerId() != null) {
+                test = apiClient.registerTestRerunStart(zebrunnerRunId, ts.getZebrunnerId(), test, true);
+            } else {
+                test = apiClient.registerTestStart(zebrunnerRunId, test, true);
+            }
 
-        // if reporting is enabled and test was actually registered
-        if (test != null) {
-            TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
-            RunContext.addTest(id, testDescriptor);
-            driverSessionRegistrar.linkAllCurrentToTest(test.getId());
+            // if reporting is enabled and test was actually registered
+            if (test != null) {
+                TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
+                RunContext.addTest(id, testDescriptor);
+                driverSessionRegistrar.linkAllCurrentToTest(test.getId());
+            }
         }
     }
 
@@ -138,6 +141,11 @@ class ReportingRegistrar implements TestRunRegistrar {
             RunContext.addTest(id, testDescriptor);
             driverSessionRegistrar.linkAllCurrentToTest(test.getId());
         }
+    }
+
+    @Override
+    public boolean isTestStarted() {
+        return RunContext.getCurrentTest().isPresent();
     }
 
     @Override
