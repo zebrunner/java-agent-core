@@ -63,6 +63,8 @@ class ReportingRegistrar implements TestRunRegistrar {
         if (testRun != null) {
             TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(testRun.getId(), tr);
             RunContext.setRun(testRunDescriptor);
+
+            saveRunLocaleFromProgramArguments();
         }
     }
 
@@ -71,6 +73,13 @@ class ReportingRegistrar implements TestRunRegistrar {
                        .filter(parentBuild -> !parentBuild.isEmpty())
                        .map(Integer::parseInt)
                        .orElse(null);
+    }
+
+    private void saveRunLocaleFromProgramArguments() {
+        String locale = System.getProperty("locale");
+        if (locale != null) {
+            Label.attachToTestRun(Label.LOCALE, locale);
+        }
     }
 
     @Override
