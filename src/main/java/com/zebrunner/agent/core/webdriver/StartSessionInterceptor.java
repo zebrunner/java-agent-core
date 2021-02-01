@@ -22,6 +22,11 @@ public class StartSessionInterceptor {
         proxy.call();
 
         String sessionId = driver.getSessionId().toString();
+        if (sessionId.length() >= 64 ) {
+            // use case with GoGridRouter so we have to cut first 32 symbols!
+            // have no idea what it actually means, but Vadim Delendik can provide more information
+            sessionId = sessionId.substring(32);
+        }
         SessionStartDescriptor context = new SessionStartDescriptor(sessionId, driver.getCapabilities(), capabilities);
         REGISTRAR.registerStart(context);
     }
