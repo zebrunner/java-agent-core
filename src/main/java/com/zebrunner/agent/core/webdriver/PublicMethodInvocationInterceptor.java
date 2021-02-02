@@ -17,7 +17,11 @@ public class PublicMethodInvocationInterceptor {
                                                   @SuperCall final Callable<Object> proxy) throws Exception {
         Object returnValue = proxy.call();
 
-        REGISTRAR.linkToCurrentTest(driver.getSessionId().toString());
+        String sessionId = driver.getSessionId().toString();
+        if (sessionId.length() >= 64 ) {
+            sessionId = sessionId.substring(32);
+        }
+        REGISTRAR.linkToCurrentTest(sessionId);
 
         return returnValue;
     }
