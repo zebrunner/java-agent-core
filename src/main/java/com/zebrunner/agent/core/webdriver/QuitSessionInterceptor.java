@@ -22,9 +22,9 @@ public class QuitSessionInterceptor {
         }
         SessionCloseDescriptor context = new SessionCloseDescriptor(sessionId, driver.getCapabilities());
 
-        proxy.call();
-
         REGISTRAR.registerClose(context);
+
+        proxy.call();
     }
 
 }

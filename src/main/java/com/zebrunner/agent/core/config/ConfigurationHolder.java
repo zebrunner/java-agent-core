@@ -1,5 +1,7 @@
 package com.zebrunner.agent.core.config;
 
+import java.util.Optional;
+
 public class ConfigurationHolder {
 
     private static final boolean REPORTING_ENABLED;
@@ -25,17 +27,16 @@ public class ConfigurationHolder {
         RUN_BUILD = configuration.getRun().getBuild();
         RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
 
+        RERUN_RUN_ID = Optional.ofNullable(System.getProperty("ci_run_id"))
+                               .map(ConfigurationHolder::appendStatusesIfNecessary)
+                               .orElseGet(() -> configuration.getRerun().getRunId());
+    }
+
+    private static String appendStatusesIfNecessary(String ciRunId) {
         String rerunFailures = System.getProperty("rerun_failures");
-        if ("true".equalsIgnoreCase(rerunFailures)) {
-            String ciRunId = System.getProperty("ci_run_id");
-            if (ciRunId != null) {
-                RERUN_RUN_ID = ciRunId + ":[failed,skipped,aborted,in_progress]";
-            } else {
-                RERUN_RUN_ID = configuration.getRerun().getRunId();
-            }
-        } else {
-            RERUN_RUN_ID = configuration.getRerun().getRunId();
-        }
+        return "true".equalsIgnoreCase(rerunFailures)
+                ? ciRunId + ":[failed,skipped,aborted,in_progress]"
+                : ciRunId;
     }
 
     public static boolean isReportingEnabled() {
