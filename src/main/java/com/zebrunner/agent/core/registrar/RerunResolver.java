@@ -1,27 +1,25 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.exception.TestAgentException;
 import com.zebrunner.agent.core.listener.AgentListenerHolder;
 import com.zebrunner.agent.core.listener.RerunListener;
+import com.zebrunner.agent.core.registrar.domain.GetTestsByCiRunIdResponse;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 final class RerunResolver {
 
-    private static CompletableFuture<List<TestDTO>> testToRerunFuture;
     private static String runId;
+    private static Boolean isRerun;
 
     synchronized static void resolve() {
         String runPattern = ConfigurationHolder.getRerunRunId(); // can be null when first run, if not null - rerun
         if (runPattern != null) {
             processRerun(runPattern);
         } else {
-            testToRerunFuture = CompletableFuture.completedFuture(null);
+            isRerun = Boolean.FALSE;
         }
     }
 
@@ -30,12 +28,10 @@ final class RerunResolver {
     }
 
     static boolean isRerun() {
-        if (testToRerunFuture == null) {
+        if (isRerun == null) {
             resolve();
         }
-
-        List<TestDTO> tests = getFutureResult(testToRerunFuture);
-        return tests != null;
+        return Boolean.TRUE.equals(isRerun);
     }
 
     /**
@@ -45,29 +41,30 @@ final class RerunResolver {
      */
     private static void processRerun(String runPattern) {
         ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
-        testToRerunFuture = CompletableFuture.supplyAsync(() -> {
-            RerunCondition rerunCondition = RerunConditionResolver.resolve(runPattern);
+        RerunCondition rerunCondition = RerunConditionResolver.resolve(runPattern);
 
-            runId = rerunCondition.getRunId();
-            List<TestDTO> tests = apiClient.getTestsByCiRunId(rerunCondition);
+        runId = rerunCondition.getRunId();
+        GetTestsByCiRunIdResponse response = apiClient.getTestsByCiRunId(rerunCondition);
 
-            RerunContextHolder.setTests(tests);
+        if (response != null) {
+            if (response.isSuccess()) {
+                isRerun = true;
 
-            for (RerunListener listener : AgentListenerHolder.getRerunListeners()) {
-                listener.onRerun(tests);
+                List<TestDTO> tests = response.getTests();
+                RerunContextHolder.setTests(tests);
+
+                for (RerunListener listener : AgentListenerHolder.getRerunListeners()) {
+                    listener.onRerun(tests);
+                }
+            } else if ("true".equalsIgnoreCase(System.getProperty("rerun_failures"))) {
+                String formattedMessage = String.format(
+                        "You cannot rerun failed tests because there is no test run with given ci run id (%s) in Zebrunner", runId
+                );
+                throw new TestAgentException(formattedMessage);
             }
-            return tests;
-        });
-    }
-
-    private static <F> F getFutureResult(CompletableFuture<F> completableFuture) {
-        F result = null;
-        try {
-            result = completableFuture.get(30, TimeUnit.SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            e.printStackTrace();
         }
-        return result;
+
+        isRerun = false;
     }
 
 }

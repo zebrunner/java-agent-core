@@ -18,15 +18,11 @@ import java.util.Optional;
 @Slf4j
 class ReportingRegistrar implements TestRunRegistrar {
 
-    static {
-        RerunResolver.resolve();
-    }
-
-    private static final String CI_RUN_ID = System.getProperty("ci_run_id");
     private static volatile ReportingRegistrar instance;
 
     public static ReportingRegistrar getInstance() {
         if (instance == null) {
+            RerunResolver.resolve();
             instance = new ReportingRegistrar();
         }
         return instance;
@@ -39,9 +35,8 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerStart(TestRunStartDescriptor tr) {
-        log.info("Ci run id = '{}'", CI_RUN_ID);
         TestRunDTO testRun = TestRunDTO.builder()
-                                       .uuid(Optional.ofNullable(RerunResolver.getRunId()).orElse(CI_RUN_ID))
+                                       .uuid(RerunResolver.getRunId())
                                        .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
