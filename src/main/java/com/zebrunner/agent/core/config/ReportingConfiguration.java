@@ -65,6 +65,7 @@ public class ReportingConfiguration {
 
         private Set<String> slackChannels;
         private Set<String> microsoftTeamsChannels;
+        private Set<String> emails;
 
     }
 

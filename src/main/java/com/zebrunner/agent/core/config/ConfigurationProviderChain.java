@@ -27,7 +27,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
                                                               .run(new ReportingConfiguration.RunConfiguration())
                                                               .server(new ReportingConfiguration.ServerConfiguration())
                                                               .rerun(new ReportingConfiguration.RerunConfiguration())
-                                                              .notification(new ReportingConfiguration.NotificationConfiguration(Set.of(), Set.of()))
+                                                              .notification(new ReportingConfiguration.NotificationConfiguration(Set.of(), Set.of(), Set.of()))
                                                               .build();
         assembleConfiguration(config);
         if (areMandatoryArgsSet(config)) {
@@ -119,7 +119,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
 
     private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
         if (config.getNotification() == null) {
-            config.setNotification(new ReportingConfiguration.NotificationConfiguration(Set.of(), Set.of()));
+            config.setNotification(new ReportingConfiguration.NotificationConfiguration(Set.of(), Set.of(), Set.of()));
         } else {
             ReportingConfiguration.NotificationConfiguration notificationConfiguration = config.getNotification();
 
@@ -129,6 +129,10 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
 
             if (notificationConfiguration.getMicrosoftTeamsChannels() == null) {
                 notificationConfiguration.setMicrosoftTeamsChannels(Set.of());
+            }
+
+            if (notificationConfiguration.getEmails() == null) {
+                notificationConfiguration.setEmails(Set.of());
             }
         }
     }
@@ -182,6 +186,11 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             config.getNotification().setMicrosoftTeamsChannels(microsoftTeamsChannels);
         }
 
+        Set<String> emails = providedConfig.getNotification().getEmails();
+        if (emails != null && !emails.isEmpty()) {
+            config.getNotification().setEmails(emails);
+        }
+
     }
 
     // project-key is not considered as a mandatory property
@@ -203,13 +212,14 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         String runId = config.getRerun().getRunId();
         Set<String> slackChannels = config.getNotification().getSlackChannels();
         Set<String> microsoftTeamsChannels = config.getNotification().getMicrosoftTeamsChannels();
+        Set<String> emails = config.getNotification().getEmails();
 
         return enabled != null
                 && projectKey != null
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null
                 && runId != null
-                && slackChannels != null && microsoftTeamsChannels != null;
+                && slackChannels != null && microsoftTeamsChannels != null && emails != null;
     }
 
 }

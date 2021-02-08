@@ -24,6 +24,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
 
     private final static String SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String MICROSOFT_TEAMS_CHANNELS_PROPERTY = "reporting.notification.microsoft-teams-channels";
+    private final static String EMAILS_PROPERTY = "reporting.notification.emails";
 
     @Override
     public ReportingConfiguration getConfiguration() {
@@ -37,6 +38,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         String runId = System.getProperty(RUN_ID_PROPERTY);
         Set<String> slackChannels = getPropertyValueAsSet(SLACK_CHANNELS_PROPERTY);
         Set<String> microsoftTeamsChannels = getPropertyValueAsSet(MICROSOFT_TEAMS_CHANNELS_PROPERTY);
+        Set<String> emails = getPropertyValueAsSet(EMAILS_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("System properties configuration is malformed, skipping");
@@ -49,7 +51,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
-                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, microsoftTeamsChannels))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, microsoftTeamsChannels, emails))
                                      .build();
     }
 

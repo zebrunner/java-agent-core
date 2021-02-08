@@ -129,9 +129,11 @@ class ReportingRegistrar implements TestRunRegistrar {
     private static final class TestRunBuilder {
 
         private static final int SLACK_CHANNELS_LIMIT = 20;
+        private static final int EMAIL_RECIPIENTS_LIMIT = 20;
         private static final int MICROSOFT_TEAMS_CHANNELS_LIMIT = 20;
 
         private static final String SLACK_CHANNELS_NOTIFICATION_TYPE = "SLACK_CHANNELS";
+        private static final String EMAIL_RECIPIENTS_NOTIFICATION_TYPE = "EMAIL_RECIPIENTS";
         private static final String MICROSOFT_TEAMS_CHANNELS_NOTIFICATION_TYPE = "MS_TEAMS_CHANNELS";
 
         public static TestRunDTO build(TestRunStartDescriptor testRunStartDescriptor) {
@@ -151,13 +153,19 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                                                .map(channel -> new TestRunDTO.NotificationDTO(SLACK_CHANNELS_NOTIFICATION_TYPE, channel))
                                                                                .collect(Collectors.toSet());
 
+            Set<TestRunDTO.NotificationDTO> emails = ConfigurationHolder.getEmails()
+                                                                        .stream()
+                                                                        .limit(EMAIL_RECIPIENTS_LIMIT)
+                                                                        .map(recipient -> new TestRunDTO.NotificationDTO(EMAIL_RECIPIENTS_NOTIFICATION_TYPE, recipient))
+                                                                        .collect(Collectors.toSet());
+
             Set<TestRunDTO.NotificationDTO> msTeamsChannels = ConfigurationHolder.getMicrosoftTeamsChannels()
                                                                                  .stream()
                                                                                  .limit(MICROSOFT_TEAMS_CHANNELS_LIMIT)
                                                                                  .map(channel -> new TestRunDTO.NotificationDTO(MICROSOFT_TEAMS_CHANNELS_NOTIFICATION_TYPE, channel))
                                                                                  .collect(Collectors.toSet());
 
-            Set<TestRunDTO.NotificationDTO> notificationTargets = Stream.of(slackChannels, msTeamsChannels)
+            Set<TestRunDTO.NotificationDTO> notificationTargets = Stream.of(slackChannels, emails, msTeamsChannels)
                                                                         .flatMap(Set::stream)
                                                                         .collect(Collectors.toSet());
             testRunBuilder.notifications(notificationTargets);
