@@ -1,13 +1,12 @@
 package com.zebrunner.agent.core.registrar.label;
 
 import com.zebrunner.agent.core.annotation.TestRailReference;
+import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,22 +14,19 @@ import java.util.stream.Stream;
 public class TestRailReferenceLabelResolver implements LabelResolver {
 
     @Override
-    public Map<String, List<String>> resolve(Class<?> clazz, Method method) {
+    public List<LabelDTO> resolve(Class<?> clazz, Method method) {
         TestRailReference[] annotations = getAnnotations(method);
         if (annotations == null) {
             annotations = getAnnotations(clazz);
         }
 
-        List<String> values = Optional.ofNullable(annotations)
-                                      .map(Arrays::stream)
-                                      .orElseGet(Stream::empty)
-                                      .map(TestRailReference::value)
-                                      .flatMap(Arrays::stream)
-                                      .collect(Collectors.toList());
-
-        return values.isEmpty()
-                ? Collections.emptyMap()
-                : Collections.singletonMap(Labels.TEST_RAIL_REFERENCE, values);
+        return Optional.ofNullable(annotations)
+                       .map(Arrays::stream)
+                       .orElseGet(Stream::empty)
+                       .map(TestRailReference::value)
+                       .flatMap(Arrays::stream)
+                       .map(value -> new LabelDTO(Labels.TEST_RAIL_REFERENCE, value))
+                       .collect(Collectors.toList());
     }
 
     private TestRailReference[] getAnnotations(AnnotatedElement annotatedElement) {

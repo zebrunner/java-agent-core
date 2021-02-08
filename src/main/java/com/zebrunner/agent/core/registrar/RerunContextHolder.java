@@ -1,7 +1,7 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.rest.domain.TestDTO;
+import com.zebrunner.agent.core.registrar.domain.TestDTO;
 
 import java.util.List;
 
@@ -32,10 +32,12 @@ public final class RerunContextHolder {
 
     /**
      * Puts tests that are eligible for rerun to context. Automatically sets isRerun value to true.
+     *
      * @param tests tests
      */
     static void setTests(List<TestDTO> tests) {
         RerunContextHolder.tests = tests;
         rerun = true;
     }
+
 }

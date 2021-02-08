@@ -1,17 +1,12 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.rest.ZebrunnerApiClient;
+import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.Instant;
 
 @Slf4j
 public final class Screenshot {
 
-    private static final ZebrunnerApiClient API_CLIENT = ConfigurationHolder.isReportingEnabled()
-            ? ZebrunnerApiClient.getInstance()
-            : null;
+    private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
     /**
      * Sends screenshot captured in scope of current test execution to Zebrunner. Captured at timestamp accuracy
@@ -22,16 +17,12 @@ public final class Screenshot {
      * @param capturedAtMillis unix timestamp representing a moment in time when screenshot got captured in milliseconds
      */
     public static void upload(byte[] screenshot, Long capturedAtMillis) {
-        if (ConfigurationHolder.isReportingEnabled()) {
-            capturedAtMillis = capturedAtMillis != null ? capturedAtMillis : Instant.now().toEpochMilli();
+        Long capturedAt = capturedAtMillis != null ? capturedAtMillis : System.currentTimeMillis();
+        Long runId = RunContext.getZebrunnerRunId();
 
-            String testRunId = String.valueOf(RunContext.getRun().getZebrunnerId());
-            String testId = String.valueOf(RunContext.getCurrentTest().getZebrunnerId());
-
-            API_CLIENT.uploadScreenshot(screenshot, testRunId, testId, capturedAtMillis);
-        } else {
-            log.trace("Screenshot taken: size={}, captureAtMillis={}", screenshot.length, capturedAtMillis);
-        }
+        RunContext.getCurrentTest()
+                  .map(TestDescriptor::getZebrunnerId)
+                  .ifPresent(testId -> API_CLIENT.uploadScreenshot(screenshot, runId, testId, capturedAt));
     }
 
 }

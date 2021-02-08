@@ -1,9 +1,11 @@
 package com.zebrunner.agent.core.registrar.label;
 
+import com.zebrunner.agent.core.registrar.domain.LabelDTO;
+
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,11 +30,13 @@ public final class CompositeLabelResolver implements LabelResolver {
     }
 
     @Override
-    public Map<String, List<String>> resolve(Class<?> clazz, Method method) {
+    public List<LabelDTO> resolve(Class<?> clazz, Method method) {
         return RESOLVERS.stream()
                         .map(labelResolver -> labelResolver.resolve(clazz, method))
                         .filter(Objects::nonNull)
-                        .flatMap(map -> map.entrySet().stream())
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                        .flatMap(Collection::stream)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
     }
+
 }
