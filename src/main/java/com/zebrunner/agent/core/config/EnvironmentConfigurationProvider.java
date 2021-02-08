@@ -23,6 +23,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_ID_VARIABLE = "REPORTING_RERUN_RUN_ID";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_SLACK_CHANNELS";
+    private final static String MICROSOFT_TEAMS_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_MICROSOFT_TEAMS_CHANNELS";
 
     @Override
     public ReportingConfiguration getConfiguration() {
@@ -35,6 +36,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
         String environment = System.getenv(RUN_ENVIRONMENT_PROPERTY);
         String runId = System.getenv(RUN_ID_VARIABLE);
         Set<String> slackChannels = getEnvironmentValueAsSet(NOTIFICATION_SLACK_CHANNELS_VARIABLE, VALUE_SEPARATORS);
+        Set<String> microsoftTeamsChannels = getEnvironmentValueAsSet(MICROSOFT_TEAMS_CHANNELS_VARIABLE, VALUE_SEPARATORS);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Environment configuration is malformed, skipping");
@@ -47,7 +49,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
-                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, microsoftTeamsChannels))
                                      .build();
     }
 

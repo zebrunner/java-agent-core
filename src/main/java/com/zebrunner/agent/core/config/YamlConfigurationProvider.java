@@ -29,6 +29,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String RERUN_RUN_ID_PROPERTY = "reporting.rerun.run-id";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
+    private final static String NOTIFICATION_MICROSOFT_TEAMS_CHANNELS_PROPERTY = "reporting.notification.microsoft-teams-channels";
 
     private static final String[] DEFAULT_FILE_NAMES = {"agent.yaml", "agent.yml"};
     private static final Yaml YAML_MAPPER = new Yaml();
@@ -46,6 +47,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String environment = getProperty(yamlProperties, RUN_ENVIRONMENT_PROPERTY);
         String runId = getProperty(yamlProperties, RERUN_RUN_ID_PROPERTY);
         Set<String> slackChannels = getPropertyValueAsSet(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
+        Set<String> microsoftTeams = getPropertyValueAsSet(yamlProperties, NOTIFICATION_MICROSOFT_TEAMS_CHANNELS_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("YAML configuration is malformed, skipping");
@@ -58,7 +60,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
-                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, microsoftTeams))
                                      .build();
     }
 

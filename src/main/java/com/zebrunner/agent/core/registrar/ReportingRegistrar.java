@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class ReportingRegistrar implements TestRunRegistrar {
 
@@ -21,33 +22,13 @@ class ReportingRegistrar implements TestRunRegistrar {
     private static final MaintainerResolver MAINTAINER_RESOLVER = new ChainedMaintainerResolver();
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
-    private static final int CHANNELS_LIMIT = 4;
-    private static final String SLACK_CHANNELS_NOTIFICATION_TYPE = "SLACK_CHANNELS";
-
     static {
         RerunResolver.resolve();
     }
 
     @Override
     public void start(TestRunStartDescriptor tr) {
-        TestRunDTO.TestRunDTOBuilder testRunBuilder = TestRunDTO.builder()
-                                                                .uuid(RerunResolver.getRunId())
-                                                                .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
-                                                                .framework(tr.getFramework())
-                                                                .startedAt(tr.getStartedAt())
-                                                                .config(new TestRunDTO.Config(
-                                                                        ConfigurationHolder.getRunEnvironment(),
-                                                                        ConfigurationHolder.getRunBuild()
-                                                                ));
-
-        Set<TestRunDTO.NotificationDTO> slackChannels = ConfigurationHolder.getSlackChannels()
-                                                                           .stream()
-                                                                           .limit(CHANNELS_LIMIT)
-                                                                           .map(channel -> new TestRunDTO.NotificationDTO(SLACK_CHANNELS_NOTIFICATION_TYPE, channel))
-                                                                           .collect(Collectors.toSet());
-        testRunBuilder.notifications(slackChannels);
-        TestRunDTO testRun = testRunBuilder.build();
-
+        TestRunDTO testRun = TestRunBuilder.build(tr);
         testRun = API_CLIENT.registerTestRunStart(testRun);
 
         TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(testRun.getId(), tr);
@@ -144,4 +125,45 @@ class ReportingRegistrar implements TestRunRegistrar {
     static ZebrunnerApiClient getApiClient() {
         return API_CLIENT;
     }
+
+    private static final class TestRunBuilder {
+
+        private static final int SLACK_CHANNELS_LIMIT = 20;
+        private static final int MICROSOFT_TEAMS_CHANNELS_LIMIT = 20;
+
+        private static final String SLACK_CHANNELS_NOTIFICATION_TYPE = "SLACK_CHANNELS";
+        private static final String MICROSOFT_TEAMS_CHANNELS_NOTIFICATION_TYPE = "MS_TEAMS_CHANNELS";
+
+        public static TestRunDTO build(TestRunStartDescriptor testRunStartDescriptor) {
+            TestRunDTO.TestRunDTOBuilder testRunBuilder = TestRunDTO.builder()
+                                                                    .uuid(RerunResolver.getRunId())
+                                                                    .name(ConfigurationHolder.getRunDisplayNameOr(testRunStartDescriptor.getName()))
+                                                                    .framework(testRunStartDescriptor.getFramework())
+                                                                    .startedAt(testRunStartDescriptor.getStartedAt())
+                                                                    .config(new TestRunDTO.Config(
+                                                                            ConfigurationHolder.getRunEnvironment(),
+                                                                            ConfigurationHolder.getRunBuild()
+                                                                    ));
+
+            Set<TestRunDTO.NotificationDTO> slackChannels = ConfigurationHolder.getSlackChannels()
+                                                                               .stream()
+                                                                               .limit(SLACK_CHANNELS_LIMIT)
+                                                                               .map(channel -> new TestRunDTO.NotificationDTO(SLACK_CHANNELS_NOTIFICATION_TYPE, channel))
+                                                                               .collect(Collectors.toSet());
+
+            Set<TestRunDTO.NotificationDTO> msTeamsChannels = ConfigurationHolder.getMicrosoftTeamsChannels()
+                                                                                 .stream()
+                                                                                 .limit(MICROSOFT_TEAMS_CHANNELS_LIMIT)
+                                                                                 .map(channel -> new TestRunDTO.NotificationDTO(MICROSOFT_TEAMS_CHANNELS_NOTIFICATION_TYPE, channel))
+                                                                                 .collect(Collectors.toSet());
+
+            Set<TestRunDTO.NotificationDTO> notificationTargets = Stream.of(slackChannels, msTeamsChannels)
+                                                                        .flatMap(Set::stream)
+                                                                        .collect(Collectors.toSet());
+            testRunBuilder.notifications(notificationTargets);
+            return testRunBuilder.build();
+        }
+
+    }
+
 }
