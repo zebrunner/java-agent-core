@@ -43,16 +43,7 @@ class ReportingRegistrar implements TestRunRegistrar {
     @Override
     public void registerStart(TestRunStartDescriptor tr) {
         log.info("Ci run id = '{}'", CI_RUN_ID);
-        TestRunDTO testRun = TestRunDTO.builder()
-                                       .uuid(Optional.ofNullable(RerunResolver.getRunId()).orElse(CI_RUN_ID))
-                                       .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
-                                       .framework(tr.getFramework())
-                                       .startedAt(tr.getStartedAt())
-                                       .config(new TestRunDTO.Config(
-                                               ConfigurationHolder.getRunEnvironment(),
-                                               ConfigurationHolder.getRunBuild()
-                                       ))
-                                       .build();
+        TestRunDTO testRun = TestRunBuilder.build(tr);
 
         testRun = apiClient.registerTestRunStart(testRun);
 
