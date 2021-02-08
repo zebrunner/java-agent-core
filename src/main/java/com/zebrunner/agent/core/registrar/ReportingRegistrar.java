@@ -14,6 +14,9 @@ import com.zebrunner.agent.core.registrar.maintainer.ChainedMaintainerResolver;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 class ReportingRegistrar implements TestRunRegistrar {
@@ -143,10 +146,6 @@ class ReportingRegistrar implements TestRunRegistrar {
         }
     }
 
-    static ZebrunnerApiClient getApiClient() {
-        return API_CLIENT;
-    }
-
     private static final class TestRunBuilder {
 
         private static final int SLACK_CHANNELS_LIMIT = 20;
@@ -159,7 +158,7 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         public static TestRunDTO build(TestRunStartDescriptor testRunStartDescriptor) {
             TestRunDTO.TestRunDTOBuilder testRunBuilder = TestRunDTO.builder()
-                                                                    .uuid(RerunResolver.getRunId())
+                                                                    .uuid(Optional.ofNullable(RerunResolver.getRunId()).orElse(CI_RUN_ID))
                                                                     .name(ConfigurationHolder.getRunDisplayNameOr(testRunStartDescriptor.getName()))
                                                                     .framework(testRunStartDescriptor.getFramework())
                                                                     .startedAt(testRunStartDescriptor.getStartedAt())
