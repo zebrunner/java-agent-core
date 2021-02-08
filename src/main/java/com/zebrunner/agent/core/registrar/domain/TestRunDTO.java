@@ -25,7 +25,7 @@ public class TestRunDTO {
     private String framework;
     private Config config;
     private LaunchContextDTO launchContext;
-    private Set<NotificationDTO> notifications;
+    private Set<NotificationTargetDTO> notifications;
 
     @Value
     public static class LaunchContextDTO {
@@ -45,14 +45,6 @@ public class TestRunDTO {
             this.environment = environment;
             this.build = build;
         }
-
-    }
-
-    @Value
-    public static class NotificationDTO {
-
-        String key;
-        String value;
 
     }
 

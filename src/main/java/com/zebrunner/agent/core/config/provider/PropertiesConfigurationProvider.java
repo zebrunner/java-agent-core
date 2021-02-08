@@ -6,14 +6,9 @@ import com.zebrunner.agent.core.exception.TestAgentException;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Properties;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class PropertiesConfigurationProvider implements ConfigurationProvider {
-
-    private final static String VALUE_SEPARATORS = "[,;]";
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
     private final static String PROJECT_KEY_PROPERTY = "reporting.project-key";
@@ -28,7 +23,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_ID_PROPERTY = "reporting.rerun.run-id";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
-    private final static String NOTIFICATION_MICROSOFT_TEAMS_PROPERTY = "reporting.notification.microsoft-teams-channels";
+    private final static String NOTIFICATION_MS_TEAMS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
 
     private static final String DEFAULT_FILE_NAME = "agent.properties";
@@ -45,9 +40,9 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         String build = agentProperties.getProperty(RUN_BUILD_PROPERTY);
         String environment = agentProperties.getProperty(RUN_ENVIRONMENT_PROPERTY);
         String runId = agentProperties.getProperty(RUN_ID_PROPERTY);
-        Set<String> slackChannels = getPropertyValueAsSet(agentProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY, VALUE_SEPARATORS);
-        Set<String> microsoftTeamsChannels = getPropertyValueAsSet(agentProperties, NOTIFICATION_MICROSOFT_TEAMS_PROPERTY, VALUE_SEPARATORS);
-        Set<String> emails = getPropertyValueAsSet(agentProperties, NOTIFICATION_EMAILS_PROPERTY, VALUE_SEPARATORS);
+        String slackChannels = agentProperties.getProperty(NOTIFICATION_SLACK_CHANNELS_PROPERTY);
+        String msTeamsChannels = agentProperties.getProperty(NOTIFICATION_MS_TEAMS_PROPERTY);
+        String emails = agentProperties.getProperty(NOTIFICATION_EMAILS_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Properties configuration is malformed, skipping");
@@ -60,7 +55,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
-                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, microsoftTeamsChannels, emails))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }
 
@@ -74,19 +69,6 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
             throw new TestAgentException("Unable to load agent configuration from properties file");
         }
         return properties;
-    }
-
-    private Set<String> getPropertyValueAsSet(Properties properties, String key, String separator) {
-        String propertyListAsString = properties.getProperty(key);
-
-        if (propertyListAsString == null) {
-            return Set.of();
-        }
-
-        return Arrays.stream(propertyListAsString.split(separator))
-                     .filter(channel -> !channel.isBlank())
-                     .map(String::trim)
-                     .collect(Collectors.toSet());
     }
 
 }

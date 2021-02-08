@@ -4,13 +4,7 @@ import com.zebrunner.agent.core.config.ConfigurationProvider;
 import com.zebrunner.agent.core.config.ReportingConfiguration;
 import com.zebrunner.agent.core.exception.TestAgentException;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class SystemPropertiesConfigurationProvider implements ConfigurationProvider {
-
-    private final static String PROPERTY_SEPARATORS = "[,;]";
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
     private final static String PROJECT_KEY_PROPERTY = "reporting.projectKey";
@@ -25,7 +19,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
     private final static String RUN_ID_PROPERTY = "reporting.rerun.runId";
 
     private final static String SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
-    private final static String MICROSOFT_TEAMS_CHANNELS_PROPERTY = "reporting.notification.microsoft-teams-channels";
+    private final static String MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String EMAILS_PROPERTY = "reporting.notification.emails";
 
     @Override
@@ -38,9 +32,9 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         String build = System.getProperty(RUN_BUILD_PROPERTY);
         String environment = System.getProperty(RUN_ENVIRONMENT_PROPERTY);
         String runId = System.getProperty(RUN_ID_PROPERTY);
-        Set<String> slackChannels = getPropertyValueAsSet(SLACK_CHANNELS_PROPERTY);
-        Set<String> microsoftTeamsChannels = getPropertyValueAsSet(MICROSOFT_TEAMS_CHANNELS_PROPERTY);
-        Set<String> emails = getPropertyValueAsSet(EMAILS_PROPERTY);
+        String slackChannels = System.getProperty(SLACK_CHANNELS_PROPERTY);
+        String msTeamsChannels = System.getProperty(MS_TEAMS_CHANNELS_PROPERTY);
+        String emails = System.getProperty(EMAILS_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("System properties configuration is malformed, skipping");
@@ -53,21 +47,8 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
-                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, microsoftTeamsChannels, emails))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
-    }
-
-    private Set<String> getPropertyValueAsSet(String key) {
-        String propertyListAsString = System.getProperty(key);
-
-        if (propertyListAsString == null) {
-            return Set.of();
-        }
-
-        return Arrays.stream(propertyListAsString.split(PROPERTY_SEPARATORS))
-                     .filter(channel -> !channel.isBlank())
-                     .map(String::trim)
-                     .collect(Collectors.toSet());
     }
 
 }

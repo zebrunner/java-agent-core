@@ -7,16 +7,16 @@ import com.zebrunner.agent.core.registrar.descriptor.TestRunDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunFinishDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
+import com.zebrunner.agent.core.registrar.domain.NotificationTargetDTO;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
 import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.registrar.label.CompositeLabelResolver;
 import com.zebrunner.agent.core.registrar.maintainer.ChainedMaintainerResolver;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 class ReportingRegistrar implements TestRunRegistrar {
@@ -43,8 +43,17 @@ class ReportingRegistrar implements TestRunRegistrar {
     @Override
     public void registerStart(TestRunStartDescriptor tr) {
         log.info("Ci run id = '{}'", CI_RUN_ID);
-        TestRunDTO testRun = TestRunBuilder.build(tr);
-
+        TestRunDTO testRun = TestRunDTO.builder()
+                                       .uuid(Optional.ofNullable(RerunResolver.getRunId()).orElse(CI_RUN_ID))
+                                       .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
+                                       .framework(tr.getFramework())
+                                       .startedAt(tr.getStartedAt())
+                                       .config(new TestRunDTO.Config(
+                                               ConfigurationHolder.getRunEnvironment(),
+                                               ConfigurationHolder.getRunBuild()
+                                       ))
+                                       .notifications(collectNotificationTargets())
+                                       .build();
         testRun = apiClient.registerTestRunStart(testRun);
 
         // if reporting is enabled and test run was actually registered
@@ -52,6 +61,27 @@ class ReportingRegistrar implements TestRunRegistrar {
             TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(testRun.getId(), tr);
             RunContext.setRun(testRunDescriptor);
         }
+    }
+
+    private Set<NotificationTargetDTO> collectNotificationTargets() {
+        Set<NotificationTargetDTO> notificationTargets = new HashSet<>();
+
+        String slackChannels = ConfigurationHolder.getSlackChannels();
+        if (slackChannels != null && !slackChannels.isEmpty()) {
+            notificationTargets.add(new NotificationTargetDTO(NotificationTargetDTO.Type.SLACK_CHANNELS, slackChannels));
+        }
+
+        String msTeamsChannels = ConfigurationHolder.getMsTeamsChannels();
+        if (msTeamsChannels != null && !msTeamsChannels.isEmpty()) {
+            notificationTargets.add(new NotificationTargetDTO(NotificationTargetDTO.Type.MS_TEAMS_CHANNELS, msTeamsChannels));
+        }
+
+        String emailRecipients = ConfigurationHolder.getEmails();
+        if (emailRecipients != null && !emailRecipients.isEmpty()) {
+            notificationTargets.add(new NotificationTargetDTO(NotificationTargetDTO.Type.EMAIL_RECIPIENTS, emailRecipients));
+        }
+
+        return notificationTargets;
     }
 
     @Override
@@ -135,54 +165,6 @@ class ReportingRegistrar implements TestRunRegistrar {
 
             RunContext.completeTest(id, tf);
         }
-    }
-
-    private static final class TestRunBuilder {
-
-        private static final int SLACK_CHANNELS_LIMIT = 20;
-        private static final int EMAIL_RECIPIENTS_LIMIT = 20;
-        private static final int MICROSOFT_TEAMS_CHANNELS_LIMIT = 20;
-
-        private static final String SLACK_CHANNELS_NOTIFICATION_TYPE = "SLACK_CHANNELS";
-        private static final String EMAIL_RECIPIENTS_NOTIFICATION_TYPE = "EMAIL_RECIPIENTS";
-        private static final String MICROSOFT_TEAMS_CHANNELS_NOTIFICATION_TYPE = "MS_TEAMS_CHANNELS";
-
-        public static TestRunDTO build(TestRunStartDescriptor testRunStartDescriptor) {
-            TestRunDTO.TestRunDTOBuilder testRunBuilder = TestRunDTO.builder()
-                                                                    .uuid(Optional.ofNullable(RerunResolver.getRunId()).orElse(CI_RUN_ID))
-                                                                    .name(ConfigurationHolder.getRunDisplayNameOr(testRunStartDescriptor.getName()))
-                                                                    .framework(testRunStartDescriptor.getFramework())
-                                                                    .startedAt(testRunStartDescriptor.getStartedAt())
-                                                                    .config(new TestRunDTO.Config(
-                                                                            ConfigurationHolder.getRunEnvironment(),
-                                                                            ConfigurationHolder.getRunBuild()
-                                                                    ));
-
-            Set<TestRunDTO.NotificationDTO> slackChannels = ConfigurationHolder.getSlackChannels()
-                                                                               .stream()
-                                                                               .limit(SLACK_CHANNELS_LIMIT)
-                                                                               .map(channel -> new TestRunDTO.NotificationDTO(SLACK_CHANNELS_NOTIFICATION_TYPE, channel))
-                                                                               .collect(Collectors.toSet());
-
-            Set<TestRunDTO.NotificationDTO> emails = ConfigurationHolder.getEmails()
-                                                                        .stream()
-                                                                        .limit(EMAIL_RECIPIENTS_LIMIT)
-                                                                        .map(recipient -> new TestRunDTO.NotificationDTO(EMAIL_RECIPIENTS_NOTIFICATION_TYPE, recipient))
-                                                                        .collect(Collectors.toSet());
-
-            Set<TestRunDTO.NotificationDTO> msTeamsChannels = ConfigurationHolder.getMicrosoftTeamsChannels()
-                                                                                 .stream()
-                                                                                 .limit(MICROSOFT_TEAMS_CHANNELS_LIMIT)
-                                                                                 .map(channel -> new TestRunDTO.NotificationDTO(MICROSOFT_TEAMS_CHANNELS_NOTIFICATION_TYPE, channel))
-                                                                                 .collect(Collectors.toSet());
-
-            Set<TestRunDTO.NotificationDTO> notificationTargets = Stream.of(slackChannels, emails, msTeamsChannels)
-                                                                        .flatMap(Set::stream)
-                                                                        .collect(Collectors.toSet());
-            testRunBuilder.notifications(notificationTargets);
-            return testRunBuilder.build();
-        }
-
     }
 
 }

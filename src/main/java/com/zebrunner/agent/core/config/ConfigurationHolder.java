@@ -1,7 +1,5 @@
 package com.zebrunner.agent.core.config;
 
-import java.util.Set;
-
 public class ConfigurationHolder {
 
     private static final boolean REPORTING_ENABLED;
@@ -12,9 +10,9 @@ public class ConfigurationHolder {
     private static final String RUN_BUILD;
     private static final String RUN_ENVIRONMENT;
     private static final String RERUN_RUN_ID;
-    private static final Set<String> SLACK_CHANNELS;
-    private static final Set<String> MICROSOFT_TEAMS_CHANNELS;
-    private static final Set<String> EMAILS;
+    private static final String SLACK_CHANNELS;
+    private static final String MS_TEAMS_CHANNELS;
+    private static final String EMAILS;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
@@ -33,7 +31,7 @@ public class ConfigurationHolder {
         RERUN_RUN_ID = configuration.getRerun().getRunId();
 
         SLACK_CHANNELS = configuration.getNotification().getSlackChannels();
-        MICROSOFT_TEAMS_CHANNELS = configuration.getNotification().getMicrosoftTeamsChannels();
+        MS_TEAMS_CHANNELS = configuration.getNotification().getMsTeamsChannels();
         EMAILS = configuration.getNotification().getEmails();
     }
 
@@ -69,15 +67,15 @@ public class ConfigurationHolder {
         return RERUN_RUN_ID;
     }
 
-    public static Set<String> getSlackChannels() {
+    public static String getSlackChannels() {
         return SLACK_CHANNELS;
     }
 
-    public static Set<String> getMicrosoftTeamsChannels() {
-        return MICROSOFT_TEAMS_CHANNELS;
+    public static String getMsTeamsChannels() {
+        return MS_TEAMS_CHANNELS;
     }
 
-    public static Set<String> getEmails() {
+    public static String getEmails() {
         return EMAILS;
     }
 }

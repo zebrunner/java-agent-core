@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Set;
-
 @Getter
 @Setter
 @Builder
@@ -63,9 +61,9 @@ public class ReportingConfiguration {
     @AllArgsConstructor
     public static class NotificationConfiguration {
 
-        private Set<String> slackChannels;
-        private Set<String> microsoftTeamsChannels;
-        private Set<String> emails;
+        private String slackChannels;
+        private String msTeamsChannels;
+        private String emails;
 
     }
 

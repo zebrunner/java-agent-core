@@ -1,13 +1,10 @@
 package com.zebrunner.agent.core.config;
 
-import com.zebrunner.agent.core.config.ConfigurationProvider;
-import com.zebrunner.agent.core.config.ReportingConfiguration;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 public class ConfigurationProviderChain implements ConfigurationProvider {
@@ -29,7 +26,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
                                                               .run(new ReportingConfiguration.RunConfiguration())
                                                               .server(new ReportingConfiguration.ServerConfiguration())
                                                               .rerun(new ReportingConfiguration.RerunConfiguration())
-                                                              .notification(new ReportingConfiguration.NotificationConfiguration(Set.of(), Set.of(), Set.of()))
+                                                              .notification(new ReportingConfiguration.NotificationConfiguration())
                                                               .build();
         assembleConfiguration(config);
         if (areMandatoryArgsSet(config)) {
@@ -121,20 +118,23 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
 
     private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
         if (config.getNotification() == null) {
-            config.setNotification(new ReportingConfiguration.NotificationConfiguration(Set.of(), Set.of(), Set.of()));
+            config.setNotification(new ReportingConfiguration.NotificationConfiguration(null, null, null));
         } else {
-            ReportingConfiguration.NotificationConfiguration notificationConfiguration = config.getNotification();
+            ReportingConfiguration.NotificationConfiguration notificationConfig = config.getNotification();
 
-            if(notificationConfiguration.getSlackChannels() == null) {
-                notificationConfiguration.setSlackChannels(Set.of());
+            String slackChannels = notificationConfig.getSlackChannels();
+            if(slackChannels != null && slackChannels.isEmpty()) {
+                notificationConfig.setSlackChannels(null);
             }
 
-            if (notificationConfiguration.getMicrosoftTeamsChannels() == null) {
-                notificationConfiguration.setMicrosoftTeamsChannels(Set.of());
+            String msTeamsChannels = notificationConfig.getMsTeamsChannels();
+            if (msTeamsChannels != null && msTeamsChannels.isEmpty()) {
+                notificationConfig.setMsTeamsChannels(null);
             }
 
-            if (notificationConfiguration.getEmails() == null) {
-                notificationConfiguration.setEmails(Set.of());
+            String emails = notificationConfig.getEmails();
+            if (emails != null && emails.isEmpty()) {
+                notificationConfig.setEmails(null);
             }
         }
     }
@@ -178,17 +178,17 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             rerun.setRunId(providedConfig.getRerun().getRunId());
         }
 
-        Set<String> slackChannels = providedConfig.getNotification().getSlackChannels();
+        String slackChannels = providedConfig.getNotification().getSlackChannels();
         if (slackChannels != null && !slackChannels.isEmpty()) {
             config.getNotification().setSlackChannels(slackChannels);
         }
 
-        Set<String> microsoftTeamsChannels = providedConfig.getNotification().getMicrosoftTeamsChannels();
-        if (microsoftTeamsChannels != null && !microsoftTeamsChannels.isEmpty()) {
-            config.getNotification().setMicrosoftTeamsChannels(microsoftTeamsChannels);
+        String msTeamsChannels = providedConfig.getNotification().getMsTeamsChannels();
+        if (msTeamsChannels != null && !msTeamsChannels.isEmpty()) {
+            config.getNotification().setMsTeamsChannels(msTeamsChannels);
         }
 
-        Set<String> emails = providedConfig.getNotification().getEmails();
+        String emails = providedConfig.getNotification().getEmails();
         if (emails != null && !emails.isEmpty()) {
             config.getNotification().setEmails(emails);
         }
@@ -212,16 +212,16 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         String build = config.getRun().getBuild();
         String environment = config.getRun().getEnvironment();
         String runId = config.getRerun().getRunId();
-        Set<String> slackChannels = config.getNotification().getSlackChannels();
-        Set<String> microsoftTeamsChannels = config.getNotification().getMicrosoftTeamsChannels();
-        Set<String> emails = config.getNotification().getEmails();
+        String slackChannels = config.getNotification().getSlackChannels();
+        String msTeamsChannels = config.getNotification().getMsTeamsChannels();
+        String emails = config.getNotification().getEmails();
 
         return enabled != null
                 && projectKey != null
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null
                 && runId != null
-                && slackChannels != null && microsoftTeamsChannels != null && emails != null;
+                && slackChannels != null && msTeamsChannels != null && emails != null;
     }
 
 }

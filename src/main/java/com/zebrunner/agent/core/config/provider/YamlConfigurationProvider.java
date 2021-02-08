@@ -7,16 +7,11 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class YamlConfigurationProvider implements ConfigurationProvider {
-
-    private final static String PROPERTY_SEPARATORS = "[,;]";
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
     private final static String PROJECT_KEY_PROPERTY = "reporting.project-key";
@@ -31,7 +26,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String RERUN_RUN_ID_PROPERTY = "reporting.rerun.run-id";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
-    private final static String NOTIFICATION_MICROSOFT_TEAMS_CHANNELS_PROPERTY = "reporting.notification.microsoft-teams-channels";
+    private final static String NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
 
     private static final String[] DEFAULT_FILE_NAMES = {"agent.yaml", "agent.yml"};
@@ -49,9 +44,9 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String build = getProperty(yamlProperties, RUN_BUILD_PROPERTY);
         String environment = getProperty(yamlProperties, RUN_ENVIRONMENT_PROPERTY);
         String runId = getProperty(yamlProperties, RERUN_RUN_ID_PROPERTY);
-        Set<String> slackChannels = getPropertyValueAsSet(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
-        Set<String> microsoftTeams = getPropertyValueAsSet(yamlProperties, NOTIFICATION_MICROSOFT_TEAMS_CHANNELS_PROPERTY);
-        Set<String> emails = getPropertyValueAsSet(yamlProperties, NOTIFICATION_EMAILS_PROPERTY);
+        String slackChannels = getProperty(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
+        String msTeamsChannels = getProperty(yamlProperties, NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY);
+        String emails = getProperty(yamlProperties, NOTIFICATION_EMAILS_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("YAML configuration is malformed, skipping");
@@ -64,7 +59,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .rerun(new ReportingConfiguration.RerunConfiguration(runId))
-                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, microsoftTeams, emails))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }
 
@@ -106,42 +101,6 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
             }
         }
         return result;
-    }
-
-    /**
-     *  Remove brackets and spaces from list-provided property.
-     *
-     * <p>
-     *     Get yaml properties map and find value by full path.
-     *     Use substring(1, propertiesAsString.length() - 1) cause of getting raw list as [item1, item2, ..., itemn]
-     *     then split by separator and remove additional spaces.
-     *
-     *     If no value with path was found, return null for next agent's processing.
-     * </p>
-     *
-     * @param properties yaml properties map
-     * @param path full path to map's value. Has next format: key1.key2.key3...
-     * @return null if no property was found or joined string without brackets and spaces in following format: item1,item2,...,itemn
-     */
-    private Set<String> getPropertyValueAsSet(Map<String, Object> properties, String path) {
-        String propertyListAsString = getProperty(properties, path);
-
-        if (propertyListAsString == null) {
-            return Set.of();
-        }
-
-        String bracketsRegex = "\\[(.*?)]";
-        if (propertyListAsString.matches(bracketsRegex)) {
-            return Arrays.stream(propertyListAsString.substring(1, propertyListAsString.length() - 1).split(PROPERTY_SEPARATORS))
-                         .filter(channel -> !channel.isBlank())
-                         .map(String::trim)
-                         .collect(Collectors.toSet());
-        } else {
-            return Arrays.stream(propertyListAsString.split(PROPERTY_SEPARATORS))
-                         .filter(channel -> !channel.isBlank())
-                         .map(String::trim)
-                         .collect(Collectors.toSet());
-        }
     }
 
 }
