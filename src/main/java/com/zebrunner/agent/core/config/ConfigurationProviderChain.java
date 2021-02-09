@@ -1,5 +1,7 @@
 package com.zebrunner.agent.core.config;
 
+import com.zebrunner.agent.core.config.ConfigurationProvider;
+import com.zebrunner.agent.core.config.ReportingConfiguration;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import lombok.extern.slf4j.Slf4j;
 
