@@ -6,6 +6,7 @@ import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.descriptor.Status;
 import com.zebrunner.agent.core.registrar.domain.ArtifactReferenceDTO;
 import com.zebrunner.agent.core.registrar.domain.AuthDataDTO;
+import com.zebrunner.agent.core.registrar.domain.GetTestsByCiRunIdResponse;
 import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
@@ -143,6 +144,24 @@ class ZebrunnerApiClient {
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not register start of the test.", response));
+            }
+            return objectMapper.readValue(response.getBody(), TestDTO.class);
+        } else {
+            return null;
+        }
+    }
+
+    TestDTO registerTestRerunStart(Long testRunId, Long testId, TestDTO test, boolean headless) {
+        if (client != null) {
+            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                                  .body(test)
+                                                  .routeParam("testRunId", testRunId.toString())
+                                                  .routeParam("testId", testId.toString())
+                                                  .queryString("headless", headless)
+                                                  .asString();
+
+            if (!response.isSuccess()) {
+                throw new ServerException(formatErrorMessage("Could not register start of rerun of the test.", response));
             }
             return objectMapper.readValue(response.getBody(), TestDTO.class);
         } else {
@@ -318,7 +337,7 @@ class ZebrunnerApiClient {
         }
     }
 
-    List<TestDTO> getTestsByCiRunId(RerunCondition rerunCondition) {
+    GetTestsByCiRunIdResponse getTestsByCiRunId(RerunCondition rerunCondition) {
         if (client != null) {
             GetRequest request = client.get(reporting("test-runs/{ciRunId}/tests"))
                                        .routeParam("ciRunId", rerunCondition.getRunId());
@@ -329,13 +348,18 @@ class ZebrunnerApiClient {
             HttpResponse<String> response = request.asString();
 
             if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not get tests by ci run id.", response));
+                if (response.getStatus() == 404) {
+                    return GetTestsByCiRunIdResponse.runNotFound();
+                } else {
+                    throw new ServerException(formatErrorMessage("Could not get tests by ci run id.", response));
+                }
             }
 
-            return objectMapper.readValue(response.getBody(), new GenericType<List<TestDTO>>() {
+            List<TestDTO> tests = objectMapper.readValue(response.getBody(), new GenericType<List<TestDTO>>() {
             });
+            return GetTestsByCiRunIdResponse.success(tests);
         } else {
-            return Collections.emptyList();
+            return null;
         }
     }
 

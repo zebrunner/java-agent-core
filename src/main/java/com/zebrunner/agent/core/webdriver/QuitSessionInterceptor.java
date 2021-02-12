@@ -17,11 +17,14 @@ public class QuitSessionInterceptor {
     public static void onSessionClose(@This final RemoteWebDriver driver,
                                       @SuperCall final Callable<Boolean> proxy) throws Exception {
         String sessionId = driver.getSessionId().toString();
+        if (sessionId.length() >= 64) {
+            sessionId = sessionId.substring(32);
+        }
         SessionCloseDescriptor context = new SessionCloseDescriptor(sessionId, driver.getCapabilities());
 
-        proxy.call();
-
         REGISTRAR.registerClose(context);
+
+        proxy.call();
     }
 
 }

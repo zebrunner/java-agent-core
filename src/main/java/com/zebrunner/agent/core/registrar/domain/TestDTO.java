@@ -17,8 +17,8 @@ import java.util.List;
 public class TestDTO {
 
     private Long id;
-    private String uuid;
     private String name;
+    private String correlationData;
     private String className;
     private String methodName;
     private OffsetDateTime startedAt;

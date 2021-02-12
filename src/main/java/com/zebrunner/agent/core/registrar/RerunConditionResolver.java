@@ -12,11 +12,12 @@ public class RerunConditionResolver {
     /**
      * Resolves run by ci run id and tests scope to rerun
      * i.e.
-     *      677d3bb5-52b5-414b-8790-b538815572f0 (will rerun all run tests)
-     *      677d3bb5-52b5-414b-8790-b538815572f0:[1, 2, 3, 4] (will rerun tests by id)
-     *      677d3bb5-52b5-414b-8790-b538815572f0:[passed, failed] (will rerun all run passed and failed tests, can contains any statuses)
-     *      677d3bb5-52b5-414b-8790-b538815572f0:fallen (will rerun failed, skipped)
-     *      677d3bb5-52b5-414b-8790-b538815572f0:unknown (will rerun aborted and in_progress)
+     * 677d3bb5-52b5-414b-8790-b538815572f0 (will rerun all run tests)
+     * 677d3bb5-52b5-414b-8790-b538815572f0:[1, 2, 3, 4] (will rerun tests by id)
+     * 677d3bb5-52b5-414b-8790-b538815572f0:[passed, failed] (will rerun all run passed and failed tests, can contains any statuses)
+     * 677d3bb5-52b5-414b-8790-b538815572f0:fallen (will rerun failed, skipped)
+     * 677d3bb5-52b5-414b-8790-b538815572f0:unknown (will rerun aborted and in_progress)
+     *
      * @param runPattern - pattern that indicates which tests should be reran. Run id is required in anyway (first part of rerun expression). Second part contains additional rerun info:
      *                   1. can contains array of test ids
      *                   2. can contains test status
@@ -45,7 +46,7 @@ public class RerunConditionResolver {
             boolean array = additionalRerunInfo.startsWith("[") && additionalRerunInfo.endsWith("]");
 
             if (array) {
-                String[] arraySlices = additionalRerunInfo.split("\\[")[1].split("]")[0].split(",");
+                String[] arraySlices = additionalRerunInfo.substring(1, additionalRerunInfo.length() - 1).split(",");
                 testIds = collectTestIds(arraySlices);
 
                 if (testIds.isEmpty()) {
@@ -60,10 +61,10 @@ public class RerunConditionResolver {
 
     private static Set<Long> collectTestIds(String[] arraySlices) {
         Set<Long> testIds = Arrays.stream(arraySlices)
-                                   .map(String::trim)
-                                   .filter(arraySlice -> arraySlice.matches("\\d+"))
-                                   .map(Long::valueOf)
-                                   .collect(Collectors.toSet());
+                                  .map(String::trim)
+                                  .filter(arraySlice -> arraySlice.matches("\\d+"))
+                                  .map(Long::valueOf)
+                                  .collect(Collectors.toSet());
 
         if (!testIds.isEmpty() && testIds.size() != arraySlices.length) {
             throw new RuntimeException("Rerun additional info has invalid symbols in test ids scope");
@@ -73,13 +74,13 @@ public class RerunConditionResolver {
 
     private static Set<Status> collectTestStatuses(String[] arraySlices) {
         Set<String> statusValues = Arrays.stream(Status.values())
-                                          .map(Enum::name)
-                                          .collect(Collectors.toSet());
+                                         .map(Enum::name)
+                                         .collect(Collectors.toSet());
         Set<Status> statusesToRerun = Arrays.stream(arraySlices)
-                                             .map(arraySlice -> arraySlice.trim().toUpperCase())
-                                             .filter(statusValues::contains)
-                                             .map(arraySlice -> Status.valueOf(arraySlice.toUpperCase()))
-                                             .collect(Collectors.toSet());
+                                            .map(arraySlice -> arraySlice.trim().toUpperCase())
+                                            .filter(statusValues::contains)
+                                            .map(arraySlice -> Status.valueOf(arraySlice.toUpperCase()))
+                                            .collect(Collectors.toSet());
         if (!statusesToRerun.isEmpty() && statusesToRerun.size() != arraySlices.length) {
             throw new RuntimeException("Rerun additional info has invalid symbols in test statuses scope");
         }
