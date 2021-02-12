@@ -1,6 +1,8 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.registrar.ci.CiContextResolver;
+import com.zebrunner.agent.core.registrar.ci.CompositeCiContextResolver;
 import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunDescriptor;
@@ -30,8 +32,9 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     private final ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
     private final CompositeLabelResolver labelResolver = new CompositeLabelResolver();
-    private final DriverSessionRegistrar driverSessionRegistrar = DriverSessionRegistrar.getInstance();
     private final ChainedMaintainerResolver maintainerResolver = new ChainedMaintainerResolver();
+    private final CiContextResolver ciContextResolver = CompositeCiContextResolver.getInstance();
+    private final DriverSessionRegistrar driverSessionRegistrar = DriverSessionRegistrar.getInstance();
 
     @Override
     public void registerStart(TestRunStartDescriptor tr) {
@@ -50,6 +53,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                System.getProperty("ci_parent_url"),
                                                getIntegerSystemProperty("ci_parent_build")
                                        ))
+                                       .ciContext(ciContextResolver.resolve())
                                        .build();
 
         testRun = apiClient.registerTestRunStart(testRun);

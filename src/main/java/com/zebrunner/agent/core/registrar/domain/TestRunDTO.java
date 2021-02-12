@@ -23,22 +23,14 @@ public class TestRunDTO {
     private OffsetDateTime endedAt;
     private String framework;
     private Config config;
-    private LaunchContext launchContext;
     private JenkinsContext jenkinsContext;
+    private CiContextDTO ciContext;
 
     @Value
     public static class Config {
 
         String environment;
         String build;
-
-    }
-
-    @Value
-    public static class LaunchContext {
-
-        String jobNumber;
-        String upstreamJobNumber;
 
     }
 
