@@ -16,21 +16,17 @@ class JenkinsCiContextResolver implements CiContextResolver {
 
     // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-below
     private static final String JENKINS_URL_ENV_VARIABLE = "JENKINS_URL";
-    private static final List<String> COLLECTABLE_ENV_VARIABLES = Arrays.asList(
-            "BUILD_ID",
-            "BUILD_NUMBER",
-            "BUILD_TAG",
-            "BUILD_URL",
-            "SVN_REVISION",
-            "CVS_BRANCH",
-            "GIT_COMMIT",
-            "GIT_BRANCH",
-            "GIT_URL",
-            "JAVA_HOME",
-            "NODE_NAME",
-            "JOB_NAME",
-            JENKINS_URL_ENV_VARIABLE,
+    private static final List<String> ENV_VARIABLE_PREFIXES = Arrays.asList(
+            "CVS_",
+            "SVN_",
+            "GIT_",
+            "NODE_",
             "EXECUTOR_NUMBER",
+            "JENKINS_",
+            "JOB_",
+            "BUILD_",
+            "ROOT_BUILD_",
+            "RUN_",
             "WORKSPACE"
     );
 
@@ -47,9 +43,11 @@ class JenkinsCiContextResolver implements CiContextResolver {
     }
 
     private Map<String, String> collectEnvironmentVariables(Map<String, String> envVariables) {
-        return COLLECTABLE_ENV_VARIABLES.stream()
-                                        .filter(envVariables::containsKey)
-                                        .collect(Collectors.toMap(Function.identity(), envVariables::get));
+        return envVariables.keySet()
+                           .stream()
+                           .filter(key -> ENV_VARIABLE_PREFIXES.stream()
+                                                               .anyMatch(key::startsWith))
+                           .collect(Collectors.toMap(Function.identity(), envVariables::get));
     }
 
 }
