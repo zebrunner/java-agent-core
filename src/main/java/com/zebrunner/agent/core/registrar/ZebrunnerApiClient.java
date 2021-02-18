@@ -120,6 +120,19 @@ class ZebrunnerApiClient {
         }
     }
 
+    void patchTestRunBuild(Long testRunId, String build) {
+        if (client != null) {
+            HttpResponse<String> response = client.jsonPatch(reporting("test-runs/{testRunId}"))
+                                                  .routeParam("testRunId", testRunId.toString())
+                                                  .replace("/config/build", build)
+                                                  .asString();
+
+            if (!response.isSuccess()) {
+                throw new ServerException(formatErrorMessage("Could not patch build of the test run.", response));
+            }
+        }
+    }
+
     void registerTestRunFinish(TestRunDTO testRun) {
         if (client != null) {
             HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}"))

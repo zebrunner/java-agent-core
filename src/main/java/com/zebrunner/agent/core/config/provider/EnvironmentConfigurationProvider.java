@@ -16,7 +16,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_BUILD_VARIABLE = "REPORTING_RUN_BUILD";
     private final static String RUN_ENVIRONMENT_VARIABLE = "REPORTING_RUN_ENVIRONMENT";
 
-    private final static String RERUN_CONDITION_VARIABLE = "REPORTING_RERUN_CONDITION";
+    private final static String RERUN_CONDITION_VARIABLE = "REPORTING_RERUN_RUN_ID";
 
     @Override
     public ReportingConfiguration getConfiguration() {
