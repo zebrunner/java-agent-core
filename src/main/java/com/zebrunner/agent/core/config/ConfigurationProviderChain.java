@@ -28,6 +28,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
                                                               .run(new ReportingConfiguration.RunConfiguration())
                                                               .server(new ReportingConfiguration.ServerConfiguration())
                                                               .rerun(new ReportingConfiguration.RerunConfiguration())
+                                                              .notification(new ReportingConfiguration.NotificationConfiguration())
                                                               .build();
         assembleConfiguration(config);
         if (areMandatoryArgsSet(config)) {
@@ -66,6 +67,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         normalizeServerConfiguration(config);
         normalizeRunConfiguration(config);
         normalizeRerunConfiguration(config);
+        normalizeNotificationConfiguration(config);
     }
 
     private static void normalizeServerConfiguration(ReportingConfiguration config) {
@@ -116,6 +118,29 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         }
     }
 
+    private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
+        if (config.getNotification() == null) {
+            config.setNotification(new ReportingConfiguration.NotificationConfiguration(null, null, null));
+        } else {
+            ReportingConfiguration.NotificationConfiguration notificationConfig = config.getNotification();
+
+            String slackChannels = notificationConfig.getSlackChannels();
+            if(slackChannels != null && slackChannels.isEmpty()) {
+                notificationConfig.setSlackChannels(null);
+            }
+
+            String msTeamsChannels = notificationConfig.getMsTeamsChannels();
+            if (msTeamsChannels != null && msTeamsChannels.isEmpty()) {
+                notificationConfig.setMsTeamsChannels(null);
+            }
+
+            String emails = notificationConfig.getEmails();
+            if (emails != null && emails.isEmpty()) {
+                notificationConfig.setEmails(null);
+            }
+        }
+    }
+
     /**
      * Sets values coming from provided configuration that were not set previously by providers with higher priority
      *
@@ -154,6 +179,22 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         if (rerun.getRunId() == null) {
             rerun.setRunId(providedConfig.getRerun().getRunId());
         }
+
+        String slackChannels = providedConfig.getNotification().getSlackChannels();
+        if (slackChannels != null && !slackChannels.isEmpty()) {
+            config.getNotification().setSlackChannels(slackChannels);
+        }
+
+        String msTeamsChannels = providedConfig.getNotification().getMsTeamsChannels();
+        if (msTeamsChannels != null && !msTeamsChannels.isEmpty()) {
+            config.getNotification().setMsTeamsChannels(msTeamsChannels);
+        }
+
+        String emails = providedConfig.getNotification().getEmails();
+        if (emails != null && !emails.isEmpty()) {
+            config.getNotification().setEmails(emails);
+        }
+
     }
 
     // project-key is not considered as a mandatory property
@@ -173,12 +214,16 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         String build = config.getRun().getBuild();
         String environment = config.getRun().getEnvironment();
         String runId = config.getRerun().getRunId();
+        String slackChannels = config.getNotification().getSlackChannels();
+        String msTeamsChannels = config.getNotification().getMsTeamsChannels();
+        String emails = config.getNotification().getEmails();
 
         return enabled != null
                 && projectKey != null
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null
-                && runId != null;
+                && runId != null
+                && slackChannels != null && msTeamsChannels != null && emails != null;
     }
 
 }

@@ -10,6 +10,9 @@ public class ConfigurationHolder {
     private static final String RUN_BUILD;
     private static final String RUN_ENVIRONMENT;
     private static final String RERUN_RUN_ID;
+    private static final String SLACK_CHANNELS;
+    private static final String MS_TEAMS_CHANNELS;
+    private static final String EMAILS;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
@@ -26,6 +29,10 @@ public class ConfigurationHolder {
         RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
 
         RERUN_RUN_ID = configuration.getRerun().getRunId();
+
+        SLACK_CHANNELS = configuration.getNotification().getSlackChannels();
+        MS_TEAMS_CHANNELS = configuration.getNotification().getMsTeamsChannels();
+        EMAILS = configuration.getNotification().getEmails();
     }
 
     public static boolean isReportingEnabled() {
@@ -60,4 +67,15 @@ public class ConfigurationHolder {
         return RERUN_RUN_ID;
     }
 
+    public static String getSlackChannels() {
+        return SLACK_CHANNELS;
+    }
+
+    public static String getMsTeamsChannels() {
+        return MS_TEAMS_CHANNELS;
+    }
+
+    public static String getEmails() {
+        return EMAILS;
+    }
 }
