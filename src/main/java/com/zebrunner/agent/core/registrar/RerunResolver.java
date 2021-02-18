@@ -15,7 +15,7 @@ final class RerunResolver {
     private static Boolean isRerun;
 
     synchronized static void resolve() {
-        String runPattern = ConfigurationHolder.getRerunRunId(); // can be null when first run, if not null - rerun
+        String runPattern = ConfigurationHolder.getRerunCondition(); // can be null when first run, if not null - rerun
         if (runPattern != null) {
             processRerun(runPattern);
         } else {

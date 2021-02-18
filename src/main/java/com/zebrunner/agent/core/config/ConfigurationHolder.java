@@ -11,7 +11,7 @@ public class ConfigurationHolder {
     private static final String RUN_DISPLAY_NAME;
     private static final String RUN_BUILD;
     private static final String RUN_ENVIRONMENT;
-    private static final String RERUN_RUN_ID;
+    private static final String RERUN_CONDITION;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
@@ -27,9 +27,9 @@ public class ConfigurationHolder {
         RUN_BUILD = configuration.getRun().getBuild();
         RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
 
-        RERUN_RUN_ID = Optional.ofNullable(System.getProperty("ci_run_id"))
-                               .map(ConfigurationHolder::appendStatusesIfNecessary)
-                               .orElseGet(() -> configuration.getRerun().getRunId());
+        RERUN_CONDITION = Optional.ofNullable(System.getProperty("ci_run_id"))
+                                  .map(ConfigurationHolder::appendStatusesIfNecessary)
+                                  .orElseGet(configuration::getRerunCondition);
     }
 
     private static String appendStatusesIfNecessary(String ciRunId) {
@@ -67,8 +67,8 @@ public class ConfigurationHolder {
         return RUN_ENVIRONMENT;
     }
 
-    public static String getRerunRunId() {
-        return RERUN_RUN_ID;
+    public static String getRerunCondition() {
+        return RERUN_CONDITION;
     }
 
 }

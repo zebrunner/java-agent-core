@@ -15,7 +15,7 @@ public class ReportingConfiguration {
     private String projectKey;
     private ServerConfiguration server;
     private RunConfiguration run;
-    private RerunConfiguration rerun;
+    private String rerunCondition;
 
     public boolean isReportingEnabled() {
         return reportingEnabled != null && reportingEnabled;
@@ -41,16 +41,6 @@ public class ReportingConfiguration {
         private String displayName;
         private String build;
         private String environment;
-
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class RerunConfiguration {
-
-        private String runId;
 
     }
 

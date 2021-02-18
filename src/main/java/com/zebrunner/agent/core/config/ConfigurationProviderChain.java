@@ -1,7 +1,5 @@
 package com.zebrunner.agent.core.config;
 
-import com.zebrunner.agent.core.config.ConfigurationProvider;
-import com.zebrunner.agent.core.config.ReportingConfiguration;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,11 +13,11 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
 
     private final List<ConfigurationProvider> providers = new LinkedList<>();
 
-    public ConfigurationProviderChain(List<? extends ConfigurationProvider> credentialsProviders) {
-        if (credentialsProviders == null || credentialsProviders.size() == 0) {
-            throw new IllegalArgumentException("No credential providers specified");
+    public ConfigurationProviderChain(List<? extends ConfigurationProvider> configurationProviders) {
+        if (configurationProviders == null || configurationProviders.size() == 0) {
+            throw new IllegalArgumentException("No configuration providers specified");
         }
-        this.providers.addAll(credentialsProviders);
+        this.providers.addAll(configurationProviders);
     }
 
     @Override
@@ -27,7 +25,6 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         ReportingConfiguration config = ReportingConfiguration.builder()
                                                               .run(new ReportingConfiguration.RunConfiguration())
                                                               .server(new ReportingConfiguration.ServerConfiguration())
-                                                              .rerun(new ReportingConfiguration.RerunConfiguration())
                                                               .build();
         assembleConfiguration(config);
         if (areMandatoryArgsSet(config)) {
@@ -57,7 +54,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
                 log.warn(e.getMessage());
             }
         }
-        if (config.getProjectKey() == null || config.getProjectKey().isEmpty()) {
+        if (config.getProjectKey() == null || config.getProjectKey().trim().isEmpty()) {
             config.setProjectKey(DEFAULT_PROJECT);
         }
     }
@@ -73,12 +70,14 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             config.setServer(new ReportingConfiguration.ServerConfiguration());
         } else {
             ReportingConfiguration.ServerConfiguration serverConfig = config.getServer();
+
             String hostname = serverConfig.getHostname();
             String accessToken = serverConfig.getHostname();
-            if (hostname != null && accessToken.isEmpty()) {
+
+            if (hostname != null && accessToken.trim().isEmpty()) {
                 serverConfig.setHostname(null);
             }
-            if (accessToken != null && accessToken.isEmpty()) {
+            if (accessToken != null && accessToken.trim().isEmpty()) {
                 serverConfig.setAccessToken(null);
             }
         }
@@ -86,33 +85,30 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
 
     private static void normalizeRunConfiguration(ReportingConfiguration config) {
         if (config.getRun() == null) {
-            config.setRerun(new ReportingConfiguration.RerunConfiguration());
+            config.setRun(new ReportingConfiguration.RunConfiguration());
         } else {
             ReportingConfiguration.RunConfiguration runConfig = config.getRun();
+
             String displayName = runConfig.getDisplayName();
             String build = runConfig.getBuild();
             String environment = runConfig.getEnvironment();
-            if (displayName != null && displayName.isEmpty()) {
+
+            if (displayName != null && displayName.trim().isEmpty()) {
                 runConfig.setDisplayName(null);
             }
-            if (build != null && build.isEmpty()) {
+            if (build != null && build.trim().isEmpty()) {
                 runConfig.setBuild(null);
             }
-            if (environment != null && environment.isEmpty()) {
+            if (environment != null && environment.trim().isEmpty()) {
                 runConfig.setEnvironment(null);
             }
         }
     }
 
     private static void normalizeRerunConfiguration(ReportingConfiguration config) {
-        if (config.getRerun() == null) {
-            config.setRerun(new ReportingConfiguration.RerunConfiguration());
-        } else {
-            ReportingConfiguration.RerunConfiguration rerunConfig = config.getRerun();
-            String runId = rerunConfig.getRunId();
-            if (runId != null && runId.isEmpty()) {
-                rerunConfig.setRunId(null);
-            }
+        String rerunCondition = config.getRerunCondition();
+        if (rerunCondition != null && rerunCondition.trim().isEmpty()) {
+            config.setRerunCondition(null);
         }
     }
 
@@ -150,9 +146,8 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             run.setEnvironment(providedConfig.getRun().getEnvironment());
         }
 
-        ReportingConfiguration.RerunConfiguration rerun = config.getRerun();
-        if (rerun.getRunId() == null) {
-            rerun.setRunId(providedConfig.getRerun().getRunId());
+        if (config.getRerunCondition() == null) {
+            config.setRerunCondition(providedConfig.getRerunCondition());
         }
     }
 
@@ -172,13 +167,13 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         String displayName = config.getRun().getDisplayName();
         String build = config.getRun().getBuild();
         String environment = config.getRun().getEnvironment();
-        String runId = config.getRerun().getRunId();
+        String rerunCondition = config.getRerunCondition();
 
         return enabled != null
                 && projectKey != null
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null
-                && runId != null;
+                && rerunCondition != null;
     }
 
 }
