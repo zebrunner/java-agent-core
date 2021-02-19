@@ -18,7 +18,10 @@ public class CompositeCiContextResolver implements CiContextResolver {
     }
 
     private final List<CiContextResolver> ciContextResolvers = Arrays.asList(
-            new JenkinsCiContextResolver()
+            new JenkinsCiContextResolver(),
+            new TeamCityCiContextResolver(),
+            new CircleCiContextResolver(),
+            new TravisCiContextResolver()
     );
 
     @Override
