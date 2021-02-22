@@ -34,7 +34,7 @@ class ReportingRegistrar implements TestRunRegistrar {
     private final CompositeLabelResolver labelResolver = new CompositeLabelResolver();
     private final ChainedMaintainerResolver maintainerResolver = new ChainedMaintainerResolver();
     private final CiContextResolver ciContextResolver = CompositeCiContextResolver.getInstance();
-    private final DriverSessionRegistrar driverSessionRegistrar = DriverSessionRegistrar.getInstance();
+    private final TestSessionRegistrar testSessionRegistrar = TestSessionRegistrar.getInstance();
 
     @Override
     public void registerStart(TestRunStartDescriptor tr) {
@@ -114,7 +114,7 @@ class ReportingRegistrar implements TestRunRegistrar {
             if (test != null) {
                 TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
                 RunContext.addTest(id, testDescriptor);
-                driverSessionRegistrar.linkAllCurrentToTest(test.getId());
+                testSessionRegistrar.linkAllCurrentToTest(test.getId());
             }
         }
     }
@@ -147,7 +147,7 @@ class ReportingRegistrar implements TestRunRegistrar {
         if (test != null) {
             TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
             RunContext.addTest(id, testDescriptor);
-            driverSessionRegistrar.linkAllCurrentToTest(test.getId());
+            testSessionRegistrar.linkAllCurrentToTest(test.getId());
         }
     }
 

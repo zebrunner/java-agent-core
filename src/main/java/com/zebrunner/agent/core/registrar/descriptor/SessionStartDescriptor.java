@@ -1,13 +1,14 @@
 package com.zebrunner.agent.core.registrar.descriptor;
 
 import lombok.Value;
-import org.openqa.selenium.Capabilities;
+
+import java.util.Map;
 
 @Value
 public class SessionStartDescriptor {
 
     String sessionId;
-    Capabilities capabilities;
-    Capabilities desiredCapabilities;
+    Map<String, Object> capabilities;
+    Map<String, Object> desiredCapabilities;
 
 }
