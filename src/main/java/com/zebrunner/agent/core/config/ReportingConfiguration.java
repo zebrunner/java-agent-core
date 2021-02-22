@@ -2,6 +2,7 @@ package com.zebrunner.agent.core.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ public class ReportingConfiguration {
     private ServerConfiguration server;
     private RunConfiguration run;
     private String rerunCondition;
+    private NotificationConfiguration notification;
 
     public boolean isReportingEnabled() {
         return reportingEnabled != null && reportingEnabled;
@@ -41,6 +43,17 @@ public class ReportingConfiguration {
         private String displayName;
         private String build;
         private String environment;
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NotificationConfiguration {
+
+        private String slackChannels;
+        private String msTeamsChannels;
+        private String emails;
 
     }
 

@@ -12,6 +12,9 @@ public class ConfigurationHolder {
     private static final String RUN_BUILD;
     private static final String RUN_ENVIRONMENT;
     private static final String RERUN_CONDITION;
+    private static final String SLACK_CHANNELS;
+    private static final String MS_TEAMS_CHANNELS;
+    private static final String EMAILS;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
@@ -30,6 +33,10 @@ public class ConfigurationHolder {
         RERUN_CONDITION = Optional.ofNullable(System.getProperty("ci_run_id"))
                                   .map(ConfigurationHolder::appendStatusesIfNecessary)
                                   .orElseGet(configuration::getRerunCondition);
+
+        SLACK_CHANNELS = configuration.getNotification().getSlackChannels();
+        MS_TEAMS_CHANNELS = configuration.getNotification().getMsTeamsChannels();
+        EMAILS = configuration.getNotification().getEmails();
     }
 
     private static String appendStatusesIfNecessary(String ciRunId) {
@@ -71,4 +78,15 @@ public class ConfigurationHolder {
         return RERUN_CONDITION;
     }
 
+    public static String getSlackChannels() {
+        return SLACK_CHANNELS;
+    }
+
+    public static String getMsTeamsChannels() {
+        return MS_TEAMS_CHANNELS;
+    }
+
+    public static String getEmails() {
+        return EMAILS;
+    }
 }

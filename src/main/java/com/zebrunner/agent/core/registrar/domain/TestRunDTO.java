@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.Value;
 
 import java.time.OffsetDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -25,6 +26,7 @@ public class TestRunDTO {
     private Config config;
     private JenkinsContext jenkinsContext;
     private CiContextDTO ciContext;
+    private Set<NotificationTargetDTO> notifications;
 
     @Value
     public static class Config {

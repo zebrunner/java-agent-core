@@ -9,13 +9,16 @@ import com.zebrunner.agent.core.registrar.descriptor.TestRunDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunFinishDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
+import com.zebrunner.agent.core.registrar.domain.NotificationTargetDTO;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
 import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.registrar.label.CompositeLabelResolver;
 import com.zebrunner.agent.core.registrar.maintainer.ChainedMaintainerResolver;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 class ReportingRegistrar implements TestRunRegistrar {
@@ -54,8 +57,8 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                getIntegerSystemProperty("ci_parent_build")
                                        ))
                                        .ciContext(ciContextResolver.resolve())
+                                       .notifications(collectNotificationTargets())
                                        .build();
-
         testRun = apiClient.registerTestRunStart(testRun);
 
         // if reporting is enabled and test run was actually registered
@@ -79,6 +82,27 @@ class ReportingRegistrar implements TestRunRegistrar {
         if (locale != null) {
             Label.attachToTestRun(Label.LOCALE, locale);
         }
+    }
+
+    private Set<NotificationTargetDTO> collectNotificationTargets() {
+        Set<NotificationTargetDTO> notificationTargets = new HashSet<>();
+
+        String slackChannels = ConfigurationHolder.getSlackChannels();
+        if (slackChannels != null && !slackChannels.isEmpty()) {
+            notificationTargets.add(new NotificationTargetDTO(NotificationTargetDTO.Type.SLACK_CHANNELS, slackChannels));
+        }
+
+        String msTeamsChannels = ConfigurationHolder.getMsTeamsChannels();
+        if (msTeamsChannels != null && !msTeamsChannels.isEmpty()) {
+            notificationTargets.add(new NotificationTargetDTO(NotificationTargetDTO.Type.MS_TEAMS_CHANNELS, msTeamsChannels));
+        }
+
+        String emailRecipients = ConfigurationHolder.getEmails();
+        if (emailRecipients != null && !emailRecipients.isEmpty()) {
+            notificationTargets.add(new NotificationTargetDTO(NotificationTargetDTO.Type.EMAIL_RECIPIENTS, emailRecipients));
+        }
+
+        return notificationTargets;
     }
 
     @Override

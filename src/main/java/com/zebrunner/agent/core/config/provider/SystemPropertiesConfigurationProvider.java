@@ -18,6 +18,10 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
 
     private final static String RERUN_CONDITION_PROPERTY = "reporting.rerunCondition";
 
+    private final static String SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
+    private final static String MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
+    private final static String EMAILS_PROPERTY = "reporting.notification.emails";
+
     @Override
     public ReportingConfiguration getConfiguration() {
         String enabled = System.getProperty(ENABLED_PROPERTY);
@@ -28,6 +32,9 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         String build = System.getProperty(RUN_BUILD_PROPERTY);
         String environment = System.getProperty(RUN_ENVIRONMENT_PROPERTY);
         String rerunCondition = System.getProperty(RERUN_CONDITION_PROPERTY);
+        String slackChannels = System.getProperty(SLACK_CHANNELS_PROPERTY);
+        String msTeamsChannels = System.getProperty(MS_TEAMS_CHANNELS_PROPERTY);
+        String emails = System.getProperty(EMAILS_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("System properties configuration is malformed, skipping");
@@ -40,6 +47,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .rerunCondition(rerunCondition)
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }
 
