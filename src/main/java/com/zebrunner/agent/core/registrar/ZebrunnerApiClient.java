@@ -3,10 +3,9 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.exception.ServerException;
 import com.zebrunner.agent.core.logging.Log;
-import com.zebrunner.agent.core.registrar.descriptor.Status;
 import com.zebrunner.agent.core.registrar.domain.ArtifactReferenceDTO;
 import com.zebrunner.agent.core.registrar.domain.AuthDataDTO;
-import com.zebrunner.agent.core.registrar.domain.GetTestsByCiRunIdResponse;
+import com.zebrunner.agent.core.registrar.domain.ExchangeRerunConditionResponse;
 import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
@@ -14,8 +13,6 @@ import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
 import kong.unirest.Config;
 import kong.unirest.ContentType;
-import kong.unirest.GenericType;
-import kong.unirest.GetRequest;
 import kong.unirest.HeaderNames;
 import kong.unirest.HttpResponse;
 import kong.unirest.ObjectMapper;
@@ -27,8 +24,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 class ZebrunnerApiClient {
@@ -349,47 +344,19 @@ class ZebrunnerApiClient {
         }
     }
 
-    GetTestsByCiRunIdResponse getTestsByCiRunId(RerunCondition rerunCondition) {
+    ExchangeRerunConditionResponse exchangeRerunCondition(String rerunCondition) {
         if (client != null) {
-            GetRequest request = client.get(reporting("test-runs/{ciRunId}/tests"))
-                                       .routeParam("ciRunId", rerunCondition.getRunId());
-
-            setTestIds(request, rerunCondition.getTestIds());
-            setStatuses(request, rerunCondition.getStatuses());
-
-            HttpResponse<String> response = request.asString();
+            HttpResponse<String> response = client.post(reporting("rerun-condition-exchanges"))
+                                                  .body(rerunCondition)
+                                                  .asString();
 
             if (!response.isSuccess()) {
-                if (response.getStatus() == 404) {
-                    return GetTestsByCiRunIdResponse.runNotFound();
-                } else {
-                    throw new ServerException(formatErrorMessage("Could not get tests by ci run id.", response));
-                }
+                throw new ServerException(formatErrorMessage("Could not get tests by ci run id.", response));
             }
 
-            List<TestDTO> tests = objectMapper.readValue(response.getBody(), new GenericType<List<TestDTO>>() {
-            });
-            return GetTestsByCiRunIdResponse.success(tests);
+            return objectMapper.readValue(response.getBody(), ExchangeRerunConditionResponse.class);
         } else {
             return null;
-        }
-    }
-
-    private void setTestIds(GetRequest request, Set<Long> testIds) {
-        if (!testIds.isEmpty()) {
-            String tests = testIds.stream()
-                                  .map(Object::toString)
-                                  .collect(Collectors.joining(","));
-            request.queryString("tests", tests);
-        }
-    }
-
-    private void setStatuses(GetRequest request, Set<Status> testStatuses) {
-        if (!testStatuses.isEmpty()) {
-            String statuses = testStatuses.stream()
-                                          .map(Enum::name)
-                                          .collect(Collectors.joining(","));
-            request.queryString("statuses", statuses);
         }
     }
 

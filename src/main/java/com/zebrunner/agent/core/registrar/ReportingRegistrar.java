@@ -42,7 +42,7 @@ class ReportingRegistrar implements TestRunRegistrar {
     @Override
     public void registerStart(TestRunStartDescriptor tr) {
         TestRunDTO testRun = TestRunDTO.builder()
-                                       .uuid(RerunResolver.getRunId())
+                                       .uuid(RerunResolver.getCiRunId())
                                        .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
