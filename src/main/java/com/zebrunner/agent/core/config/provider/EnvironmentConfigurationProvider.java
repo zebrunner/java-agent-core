@@ -16,7 +16,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_BUILD_VARIABLE = "REPORTING_RUN_BUILD";
     private final static String RUN_ENVIRONMENT_VARIABLE = "REPORTING_RUN_ENVIRONMENT";
 
-    private final static String RERUN_CONDITION_VARIABLE = "REPORTING_RERUN_RUN_ID";
+    private final static String RERUN_CONDITION_VARIABLE = "REPORTING_RERUN_CONDITION";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_SLACK_CHANNELS";
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS";
