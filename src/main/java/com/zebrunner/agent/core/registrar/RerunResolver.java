@@ -48,9 +48,9 @@ final class RerunResolver {
                 throw new TestAgentException("You cannot rerun failed tests because there is no test run with given ci run id in Zebrunner");
             }
 
-            if (response.isRunExists()) {
-                ciRunId = response.getCiRunId();
+            ciRunId = response.getCiRunId();
 
+            if (response.isRunExists()) {
                 List<TestDTO> tests = response.getTests();
                 RerunContextHolder.setTests(tests);
 

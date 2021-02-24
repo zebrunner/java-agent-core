@@ -48,6 +48,8 @@ public class ConfigurationHolder {
         Map<String, Object> rerunCondition = new HashMap<>();
         rerunCondition.put("ciRunId", ciRunId);
         if ("true".equalsIgnoreCase(System.getProperty("rerun_failures"))) {
+            rerunCondition.put("onlyFailures", true);
+            rerunCondition.put("excludeKnownIssues", true);
             rerunCondition.put("statuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED", "IN_PROGRESS"));
         }
         return new Gson().toJson(rerunCondition);
