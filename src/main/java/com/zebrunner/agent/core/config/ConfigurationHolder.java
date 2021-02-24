@@ -1,5 +1,10 @@
 package com.zebrunner.agent.core.config;
 
+import com.google.gson.Gson;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class ConfigurationHolder {
@@ -31,7 +36,7 @@ public class ConfigurationHolder {
         RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
 
         RERUN_CONDITION = Optional.ofNullable(System.getProperty("ci_run_id"))
-                                  .map(ConfigurationHolder::appendStatusesIfNecessary)
+                                  .map(ConfigurationHolder::toSerializedRerunCondition)
                                   .orElseGet(configuration::getRerunCondition);
 
         SLACK_CHANNELS = configuration.getNotification().getSlackChannels();
@@ -39,11 +44,13 @@ public class ConfigurationHolder {
         EMAILS = configuration.getNotification().getEmails();
     }
 
-    private static String appendStatusesIfNecessary(String ciRunId) {
-        String rerunFailures = System.getProperty("rerun_failures");
-        return "true".equalsIgnoreCase(rerunFailures)
-                ? ciRunId + ":[failed,skipped,aborted,in_progress]"
-                : ciRunId;
+    private static String toSerializedRerunCondition(String ciRunId) {
+        Map<String, Object> rerunCondition = new HashMap<>();
+        rerunCondition.put("ciRunId", ciRunId);
+        if ("true".equalsIgnoreCase(System.getProperty("rerun_failures"))) {
+            rerunCondition.put("statuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED", "IN_PROGRESS"));
+        }
+        return new Gson().toJson(rerunCondition);
     }
 
     public static boolean isReportingEnabled() {
