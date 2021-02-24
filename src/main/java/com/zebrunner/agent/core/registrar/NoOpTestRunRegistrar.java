@@ -2,8 +2,8 @@ package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunFinishDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -28,6 +28,12 @@ public class NoOpTestRunRegistrar implements TestRunRegistrar {
     @Override
     public void registerTestStart(String id, TestStartDescriptor testStartDescriptor) {
         log.trace("Test started: {}", testStartDescriptor);
+    }
+
+    @Override
+    public boolean isTestStarted() {
+        log.trace("Is test started");
+        return true;
     }
 
     @Override

@@ -16,7 +16,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
     private final static String RUN_BUILD_PROPERTY = "reporting.run.build";
     private final static String RUN_ENVIRONMENT_PROPERTY = "reporting.run.environment";
 
-    private final static String RUN_ID_PROPERTY = "reporting.rerun.runId";
+    private final static String RERUN_CONDITION_PROPERTY = "reporting.rerunCondition";
 
     private final static String SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
@@ -31,7 +31,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         String displayName = System.getProperty(RUN_DISPLAY_NAME_PROPERTY);
         String build = System.getProperty(RUN_BUILD_PROPERTY);
         String environment = System.getProperty(RUN_ENVIRONMENT_PROPERTY);
-        String runId = System.getProperty(RUN_ID_PROPERTY);
+        String rerunCondition = System.getProperty(RERUN_CONDITION_PROPERTY);
         String slackChannels = System.getProperty(SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = System.getProperty(MS_TEAMS_CHANNELS_PROPERTY);
         String emails = System.getProperty(EMAILS_PROPERTY);
@@ -46,7 +46,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
                                      .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
-                                     .rerun(new ReportingConfiguration.RerunConfiguration(runId))
+                                     .rerunCondition(rerunCondition)
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }

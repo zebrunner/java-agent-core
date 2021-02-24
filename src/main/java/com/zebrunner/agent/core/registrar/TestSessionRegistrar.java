@@ -4,14 +4,12 @@ import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.registrar.descriptor.SessionCloseDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.SessionStartDescriptor;
 
-public interface DriverSessionRegistrar {
+public interface TestSessionRegistrar {
 
-    static DriverSessionRegistrar getInstance() {
-        if (ConfigurationHolder.isReportingEnabled()) {
-            return SessionRegistrar.getInstance();
-        } else {
-            return NoOpDriverSessionRegistrar.getInstance();
-        }
+    static TestSessionRegistrar getInstance() {
+        return ConfigurationHolder.isReportingEnabled()
+                ? SessionRegistrar.getInstance()
+                : NoOpTestSessionRegistrar.getInstance();
     }
 
     void registerStart(SessionStartDescriptor context);

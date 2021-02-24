@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-class SessionRegistrar implements DriverSessionRegistrar {
+class SessionRegistrar implements TestSessionRegistrar {
 
     private static final SessionRegistrar INSTANCE = new SessionRegistrar();
 
@@ -33,8 +33,8 @@ class SessionRegistrar implements DriverSessionRegistrar {
         TestSessionDTO testSession = TestSessionDTO.builder()
                                                    .sessionId(sessionId)
                                                    .startedAt(Instant.now())
-                                                   .capabilities(context.getCapabilities().asMap())
-                                                   .desiredCapabilities(context.getDesiredCapabilities().asMap())
+                                                   .capabilities(context.getCapabilities())
+                                                   .desiredCapabilities(context.getDesiredCapabilities())
                                                    .build();
 
         RunContext.getCurrentTest()

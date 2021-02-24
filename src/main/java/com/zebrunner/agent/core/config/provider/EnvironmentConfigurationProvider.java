@@ -12,11 +12,11 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     private final static String HOSTNAME_VARIABLE = "REPORTING_SERVER_HOSTNAME";
     private final static String ACCESS_TOKEN_VARIABLE = "REPORTING_SERVER_ACCESS_TOKEN";
 
-    private final static String RUN_DISPLAY_NAME_PROPERTY = "REPORTING_RUN_DISPLAY_NAME";
-    private final static String RUN_BUILD_PROPERTY = "REPORTING_RUN_BUILD";
-    private final static String RUN_ENVIRONMENT_PROPERTY = "REPORTING_RUN_ENVIRONMENT";
+    private final static String RUN_DISPLAY_NAME_VARIABLE = "REPORTING_RUN_DISPLAY_NAME";
+    private final static String RUN_BUILD_VARIABLE = "REPORTING_RUN_BUILD";
+    private final static String RUN_ENVIRONMENT_VARIABLE = "REPORTING_RUN_ENVIRONMENT";
 
-    private final static String RUN_ID_VARIABLE = "REPORTING_RERUN_RUN_ID";
+    private final static String RERUN_CONDITION_VARIABLE = "REPORTING_RERUN_CONDITION";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_SLACK_CHANNELS";
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS";
@@ -28,10 +28,10 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
         String projectKey = System.getenv(PROJECT_KEY_VARIABLE);
         String hostname = System.getenv(HOSTNAME_VARIABLE);
         String accessToken = System.getenv(ACCESS_TOKEN_VARIABLE);
-        String displayName = System.getenv(RUN_DISPLAY_NAME_PROPERTY);
-        String build = System.getenv(RUN_BUILD_PROPERTY);
-        String environment = System.getenv(RUN_ENVIRONMENT_PROPERTY);
-        String runId = System.getenv(RUN_ID_VARIABLE);
+        String displayName = System.getenv(RUN_DISPLAY_NAME_VARIABLE);
+        String build = System.getenv(RUN_BUILD_VARIABLE);
+        String environment = System.getenv(RUN_ENVIRONMENT_VARIABLE);
+        String rerunCondition = System.getenv(RERUN_CONDITION_VARIABLE);
         String slackChannels = System.getenv(NOTIFICATION_SLACK_CHANNELS_VARIABLE);
         String msTeamsChannels = System.getenv(NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE);
         String emails = System.getenv(NOTIFICATION_EMAILS);
@@ -46,7 +46,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
                                      .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
-                                     .rerun(new ReportingConfiguration.RerunConfiguration(runId))
+                                     .rerunCondition(rerunCondition)
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }
