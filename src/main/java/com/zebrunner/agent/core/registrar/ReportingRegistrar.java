@@ -57,7 +57,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                getIntegerSystemProperty("ci_parent_build")
                                        ))
                                        .ciContext(ciContextResolver.resolve())
-                                       .notifications(collectNotificationTargets())
+                                       .notificationTargets(collectNotificationTargets())
                                        .build();
         testRun = apiClient.registerTestRunStart(testRun);
 
