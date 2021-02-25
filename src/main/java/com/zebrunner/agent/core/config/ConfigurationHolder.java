@@ -1,5 +1,12 @@
 package com.zebrunner.agent.core.config;
 
+import com.google.gson.Gson;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 public class ConfigurationHolder {
 
     private static final boolean REPORTING_ENABLED;
@@ -9,7 +16,10 @@ public class ConfigurationHolder {
     private static final String RUN_DISPLAY_NAME;
     private static final String RUN_BUILD;
     private static final String RUN_ENVIRONMENT;
-    private static final String RERUN_RUN_ID;
+    private static final String RERUN_CONDITION;
+    private static final String SLACK_CHANNELS;
+    private static final String MS_TEAMS_CHANNELS;
+    private static final String EMAILS;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
@@ -25,7 +35,24 @@ public class ConfigurationHolder {
         RUN_BUILD = configuration.getRun().getBuild();
         RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
 
-        RERUN_RUN_ID = configuration.getRerun().getRunId();
+        RERUN_CONDITION = Optional.ofNullable(System.getProperty("ci_run_id"))
+                                  .map(ConfigurationHolder::toSerializedRerunCondition)
+                                  .orElseGet(configuration::getRerunCondition);
+
+        SLACK_CHANNELS = configuration.getNotification().getSlackChannels();
+        MS_TEAMS_CHANNELS = configuration.getNotification().getMsTeamsChannels();
+        EMAILS = configuration.getNotification().getEmails();
+    }
+
+    private static String toSerializedRerunCondition(String ciRunId) {
+        Map<String, Object> rerunCondition = new HashMap<>();
+        rerunCondition.put("ciRunId", ciRunId);
+        if ("true".equalsIgnoreCase(System.getProperty("rerun_failures"))) {
+            rerunCondition.put("onlyFailures", true);
+            rerunCondition.put("excludeKnownIssues", true);
+            rerunCondition.put("statuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED", "IN_PROGRESS"));
+        }
+        return new Gson().toJson(rerunCondition);
     }
 
     public static boolean isReportingEnabled() {
@@ -56,8 +83,19 @@ public class ConfigurationHolder {
         return RUN_ENVIRONMENT;
     }
 
-    public static String getRerunRunId() {
-        return RERUN_RUN_ID;
+    public static String getRerunCondition() {
+        return RERUN_CONDITION;
     }
 
+    public static String getSlackChannels() {
+        return SLACK_CHANNELS;
+    }
+
+    public static String getMsTeamsChannels() {
+        return MS_TEAMS_CHANNELS;
+    }
+
+    public static String getEmails() {
+        return EMAILS;
+    }
 }

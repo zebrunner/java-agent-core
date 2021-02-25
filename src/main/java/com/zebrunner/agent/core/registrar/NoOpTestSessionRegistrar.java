@@ -6,11 +6,11 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-class NoOpDriverSessionRegistrar implements DriverSessionRegistrar {
+class NoOpTestSessionRegistrar implements TestSessionRegistrar {
 
-    private static final NoOpDriverSessionRegistrar INSTANCE = new NoOpDriverSessionRegistrar();
+    private static final NoOpTestSessionRegistrar INSTANCE = new NoOpTestSessionRegistrar();
 
-    public static NoOpDriverSessionRegistrar getInstance() {
+    public static NoOpTestSessionRegistrar getInstance() {
         return INSTANCE;
     }
 

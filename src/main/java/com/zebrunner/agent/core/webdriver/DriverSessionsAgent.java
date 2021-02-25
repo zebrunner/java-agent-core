@@ -27,11 +27,10 @@ public class DriverSessionsAgent {
 
     private static final String START_SESSION_METHOD_MAME = "startSession";
     private static final String QUIT_METHOD_MAME = "quit";
-    private static final String CLOSE_METHOD_MAME = "close";
 
     // getSessionId and getCapabilities are used by the agent interceptors
     private static final Set<String> PUBLIC_METHODS_TO_NOT_INTERCEPT = new HashSet<>(Arrays.asList(
-            START_SESSION_METHOD_MAME, QUIT_METHOD_MAME, CLOSE_METHOD_MAME, "getSessionId", "getCapabilities",
+            START_SESSION_METHOD_MAME, QUIT_METHOD_MAME, "getSessionId", "getCapabilities",
             "wait", "equals", "hashCode", "getClass", "notify", "notifyAll", "toString"
     ));
     // the rest of the public methods
@@ -41,7 +40,7 @@ public class DriverSessionsAgent {
     // findElementByName, findElementsByName, findElementByClassName, findElementsByClassName, findElementByCssSelector,
     // findElementsByCssSelector, findElementByXPath, findElementsByXPath, getPageSource, getWindowHandles,
     // getWindowHandle, executeScript, executeAsyncScript, switchTo, navigate, manage, setLogLevel, perform,
-    // resetInputState, getKeyboard, getMouse, getFileDetector, get
+    // resetInputState, getKeyboard, getMouse, getFileDetector, get, close
 
     public static void premain(String args, Instrumentation instrumentation) {
         try {
@@ -69,9 +68,7 @@ public class DriverSessionsAgent {
                       .method(named(START_SESSION_METHOD_MAME))
                       .intercept(to(startSessionInterceptor()))
                       .method(named(QUIT_METHOD_MAME))
-                      .intercept(to(closeSessionInterceptor()))
-                      .method(named(CLOSE_METHOD_MAME))
-                      .intercept(to(closeSessionInterceptor()));
+                      .intercept(to(quitSessionInterceptor()));
     }
 
     private static TypeDescription publicMethodsInterceptor() {
@@ -88,10 +85,10 @@ public class DriverSessionsAgent {
                                .resolve();
     }
 
-    private static TypeDescription closeSessionInterceptor() {
+    private static TypeDescription quitSessionInterceptor() {
         log.debug("Creating interceptor for 'quit' and 'close' methods.");
         return TypePool.Default.ofSystemLoader()
-                               .describe(CloseSessionInterceptor.class.getName())
+                               .describe(QuitSessionInterceptor.class.getName())
                                .resolve();
     }
 

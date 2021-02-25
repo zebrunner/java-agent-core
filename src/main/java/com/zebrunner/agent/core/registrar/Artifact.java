@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +44,9 @@ public final class Artifact {
 
     public static void attachToTestRun(String name, InputStream artifact) {
         Long testRunId = RunContext.getZebrunnerRunId();
+        if (testRunId == null) {
+            log.error("Failed to attach artifact '{}' to test run because it has not been started yet.", name);
+        }
 
         UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadTestRunArtifact(artifact, name, testRunId));
     }
@@ -70,18 +74,26 @@ public final class Artifact {
     public static void attachReferenceToTestRun(String name, String reference) {
         ArtifactReferenceDTO artifactReference = validateAndConvert(name, reference);
         Long runId = RunContext.getZebrunnerRunId();
+        if (runId == null) {
+            log.error("Failed to attach artifact reference '{}' to test run because it has not been started yet.", name);
+        }
 
         API_CLIENT.attachArtifactReferenceToTestRun(runId, artifactReference);
     }
 
     public static void attachToTest(String name, InputStream artifact) {
         Long runId = RunContext.getZebrunnerRunId();
+        if (runId == null) {
+            log.error("Failed to attach artifact '{}' to test because test run has not been started yet.", name);
+        }
 
-        RunContext.getCurrentTest()
-                  .map(TestDescriptor::getZebrunnerId)
-                  .ifPresent(testId -> UPLOAD_EXECUTOR.execute(
-                          () -> API_CLIENT.uploadTestArtifact(artifact, name, runId, testId))
-                  );
+        Optional<Long> maybeTestId = RunContext.getCurrentTest().map(TestDescriptor::getZebrunnerId);
+        if (maybeTestId.isPresent()) {
+            Long testId = maybeTestId.get();
+            UPLOAD_EXECUTOR.execute(() -> API_CLIENT.uploadTestArtifact(artifact, name, runId, testId));
+        } else {
+            log.error("Failed to attach artifact '{}' to test because it has not been started yet.", name);
+        }
     }
 
     public static void attachToTest(String name, byte[] artifact) {
@@ -107,10 +119,17 @@ public final class Artifact {
     public static void attachReferenceToTest(String name, String reference) {
         ArtifactReferenceDTO artifactReference = validateAndConvert(name, reference);
         Long runId = RunContext.getZebrunnerRunId();
+        if (runId == null) {
+            log.error("Failed to attach artifact reference '{}' to test because test run has not been started yet.", name);
+        }
 
-        RunContext.getCurrentTest()
-                  .map(TestDescriptor::getZebrunnerId)
-                  .ifPresent(testId -> API_CLIENT.attachArtifactReferenceToTest(runId, testId, artifactReference));
+        Optional<Long> maybeTestId = RunContext.getCurrentTest().map(TestDescriptor::getZebrunnerId);
+        if (maybeTestId.isPresent()) {
+            Long testId = maybeTestId.get();
+            UPLOAD_EXECUTOR.execute(() -> API_CLIENT.attachArtifactReferenceToTest(runId, testId, artifactReference));
+        } else {
+            log.error("Failed to attach artifact reference '{}' to test because it has not been started yet.", name);
+        }
     }
 
     private static ArtifactReferenceDTO validateAndConvert(String name, String reference) {

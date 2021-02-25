@@ -20,7 +20,11 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_BUILD_PROPERTY = "reporting.run.build";
     private final static String RUN_ENVIRONMENT_PROPERTY = "reporting.run.environment";
 
-    private final static String RUN_ID_PROPERTY = "reporting.rerun.run-id";
+    private final static String RERUN_CONDITION_PROPERTY = "reporting.rerun-condition";
+
+    private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
+    private final static String NOTIFICATION_MS_TEAMS_PROPERTY = "reporting.notification.ms-teams-channels";
+    private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
 
     private static final String DEFAULT_FILE_NAME = "agent.properties";
 
@@ -35,7 +39,10 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         String displayName = agentProperties.getProperty(RUN_DISPLAY_NAME_PROPERTY);
         String build = agentProperties.getProperty(RUN_BUILD_PROPERTY);
         String environment = agentProperties.getProperty(RUN_ENVIRONMENT_PROPERTY);
-        String runId = agentProperties.getProperty(RUN_ID_PROPERTY);
+        String rerunCondition = agentProperties.getProperty(RERUN_CONDITION_PROPERTY);
+        String slackChannels = agentProperties.getProperty(NOTIFICATION_SLACK_CHANNELS_PROPERTY);
+        String msTeamsChannels = agentProperties.getProperty(NOTIFICATION_MS_TEAMS_PROPERTY);
+        String emails = agentProperties.getProperty(NOTIFICATION_EMAILS_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Properties configuration is malformed, skipping");
@@ -47,7 +54,8 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
                                      .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
-                                     .rerun(new ReportingConfiguration.RerunConfiguration(runId))
+                                     .rerunCondition(rerunCondition)
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }
 

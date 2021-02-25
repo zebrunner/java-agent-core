@@ -2,6 +2,7 @@ package com.zebrunner.agent.core.registrar.descriptor;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.lang.reflect.Method;
@@ -16,7 +17,18 @@ import java.time.OffsetDateTime;
 @RequiredArgsConstructor
 public class TestStartDescriptor {
 
-    private final String uuid;
+    /**
+     * Id of already existing Zebrunner test to rerun.
+     */
+    @Setter
+    private Long zebrunnerId;
+
+    /**
+     * Contains information about test identity.
+     * It might be a JSON with full information about test or hash string which is based pn test properties.
+     * The primary use case is to correlate tests on rerun.
+     */
+    private final String correlationData;
 
     /**
      * Test name. May be different from actual test method name - e.g. a display name.

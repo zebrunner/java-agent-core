@@ -3,9 +3,9 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.exception.ServerException;
 import com.zebrunner.agent.core.logging.Log;
-import com.zebrunner.agent.core.registrar.descriptor.Status;
 import com.zebrunner.agent.core.registrar.domain.ArtifactReferenceDTO;
 import com.zebrunner.agent.core.registrar.domain.AuthDataDTO;
+import com.zebrunner.agent.core.registrar.domain.ExchangeRerunConditionResponse;
 import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
@@ -13,8 +13,6 @@ import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
 import kong.unirest.Config;
 import kong.unirest.ContentType;
-import kong.unirest.GenericType;
-import kong.unirest.GetRequest;
 import kong.unirest.HeaderNames;
 import kong.unirest.HttpResponse;
 import kong.unirest.ObjectMapper;
@@ -26,8 +24,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 class ZebrunnerApiClient {
@@ -119,6 +115,19 @@ class ZebrunnerApiClient {
         }
     }
 
+    void patchTestRunBuild(Long testRunId, String build) {
+        if (client != null) {
+            HttpResponse<String> response = client.jsonPatch(reporting("test-runs/{testRunId}"))
+                                                  .routeParam("testRunId", testRunId.toString())
+                                                  .replace("/config/build", build)
+                                                  .asString();
+
+            if (!response.isSuccess()) {
+                throw new ServerException(formatErrorMessage("Could not patch build of the test run.", response));
+            }
+        }
+    }
+
     void registerTestRunFinish(TestRunDTO testRun) {
         if (client != null) {
             HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}"))
@@ -138,11 +147,28 @@ class ZebrunnerApiClient {
                                                   .body(test)
                                                   .routeParam("testRunId", testRunId.toString())
                                                   .queryString("headless", headless)
-                                                  .queryString("rerun", RerunContextHolder.isRerun())
                                                   .asString();
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not register start of the test.", response));
+            }
+            return objectMapper.readValue(response.getBody(), TestDTO.class);
+        } else {
+            return null;
+        }
+    }
+
+    TestDTO registerTestRerunStart(Long testRunId, Long testId, TestDTO test, boolean headless) {
+        if (client != null) {
+            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                                  .body(test)
+                                                  .routeParam("testRunId", testRunId.toString())
+                                                  .routeParam("testId", testId.toString())
+                                                  .queryString("headless", headless)
+                                                  .asString();
+
+            if (!response.isSuccess()) {
+                throw new ServerException(formatErrorMessage("Could not register start of rerun of the test.", response));
             }
             return objectMapper.readValue(response.getBody(), TestDTO.class);
         } else {
@@ -204,7 +230,7 @@ class ZebrunnerApiClient {
                                                   .asString();
 
             if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not send test logs.", response));
+                log.error(formatErrorMessage("Could not send a batch of test logs.", response));
             }
         }
     }
@@ -220,7 +246,7 @@ class ZebrunnerApiClient {
                                                   .asString();
 
             if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not send a screenshot.", response));
+                log.error(formatErrorMessage("Could not upload a screenshot.", response));
             }
         }
     }
@@ -318,42 +344,19 @@ class ZebrunnerApiClient {
         }
     }
 
-    List<TestDTO> getTestsByCiRunId(RerunCondition rerunCondition) {
+    ExchangeRerunConditionResponse exchangeRerunCondition(String rerunCondition) {
         if (client != null) {
-            GetRequest request = client.get(reporting("test-runs/{ciRunId}/tests"))
-                                       .routeParam("ciRunId", rerunCondition.getRunId());
-
-            setTestIds(request, rerunCondition.getTestIds());
-            setStatuses(request, rerunCondition.getStatuses());
-
-            HttpResponse<String> response = request.asString();
+            HttpResponse<String> response = client.post(reporting("rerun-condition-exchanges"))
+                                                  .body(rerunCondition)
+                                                  .asString();
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not get tests by ci run id.", response));
             }
 
-            return objectMapper.readValue(response.getBody(), new GenericType<List<TestDTO>>() {
-            });
+            return objectMapper.readValue(response.getBody(), ExchangeRerunConditionResponse.class);
         } else {
-            return Collections.emptyList();
-        }
-    }
-
-    private void setTestIds(GetRequest request, Set<Long> testIds) {
-        if (!testIds.isEmpty()) {
-            String tests = testIds.stream()
-                                  .map(Object::toString)
-                                  .collect(Collectors.joining(","));
-            request.queryString("tests", tests);
-        }
-    }
-
-    private void setStatuses(GetRequest request, Set<Status> testStatuses) {
-        if (!testStatuses.isEmpty()) {
-            String statuses = testStatuses.stream()
-                                          .map(Enum::name)
-                                          .collect(Collectors.joining(","));
-            request.queryString("statuses", statuses);
+            return null;
         }
     }
 

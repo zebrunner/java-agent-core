@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Label {
 
+    public static final String LOCALE = "com.zebrunner.app/sut.locale";
+
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
     public static void attachToTestRun(String name, String... values) {

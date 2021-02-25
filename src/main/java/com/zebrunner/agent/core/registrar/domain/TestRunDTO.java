@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.Value;
 
 import java.time.OffsetDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -23,26 +24,25 @@ public class TestRunDTO {
     private OffsetDateTime endedAt;
     private String framework;
     private Config config;
-    private LaunchContextDTO launchContext;
+    private JenkinsContext jenkinsContext;
+    private CiContextDTO ciContext;
+    private Set<NotificationTargetDTO> notificationTargets;
 
     @Value
-    public static class LaunchContextDTO {
+    public static class Config {
 
-        String jobNumber;
-        String upstreamJobNumber;
+        String environment;
+        String build;
 
     }
 
-    @Getter
-    public static class Config {
+    @Value
+    public static class JenkinsContext {
 
-        private final String environment;
-        private final String build;
-
-        public Config(String environment, String build) {
-            this.environment = environment;
-            this.build = build;
-        }
+        String jobUrl;
+        Integer jobNumber;
+        String parentJobUrl;
+        Integer parentJobNumber;
 
     }
 
