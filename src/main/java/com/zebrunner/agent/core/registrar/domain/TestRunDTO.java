@@ -26,7 +26,7 @@ public class TestRunDTO {
     private Config config;
     private JenkinsContext jenkinsContext;
     private CiContextDTO ciContext;
-    private Set<NotificationTargetDTO> notifications;
+    private Set<NotificationTargetDTO> notificationTargets;
 
     @Value
     public static class Config {
