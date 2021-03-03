@@ -52,4 +52,14 @@ public class NoOpTestRunRegistrar implements TestRunRegistrar {
         log.trace("Test finished: {}", testFinishDescriptor);
     }
 
+    @Override
+    public void registerAfterTestStart() {
+        log.trace("After Test started");
+    }
+
+    @Override
+    public void registerAfterTestFinish() {
+        log.trace("After Test finished");
+    }
+
 }

@@ -89,17 +89,20 @@ class ReportingRegistrar implements TestRunRegistrar {
 
         String slackChannels = ConfigurationHolder.getSlackChannels();
         if (slackChannels != null && !slackChannels.isEmpty()) {
-            notificationTargets.add(new NotificationTargetDTO(NotificationTargetDTO.Type.SLACK_CHANNELS, slackChannels));
+            notificationTargets
+                    .add(new NotificationTargetDTO(NotificationTargetDTO.Type.SLACK_CHANNELS, slackChannels));
         }
 
         String msTeamsChannels = ConfigurationHolder.getMsTeamsChannels();
         if (msTeamsChannels != null && !msTeamsChannels.isEmpty()) {
-            notificationTargets.add(new NotificationTargetDTO(NotificationTargetDTO.Type.MS_TEAMS_CHANNELS, msTeamsChannels));
+            notificationTargets
+                    .add(new NotificationTargetDTO(NotificationTargetDTO.Type.MS_TEAMS_CHANNELS, msTeamsChannels));
         }
 
         String emailRecipients = ConfigurationHolder.getEmails();
         if (emailRecipients != null && !emailRecipients.isEmpty()) {
-            notificationTargets.add(new NotificationTargetDTO(NotificationTargetDTO.Type.EMAIL_RECIPIENTS, emailRecipients));
+            notificationTargets
+                    .add(new NotificationTargetDTO(NotificationTargetDTO.Type.EMAIL_RECIPIENTS, emailRecipients));
         }
 
         return notificationTargets;
@@ -137,7 +140,7 @@ class ReportingRegistrar implements TestRunRegistrar {
             // if reporting is enabled and test was actually registered
             if (test != null) {
                 TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
-                RunContext.addTest(id, testDescriptor);
+                RunContext.addCurrentTest(id, testDescriptor);
                 testSessionRegistrar.linkAllCurrentToTest(test.getId());
             }
         }
@@ -170,7 +173,7 @@ class ReportingRegistrar implements TestRunRegistrar {
         // if reporting is enabled and test was actually registered
         if (test != null) {
             TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
-            RunContext.addTest(id, testDescriptor);
+            RunContext.addCurrentTest(id, testDescriptor);
             testSessionRegistrar.linkAllCurrentToTest(test.getId());
         }
     }
@@ -200,6 +203,16 @@ class ReportingRegistrar implements TestRunRegistrar {
 
             RunContext.completeTest(id, tf);
         }
+    }
+
+    @Override
+    public void registerAfterTestStart() {
+        RunContext.restorePreviousCompletedTest();
+    }
+
+    @Override
+    public void registerAfterTestFinish() {
+        RunContext.completeCurrentTest();
     }
 
 }
