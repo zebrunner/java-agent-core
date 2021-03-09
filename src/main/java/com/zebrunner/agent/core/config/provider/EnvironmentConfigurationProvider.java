@@ -15,8 +15,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_DISPLAY_NAME_VARIABLE = "REPORTING_RUN_DISPLAY_NAME";
     private final static String RUN_BUILD_VARIABLE = "REPORTING_RUN_BUILD";
     private final static String RUN_ENVIRONMENT_VARIABLE = "REPORTING_RUN_ENVIRONMENT";
-
-    private final static String RERUN_CONDITION_VARIABLE = "REPORTING_RERUN_CONDITION";
+    private final static String RUN_CONTEXT_VARIABLE = "REPORTING_RUN_CONTEXT";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_SLACK_CHANNELS";
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS";
@@ -31,7 +30,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
         String displayName = System.getenv(RUN_DISPLAY_NAME_VARIABLE);
         String build = System.getenv(RUN_BUILD_VARIABLE);
         String environment = System.getenv(RUN_ENVIRONMENT_VARIABLE);
-        String rerunCondition = System.getenv(RERUN_CONDITION_VARIABLE);
+        String runContext = System.getenv(RUN_CONTEXT_VARIABLE);
         String slackChannels = System.getenv(NOTIFICATION_SLACK_CHANNELS_VARIABLE);
         String msTeamsChannels = System.getenv(NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE);
         String emails = System.getenv(NOTIFICATION_EMAILS);
@@ -45,8 +44,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
                                      .reportingEnabled(reportingEnabled)
                                      .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
-                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
-                                     .rerunCondition(rerunCondition)
+                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }

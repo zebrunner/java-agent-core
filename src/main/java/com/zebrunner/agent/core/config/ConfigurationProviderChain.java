@@ -63,7 +63,6 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
     private static void normalize(ReportingConfiguration config) {
         normalizeServerConfiguration(config);
         normalizeRunConfiguration(config);
-        normalizeRerunConfiguration(config);
         normalizeNotificationConfiguration(config);
     }
 
@@ -94,6 +93,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             String displayName = runConfig.getDisplayName();
             String build = runConfig.getBuild();
             String environment = runConfig.getEnvironment();
+            String context = runConfig.getContext();
 
             if (displayName != null && displayName.trim().isEmpty()) {
                 runConfig.setDisplayName(null);
@@ -104,13 +104,9 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             if (environment != null && environment.trim().isEmpty()) {
                 runConfig.setEnvironment(null);
             }
-        }
-    }
-
-    private static void normalizeRerunConfiguration(ReportingConfiguration config) {
-        String rerunCondition = config.getRerunCondition();
-        if (rerunCondition != null && rerunCondition.trim().isEmpty()) {
-            config.setRerunCondition(null);
+            if (context != null && context.trim().isEmpty()) {
+                runConfig.setContext(null);
+            }
         }
     }
 
@@ -121,7 +117,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             ReportingConfiguration.NotificationConfiguration notificationConfig = config.getNotification();
 
             String slackChannels = notificationConfig.getSlackChannels();
-            if(slackChannels != null && slackChannels.isEmpty()) {
+            if (slackChannels != null && slackChannels.isEmpty()) {
                 notificationConfig.setSlackChannels(null);
             }
 
@@ -170,9 +166,8 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         if (run.getEnvironment() == null) {
             run.setEnvironment(providedConfig.getRun().getEnvironment());
         }
-
-        if (config.getRerunCondition() == null) {
-            config.setRerunCondition(providedConfig.getRerunCondition());
+        if (run.getContext() == null) {
+            run.setContext(providedConfig.getRun().getContext());
         }
 
         String slackChannels = providedConfig.getNotification().getSlackChannels();
@@ -208,7 +203,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         String displayName = config.getRun().getDisplayName();
         String build = config.getRun().getBuild();
         String environment = config.getRun().getEnvironment();
-        String rerunCondition = config.getRerunCondition();
+        String context = config.getRun().getContext();
         String slackChannels = config.getNotification().getSlackChannels();
         String msTeamsChannels = config.getNotification().getMsTeamsChannels();
         String emails = config.getNotification().getEmails();
@@ -216,8 +211,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         return enabled != null
                 && projectKey != null
                 && hostname != null && accessToken != null
-                && displayName != null && build != null && environment != null
-                && rerunCondition != null
+                && displayName != null && build != null && environment != null && context != null
                 && slackChannels != null && msTeamsChannels != null && emails != null;
     }
 
