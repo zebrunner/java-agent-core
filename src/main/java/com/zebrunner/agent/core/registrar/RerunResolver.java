@@ -4,7 +4,7 @@ import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import com.zebrunner.agent.core.listener.AgentListenerHolder;
 import com.zebrunner.agent.core.listener.RerunListener;
-import com.zebrunner.agent.core.registrar.domain.ExchangeRerunConditionResponse;
+import com.zebrunner.agent.core.registrar.domain.ExchangeRunContextResponse;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
 
 import java.util.List;
@@ -15,9 +15,9 @@ final class RerunResolver {
     private static Boolean isRerun;
 
     synchronized static void resolve() {
-        String rerunCondition = ConfigurationHolder.getRerunCondition();
-        if (rerunCondition != null) {
-            processRerun(rerunCondition);
+        String runContext = ConfigurationHolder.getRunContext();
+        if (runContext != null) {
+            processRerun(runContext);
         } else {
             isRerun = Boolean.FALSE;
         }
@@ -41,14 +41,14 @@ final class RerunResolver {
      */
     private static void processRerun(String rerunCondition) {
         ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
-        ExchangeRerunConditionResponse response = apiClient.exchangeRerunCondition(rerunCondition);
+        ExchangeRunContextResponse response = apiClient.exchangeRerunCondition(rerunCondition);
 
         if (response != null) {
-            if (!response.isRunExists() && response.isOnlyFailedTests()) {
+            if (!response.isRunExists() && response.isRerunOnlyFailedTests()) {
                 throw new TestAgentException("You cannot rerun failed tests because there is no test run with given ci run id in Zebrunner");
             }
 
-            ciRunId = response.getCiRunId();
+            ciRunId = response.getId();
 
             if (response.isRunExists()) {
                 List<TestDTO> tests = response.getTests();

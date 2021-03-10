@@ -7,11 +7,11 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class ExchangeRerunConditionResponse {
+public class ExchangeRunContextResponse {
 
-    private String ciRunId;
+    private String id;
     private boolean runExists;
-    private boolean onlyFailedTests;
+    private boolean rerunOnlyFailedTests;
     private List<TestDTO> tests;
 
 }

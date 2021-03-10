@@ -17,7 +17,8 @@ class RunContext {
 
     private static TestRunDescriptor testRun;
     private static final Map<String, TestDescriptor> TESTS = new ConcurrentHashMap<>();
-    private static final ThreadLocal<TestDescriptor> THREAD_LOCAL_TEST = new InheritableThreadLocal<>();
+    private static final ThreadLocal<TestDescriptor> CURRENT_THREAD_LOCAL_TEST = new InheritableThreadLocal<>();
+    private static final ThreadLocal<TestDescriptor> PREVIOUS_COMPLETED_THREAD_LOCAL_TEST = new ThreadLocal<>();
 
     static void setRun(TestRunDescriptor testRunDescriptor) {
         RunContext.testRun = testRunDescriptor;
@@ -31,24 +32,24 @@ class RunContext {
         return testRun != null ? testRun.getZebrunnerId() : null;
     }
 
-    static void addTest(String id, TestDescriptor testDescriptor) {
-        TESTS.put(id, testDescriptor);
-        THREAD_LOCAL_TEST.set(testDescriptor);
-    }
-
     static TestDescriptor getTest(String id) {
         return TESTS.get(id);
     }
 
+    static void addCurrentTest(String id, TestDescriptor testDescriptor) {
+        TESTS.put(id, testDescriptor);
+        CURRENT_THREAD_LOCAL_TEST.set(testDescriptor);
+    }
+
     static Optional<TestDescriptor> getCurrentTest() {
-        return Optional.ofNullable(THREAD_LOCAL_TEST.get());
+        return Optional.ofNullable(CURRENT_THREAD_LOCAL_TEST.get());
     }
 
     static Optional<TestDescriptor> removeCurrentTest() {
         Optional<TestDescriptor> maybeCurrentTest = getCurrentTest();
         maybeCurrentTest.ifPresent(currentTest -> {
             TESTS.values().removeIf(test -> test == currentTest);
-            THREAD_LOCAL_TEST.remove();
+            CURRENT_THREAD_LOCAL_TEST.remove();
         });
 
         return maybeCurrentTest;
@@ -60,10 +61,28 @@ class RunContext {
         if (testToComplete != null) {
             testToComplete.complete(tf);
 
-            TestDescriptor threadLocalTest = THREAD_LOCAL_TEST.get();
+            TestDescriptor threadLocalTest = CURRENT_THREAD_LOCAL_TEST.get();
             if (threadLocalTest == testToComplete) {
-                THREAD_LOCAL_TEST.remove();
+                CURRENT_THREAD_LOCAL_TEST.remove();
+                PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.set(testToComplete);
             }
+        }
+    }
+
+    static void restorePreviousCompletedTest() {
+        TestDescriptor previousTest = PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.get();
+        if (previousTest != null) {
+            PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.remove();
+            CURRENT_THREAD_LOCAL_TEST.set(previousTest);
+        }
+    }
+
+    static void completeCurrentTest() {
+        TestDescriptor testToComplete = CURRENT_THREAD_LOCAL_TEST.get();
+
+        if (testToComplete != null) {
+            PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.set(testToComplete);
+            CURRENT_THREAD_LOCAL_TEST.remove();
         }
     }
 

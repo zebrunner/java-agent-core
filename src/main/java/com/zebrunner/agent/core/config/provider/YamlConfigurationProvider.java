@@ -22,8 +22,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_DISPLAY_NAME_PROPERTY = "reporting.run.display-name";
     private final static String RUN_BUILD_PROPERTY = "reporting.run.build";
     private final static String RUN_ENVIRONMENT_PROPERTY = "reporting.run.environment";
-
-    private final static String RERUN_CONDITION_PROPERTY = "reporting.rerun-condition";
+    private final static String RUN_CONTEXT_PROPERTY = "reporting.run.context";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
@@ -43,7 +42,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String displayName = getProperty(yamlProperties, RUN_DISPLAY_NAME_PROPERTY);
         String build = getProperty(yamlProperties, RUN_BUILD_PROPERTY);
         String environment = getProperty(yamlProperties, RUN_ENVIRONMENT_PROPERTY);
-        String rerunCondition = getProperty(yamlProperties, RERUN_CONDITION_PROPERTY);
+        String runContext = getProperty(yamlProperties, RUN_CONTEXT_PROPERTY);
         String slackChannels = getProperty(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = getProperty(yamlProperties, NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY);
         String emails = getProperty(yamlProperties, NOTIFICATION_EMAILS_PROPERTY);
@@ -56,9 +55,8 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         return ReportingConfiguration.builder()
                                      .reportingEnabled(reportingEnabled)
                                      .projectKey(projectKey)
-                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment))
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
-                                     .rerunCondition(rerunCondition)
+                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }

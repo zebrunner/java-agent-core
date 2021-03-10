@@ -79,4 +79,8 @@ public interface TestRunRegistrar {
      */
     void registerTestFinish(String id, TestFinishDescriptor testFinishDescriptor);
 
+    void registerAfterTestStart();
+
+    void registerAfterTestFinish();
+
 }

@@ -16,7 +16,7 @@ public class ConfigurationHolder {
     private static final String RUN_DISPLAY_NAME;
     private static final String RUN_BUILD;
     private static final String RUN_ENVIRONMENT;
-    private static final String RERUN_CONDITION;
+    private static final String RUN_CONTEXT;
     private static final String SLACK_CHANNELS;
     private static final String MS_TEAMS_CHANNELS;
     private static final String EMAILS;
@@ -35,24 +35,23 @@ public class ConfigurationHolder {
         RUN_BUILD = configuration.getRun().getBuild();
         RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
 
-        RERUN_CONDITION = Optional.ofNullable(System.getProperty("ci_run_id"))
-                                  .map(ConfigurationHolder::toSerializedRerunCondition)
-                                  .orElseGet(configuration::getRerunCondition);
+        RUN_CONTEXT = Optional.ofNullable(System.getProperty("ci_run_id"))
+                              .map(ConfigurationHolder::toSerializedRunContext)
+                              .orElseGet(() -> configuration.getRun().getContext());
 
         SLACK_CHANNELS = configuration.getNotification().getSlackChannels();
         MS_TEAMS_CHANNELS = configuration.getNotification().getMsTeamsChannels();
         EMAILS = configuration.getNotification().getEmails();
     }
 
-    private static String toSerializedRerunCondition(String ciRunId) {
-        Map<String, Object> rerunCondition = new HashMap<>();
-        rerunCondition.put("ciRunId", ciRunId);
+    private static String toSerializedRunContext(String ciRunId) {
+        Map<String, Object> runContext = new HashMap<>();
+        runContext.put("id", ciRunId);
         if ("true".equalsIgnoreCase(System.getProperty("rerun_failures"))) {
-            rerunCondition.put("onlyFailures", true);
-            rerunCondition.put("excludeKnownIssues", true);
-            rerunCondition.put("statuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED", "IN_PROGRESS"));
+            runContext.put("rerunOnlyFailures", true);
+            runContext.put("statuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED", "IN_PROGRESS"));
         }
-        return new Gson().toJson(rerunCondition);
+        return new Gson().toJson(runContext);
     }
 
     public static boolean isReportingEnabled() {
@@ -83,8 +82,8 @@ public class ConfigurationHolder {
         return RUN_ENVIRONMENT;
     }
 
-    public static String getRerunCondition() {
-        return RERUN_CONDITION;
+    public static String getRunContext() {
+        return RUN_CONTEXT;
     }
 
     public static String getSlackChannels() {

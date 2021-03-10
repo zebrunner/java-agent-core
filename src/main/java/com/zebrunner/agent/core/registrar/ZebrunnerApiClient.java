@@ -5,7 +5,7 @@ import com.zebrunner.agent.core.exception.ServerException;
 import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.domain.ArtifactReferenceDTO;
 import com.zebrunner.agent.core.registrar.domain.AuthDataDTO;
-import com.zebrunner.agent.core.registrar.domain.ExchangeRerunConditionResponse;
+import com.zebrunner.agent.core.registrar.domain.ExchangeRunContextResponse;
 import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
@@ -344,9 +344,9 @@ class ZebrunnerApiClient {
         }
     }
 
-    ExchangeRerunConditionResponse exchangeRerunCondition(String rerunCondition) {
+    ExchangeRunContextResponse exchangeRerunCondition(String rerunCondition) {
         if (client != null) {
-            HttpResponse<String> response = client.post(reporting("rerun-condition-exchanges"))
+            HttpResponse<String> response = client.post(reporting("run-context-exchanges"))
                                                   .body(rerunCondition)
                                                   .asString();
 
@@ -354,7 +354,7 @@ class ZebrunnerApiClient {
                 throw new ServerException(formatErrorMessage("Could not get tests by ci run id.", response));
             }
 
-            return objectMapper.readValue(response.getBody(), ExchangeRerunConditionResponse.class);
+            return objectMapper.readValue(response.getBody(), ExchangeRunContextResponse.class);
         } else {
             return null;
         }
