@@ -20,6 +20,7 @@ public class TestRunDTO {
     private Long id;
     private String uuid;
     private String name;
+    private String milestoneIdOrName;
     private OffsetDateTime startedAt;
     private OffsetDateTime endedAt;
     private String framework;

@@ -20,6 +20,7 @@ public class ConfigurationHolder {
     private static final String SLACK_CHANNELS;
     private static final String MS_TEAMS_CHANNELS;
     private static final String EMAILS;
+    private static final String MILESTONE_ID_OR_NAME;
 
     static {
         ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
@@ -42,6 +43,8 @@ public class ConfigurationHolder {
         SLACK_CHANNELS = configuration.getNotification().getSlackChannels();
         MS_TEAMS_CHANNELS = configuration.getNotification().getMsTeamsChannels();
         EMAILS = configuration.getNotification().getEmails();
+
+        MILESTONE_ID_OR_NAME = configuration.getMilestoneIdOrName();
     }
 
     private static String toSerializedRunContext(String ciRunId) {
@@ -97,4 +100,9 @@ public class ConfigurationHolder {
     public static String getEmails() {
         return EMAILS;
     }
+
+    public static String getMilestoneIdOrName() {
+        return MILESTONE_ID_OR_NAME;
+    }
+
 }

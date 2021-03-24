@@ -14,6 +14,7 @@ public class ReportingConfiguration {
 
     private Boolean reportingEnabled;
     private String projectKey;
+    private String milestoneIdOrName;
     private ServerConfiguration server;
     private RunConfiguration run;
     private NotificationConfiguration notification;

@@ -148,6 +148,10 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             config.setProjectKey(providedConfig.getProjectKey());
         }
 
+        if (config.getMilestoneIdOrName() == null) {
+            config.setMilestoneIdOrName(providedConfig.getMilestoneIdOrName());
+        }
+
         ReportingConfiguration.ServerConfiguration server = config.getServer();
         if (server.getHostname() == null) {
             server.setHostname(providedConfig.getServer().getHostname());

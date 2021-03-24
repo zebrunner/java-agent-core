@@ -28,6 +28,8 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
 
+    private final static String MILESTONE_ID_OR_NAME = "reporting.milestone.idOrName";
+
     private static final String[] DEFAULT_FILE_NAMES = {"agent.yaml", "agent.yml"};
     private static final Yaml YAML_MAPPER = new Yaml();
 
@@ -46,6 +48,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String slackChannels = getProperty(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = getProperty(yamlProperties, NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY);
         String emails = getProperty(yamlProperties, NOTIFICATION_EMAILS_PROPERTY);
+        String milestoneIdOrName = getProperty(yamlProperties, MILESTONE_ID_OR_NAME);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("YAML configuration is malformed, skipping");
@@ -55,6 +58,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         return ReportingConfiguration.builder()
                                      .reportingEnabled(reportingEnabled)
                                      .projectKey(projectKey)
+                                     .milestoneIdOrName(milestoneIdOrName)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))

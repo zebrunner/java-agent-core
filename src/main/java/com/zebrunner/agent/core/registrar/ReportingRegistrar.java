@@ -44,6 +44,7 @@ class ReportingRegistrar implements TestRunRegistrar {
         TestRunDTO testRun = TestRunDTO.builder()
                                        .uuid(RerunResolver.getCiRunId())
                                        .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
+                                       .milestoneIdOrName(ConfigurationHolder.getMilestoneIdOrName())
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
                                        .config(new TestRunDTO.Config(

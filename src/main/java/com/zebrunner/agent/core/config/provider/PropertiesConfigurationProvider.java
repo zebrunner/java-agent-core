@@ -25,6 +25,8 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
     private final static String NOTIFICATION_MS_TEAMS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
 
+    private final static String MILESTONE_ID_OR_NAME = "reporting.milestone.idOrName";
+
     private static final String DEFAULT_FILE_NAME = "agent.properties";
 
     @Override
@@ -42,6 +44,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         String slackChannels = agentProperties.getProperty(NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = agentProperties.getProperty(NOTIFICATION_MS_TEAMS_PROPERTY);
         String emails = agentProperties.getProperty(NOTIFICATION_EMAILS_PROPERTY);
+        String milestoneIdOrName = agentProperties.getProperty(MILESTONE_ID_OR_NAME);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Properties configuration is malformed, skipping");
@@ -51,6 +54,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         return ReportingConfiguration.builder()
                                      .reportingEnabled(reportingEnabled)
                                      .projectKey(projectKey)
+                                     .milestoneIdOrName(milestoneIdOrName)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
