@@ -14,13 +14,23 @@ public class ReportingConfiguration {
 
     private Boolean reportingEnabled;
     private String projectKey;
-    private String milestoneIdOrName;
     private ServerConfiguration server;
     private RunConfiguration run;
+    private MilestoneConfiguration milestone;
     private NotificationConfiguration notification;
 
     public boolean isReportingEnabled() {
         return reportingEnabled != null && reportingEnabled;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MilestoneConfiguration {
+
+        private Long id;
+        private String name;
+
     }
 
     @Getter

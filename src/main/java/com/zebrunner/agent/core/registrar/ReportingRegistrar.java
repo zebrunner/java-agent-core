@@ -46,7 +46,6 @@ class ReportingRegistrar implements TestRunRegistrar {
         TestRunDTO testRun = TestRunDTO.builder()
                                        .uuid(RerunResolver.getCiRunId())
                                        .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
-                                       .milestoneIdOrName(ConfigurationHolder.getMilestoneIdOrName())
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
                                        .config(new TestRunDTO.Config(
@@ -60,6 +59,10 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                getIntegerSystemProperty("ci_parent_build")
                                        ))
                                        .ciContext(ciContextResolver.resolve())
+                                       .milestone(new TestRunDTO.Milestone(
+                                               ConfigurationHolder.getMilestoneId(),
+                                               ConfigurationHolder.getMilestoneName()
+                                       ))
                                        .notificationTargets(collectNotificationTargets())
                                        .build();
         testRun = apiClient.registerTestRunStart(testRun);
@@ -68,15 +71,17 @@ class ReportingRegistrar implements TestRunRegistrar {
         if (testRun != null) {
             TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(testRun.getId(), tr);
             RunContext.setRun(testRunDescriptor);
-
-            TestRunDTO.MetaData metaData = testRun.get_metaData();
-            if (metaData != null) {
-                String testRunName = testRun.getName();
-                metaData.getWarningMessages()
-                        .forEach(warning -> log.warn(TEST_RUN_WARNING_MSG_FORMAT, testRunName, warning));
-            }
-
+            logTestRunWarnings(testRun);
             saveRunLocaleFromProgramArguments();
+        }
+    }
+
+    private void logTestRunWarnings(TestRunDTO testRun) {
+        TestRunDTO.Metadata metadata = testRun.getMetadata();
+        if (metadata != null) {
+            String testRunName = testRun.getName();
+            metadata.getWarningMessages()
+                    .forEach(warning -> log.warn(TEST_RUN_WARNING_MSG_FORMAT, testRunName, warning));
         }
     }
 

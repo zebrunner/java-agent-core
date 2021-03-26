@@ -21,18 +21,26 @@ public class TestRunDTO {
     private Long id;
     private String uuid;
     private String name;
-    private String milestoneIdOrName;
     private OffsetDateTime startedAt;
     private OffsetDateTime endedAt;
     private String framework;
     private Config config;
+    private Milestone milestone;
     private JenkinsContext jenkinsContext;
     private CiContextDTO ciContext;
     private Set<NotificationTargetDTO> notificationTargets;
-    private MetaData _metaData;
+    private Metadata metadata;
 
     @Value
-    public static class MetaData {
+    public static class Milestone {
+
+        Long id;
+        String name;
+
+    }
+
+    @Value
+    public static class Metadata {
 
         List<String> warningMessages;
 

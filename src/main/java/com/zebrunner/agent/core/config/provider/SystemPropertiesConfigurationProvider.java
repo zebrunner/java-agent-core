@@ -21,7 +21,8 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
     private final static String MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String EMAILS_PROPERTY = "reporting.notification.emails";
 
-    private final static String MILESTONE_ID_OR_NAME = "reporting.milestone.idOrName";
+    private final static String MILESTONE_ID = "reporting.milestone.id";
+    private final static String MILESTONE_NAME = "reporting.milestone.name";
 
     @Override
     public ReportingConfiguration getConfiguration() {
@@ -36,7 +37,8 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         String slackChannels = System.getProperty(SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = System.getProperty(MS_TEAMS_CHANNELS_PROPERTY);
         String emails = System.getProperty(EMAILS_PROPERTY);
-        String milestoneIdOrName = System.getProperty(MILESTONE_ID_OR_NAME);
+        String milestoneId = System.getProperty(MILESTONE_ID);
+        String milestoneName = System.getProperty(MILESTONE_NAME);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("System properties configuration is malformed, skipping");
@@ -46,11 +48,19 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         return ReportingConfiguration.builder()
                                      .reportingEnabled(reportingEnabled)
                                      .projectKey(projectKey)
-                                     .milestoneIdOrName(milestoneIdOrName)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext))
+                                     .milestone(new ReportingConfiguration.MilestoneConfiguration(parseLong(milestoneId), milestoneName))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
+    }
+
+    private Long parseLong(String property) {
+        try {
+            return Long.valueOf(property);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
 }
