@@ -25,6 +25,9 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
     private final static String NOTIFICATION_MS_TEAMS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
 
+    private final static String MILESTONE_ID = "reporting.milestone.id";
+    private final static String MILESTONE_NAME = "reporting.milestone.name";
+
     private static final String DEFAULT_FILE_NAME = "agent.properties";
 
     @Override
@@ -42,6 +45,8 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         String slackChannels = agentProperties.getProperty(NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = agentProperties.getProperty(NOTIFICATION_MS_TEAMS_PROPERTY);
         String emails = agentProperties.getProperty(NOTIFICATION_EMAILS_PROPERTY);
+        String milestoneId = agentProperties.getProperty(MILESTONE_ID);
+        String milestoneName = agentProperties.getProperty(MILESTONE_NAME);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Properties configuration is malformed, skipping");
@@ -53,6 +58,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
                                      .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
                                      .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext))
+                                     .milestone(new ReportingConfiguration.MilestoneConfiguration(parseLong(milestoneId), milestoneName))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }
@@ -67,6 +73,14 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
             throw new TestAgentException("Unable to load agent configuration from properties file");
         }
         return properties;
+    }
+
+    private Long parseLong(String property) {
+        try {
+            return Long.valueOf(property);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
 }

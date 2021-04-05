@@ -25,6 +25,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         ReportingConfiguration config = ReportingConfiguration.builder()
                                                               .run(new ReportingConfiguration.RunConfiguration())
                                                               .server(new ReportingConfiguration.ServerConfiguration())
+                                                              .milestone(new ReportingConfiguration.MilestoneConfiguration())
                                                               .notification(new ReportingConfiguration.NotificationConfiguration())
                                                               .build();
         assembleConfiguration(config);
@@ -63,6 +64,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
     private static void normalize(ReportingConfiguration config) {
         normalizeServerConfiguration(config);
         normalizeRunConfiguration(config);
+        normalizeMilestoneConfiguration(config);
         normalizeNotificationConfiguration(config);
     }
 
@@ -110,6 +112,19 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         }
     }
 
+    private static void normalizeMilestoneConfiguration(ReportingConfiguration config) {
+        if (config.getMilestone() == null) {
+            config.setMilestone(new ReportingConfiguration.MilestoneConfiguration(null, null));
+        } else {
+            ReportingConfiguration.MilestoneConfiguration milestoneConfig = config.getMilestone();
+
+            String name = milestoneConfig.getName();
+            if (name != null && name.trim().isEmpty()) {
+                milestoneConfig.setName(null);
+            }
+        }
+    }
+
     private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
         if (config.getNotification() == null) {
             config.setNotification(new ReportingConfiguration.NotificationConfiguration(null, null, null));
@@ -146,6 +161,14 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
 
         if (config.getProjectKey() == null) {
             config.setProjectKey(providedConfig.getProjectKey());
+        }
+
+        ReportingConfiguration.MilestoneConfiguration milestone = config.getMilestone();
+        if (milestone.getId() == null) {
+            milestone.setId(providedConfig.getMilestone().getId());
+        }
+        if (milestone.getName() == null) {
+            milestone.setName(providedConfig.getMilestone().getName());
         }
 
         ReportingConfiguration.ServerConfiguration server = config.getServer();
