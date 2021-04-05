@@ -21,8 +21,8 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS";
     private final static String NOTIFICATION_EMAILS = "REPORTING_NOTIFICATION_EMAILS";
 
-    private final static String MILESTONE_ID = "REPORTING_MILESTONE_ID";
-    private final static String MILESTONE_NAME = "REPORTING_MILESTONE_NAME";
+    private final static String MILESTONE_ID_VARIABLE = "REPORTING_MILESTONE_ID";
+    private final static String MILESTONE_NAME_VARIABLE = "REPORTING_MILESTONE_NAME";
 
     @Override
     public ReportingConfiguration getConfiguration() {
@@ -37,8 +37,8 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
         String slackChannels = System.getenv(NOTIFICATION_SLACK_CHANNELS_VARIABLE);
         String msTeamsChannels = System.getenv(NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE);
         String emails = System.getenv(NOTIFICATION_EMAILS);
-        String milestoneId = System.getenv(MILESTONE_ID);
-        String milestoneName = System.getenv(MILESTONE_NAME);
+        String milestoneId = System.getenv(MILESTONE_ID_VARIABLE);
+        String milestoneName = System.getenv(MILESTONE_NAME_VARIABLE);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Environment configuration is malformed, skipping");

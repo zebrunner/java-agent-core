@@ -1,26 +1,39 @@
 package com.zebrunner.agent.core.config;
 
+import com.zebrunner.agent.core.config.provider.EnvironmentConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.PropertiesConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.SystemPropertiesConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.YamlConfigurationProvider;
 import com.zebrunner.agent.core.exception.TestAgentException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-public class ConfigurationProviderChain implements ConfigurationProvider {
+class ConfigurationProvidersChain {
 
+    private static final ConfigurationProvidersChain INSTANCE = new ConfigurationProvidersChain();
     private static final String DEFAULT_PROJECT = "UNKNOWN";
 
-    private final List<ConfigurationProvider> providers = new LinkedList<>();
-
-    public ConfigurationProviderChain(List<? extends ConfigurationProvider> configurationProviders) {
-        if (configurationProviders == null || configurationProviders.size() == 0) {
-            throw new IllegalArgumentException("No configuration providers specified");
-        }
-        this.providers.addAll(configurationProviders);
+    public static ConfigurationProvidersChain getInstance() {
+        return INSTANCE;
     }
 
-    @Override
+    @Getter
+    private final List<ConfigurationProvider> configurationProviders;
+
+    private ConfigurationProvidersChain() {
+        configurationProviders = new ArrayList<>(Arrays.asList(
+                new EnvironmentConfigurationProvider(),
+                new SystemPropertiesConfigurationProvider(),
+                new YamlConfigurationProvider(),
+                new PropertiesConfigurationProvider()
+        ));
+    }
+
     public ReportingConfiguration getConfiguration() {
         ReportingConfiguration config = ReportingConfiguration.builder()
                                                               .run(new ReportingConfiguration.RunConfiguration())
@@ -43,7 +56,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
      * @param config configuration to be assembled
      */
     private void assembleConfiguration(ReportingConfiguration config) {
-        for (ConfigurationProvider provider : providers) {
+        for (ConfigurationProvider provider : configurationProviders) {
             try {
                 ReportingConfiguration providedConfig = provider.getConfiguration();
                 normalize(providedConfig);

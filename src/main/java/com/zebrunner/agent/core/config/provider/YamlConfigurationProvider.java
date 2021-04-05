@@ -28,8 +28,8 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
 
-    private final static String MILESTONE_ID = "reporting.milestone.id";
-    private final static String MILESTONE_NAME = "reporting.milestone.name";
+    private final static String MILESTONE_ID_PROPERTY = "reporting.milestone.id";
+    private final static String MILESTONE_NAME_PROPERTY = "reporting.milestone.name";
 
     private static final String[] DEFAULT_FILE_NAMES = {"agent.yaml", "agent.yml"};
     private static final Yaml YAML_MAPPER = new Yaml();
@@ -49,8 +49,8 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String slackChannels = getProperty(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = getProperty(yamlProperties, NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY);
         String emails = getProperty(yamlProperties, NOTIFICATION_EMAILS_PROPERTY);
-        String milestoneId = getProperty(yamlProperties, MILESTONE_ID);
-        String milestoneName = getProperty(yamlProperties, MILESTONE_NAME);
+        String milestoneId = getProperty(yamlProperties, MILESTONE_ID_PROPERTY);
+        String milestoneName = getProperty(yamlProperties, MILESTONE_NAME_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("YAML configuration is malformed, skipping");

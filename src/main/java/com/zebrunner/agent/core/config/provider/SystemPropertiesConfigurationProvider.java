@@ -21,8 +21,8 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
     private final static String MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String EMAILS_PROPERTY = "reporting.notification.emails";
 
-    private final static String MILESTONE_ID = "reporting.milestone.id";
-    private final static String MILESTONE_NAME = "reporting.milestone.name";
+    private final static String MILESTONE_ID_PROPERTY = "reporting.milestone.id";
+    private final static String MILESTONE_NAME_PROPERTY = "reporting.milestone.name";
 
     @Override
     public ReportingConfiguration getConfiguration() {
@@ -37,8 +37,8 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         String slackChannels = System.getProperty(SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = System.getProperty(MS_TEAMS_CHANNELS_PROPERTY);
         String emails = System.getProperty(EMAILS_PROPERTY);
-        String milestoneId = System.getProperty(MILESTONE_ID);
-        String milestoneName = System.getProperty(MILESTONE_NAME);
+        String milestoneId = System.getProperty(MILESTONE_ID_PROPERTY);
+        String milestoneName = System.getProperty(MILESTONE_NAME_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("System properties configuration is malformed, skipping");
