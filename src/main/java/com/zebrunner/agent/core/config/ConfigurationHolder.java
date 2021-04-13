@@ -70,6 +70,10 @@ public class ConfigurationHolder {
                        .orElseGet(() -> configuration.getRun().getContext());
     }
 
+    public static Boolean getRunRetryKnownIssues() {
+        return configuration.getRun().getRetryKnownIssues();
+    }
+
     private static String toSerializedRunContext(String ciRunId) {
         Map<String, Object> runContext = new HashMap<>();
         runContext.put("id", ciRunId);
