@@ -19,4 +19,12 @@ public class CurrentTestRun {
         }
     }
 
+    public static void setLocale(String locale) {
+        if (locale == null || locale.trim().isEmpty()) {
+            throw new TestAgentException("Test Run locale must not be empty.");
+        }
+
+        Label.attachToTestRun(Label.LOCALE, locale);
+    }
+
 }
