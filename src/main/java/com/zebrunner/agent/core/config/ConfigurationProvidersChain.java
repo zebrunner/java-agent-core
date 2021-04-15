@@ -205,6 +205,9 @@ class ConfigurationProvidersChain {
         if (run.getContext() == null) {
             run.setContext(providedConfig.getRun().getContext());
         }
+        if (run.getRetryKnownIssues() == null) {
+            run.setRetryKnownIssues(providedConfig.getRun().getRetryKnownIssues());
+        }
 
         String slackChannels = providedConfig.getNotification().getSlackChannels();
         if (slackChannels != null && !slackChannels.isEmpty()) {
@@ -240,6 +243,7 @@ class ConfigurationProvidersChain {
         String build = config.getRun().getBuild();
         String environment = config.getRun().getEnvironment();
         String context = config.getRun().getContext();
+        Boolean retryKnownIssues = config.getRun().getRetryKnownIssues();
         String slackChannels = config.getNotification().getSlackChannels();
         String msTeamsChannels = config.getNotification().getMsTeamsChannels();
         String emails = config.getNotification().getEmails();
@@ -247,7 +251,7 @@ class ConfigurationProvidersChain {
         return enabled != null
                 && projectKey != null
                 && hostname != null && accessToken != null
-                && displayName != null && build != null && environment != null && context != null
+                && displayName != null && build != null && environment != null && context != null && retryKnownIssues != null
                 && slackChannels != null && msTeamsChannels != null && emails != null;
     }
 

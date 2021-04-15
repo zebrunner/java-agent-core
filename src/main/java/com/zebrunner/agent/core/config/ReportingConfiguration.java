@@ -54,6 +54,7 @@ public class ReportingConfiguration {
         private String build;
         private String environment;
         private String context;
+        private Boolean retryKnownIssues;
 
     }
 

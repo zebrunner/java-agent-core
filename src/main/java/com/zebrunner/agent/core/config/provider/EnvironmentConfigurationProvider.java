@@ -16,6 +16,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_BUILD_VARIABLE = "REPORTING_RUN_BUILD";
     private final static String RUN_ENVIRONMENT_VARIABLE = "REPORTING_RUN_ENVIRONMENT";
     private final static String RUN_CONTEXT_VARIABLE = "REPORTING_RUN_CONTEXT";
+    private final static String RUN_RETRY_KNOWN_ISSUES_VARIABLE = "REPORTING_RUN_RETRY_KNOWN_ISSUES";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_SLACK_CHANNELS";
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS";
@@ -34,6 +35,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
         String build = System.getenv(RUN_BUILD_VARIABLE);
         String environment = System.getenv(RUN_ENVIRONMENT_VARIABLE);
         String runContext = System.getenv(RUN_CONTEXT_VARIABLE);
+        String runRetryKnownIssues = System.getenv(RUN_RETRY_KNOWN_ISSUES_VARIABLE);
         String slackChannels = System.getenv(NOTIFICATION_SLACK_CHANNELS_VARIABLE);
         String msTeamsChannels = System.getenv(NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE);
         String emails = System.getenv(NOTIFICATION_EMAILS);
@@ -49,18 +51,10 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
                                      .reportingEnabled(reportingEnabled)
                                      .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
-                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext))
-                                     .milestone(new ReportingConfiguration.MilestoneConfiguration(parseLong(milestoneId), milestoneName))
+                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext, ConfigurationProvider.parseBoolean(runRetryKnownIssues)))
+                                     .milestone(new ReportingConfiguration.MilestoneConfiguration(ConfigurationProvider.parseLong(milestoneId), milestoneName))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
-    }
-
-    private Long parseLong(String property) {
-        try {
-            return Long.valueOf(property);
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 
 }

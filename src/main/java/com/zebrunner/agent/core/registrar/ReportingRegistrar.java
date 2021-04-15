@@ -230,4 +230,18 @@ class ReportingRegistrar implements TestRunRegistrar {
         RunContext.completeCurrentTest();
     }
 
+    @Override
+    public Boolean isKnownIssueAttachedToTest(String failureStacktrace) {
+        Long runId = RunContext.getZebrunnerRunId();
+
+        Optional<Long> maybeTestId = RunContext.getCurrentTest().map(TestDescriptor::getZebrunnerId);
+        if (maybeTestId.isPresent()) {
+            Long testId = maybeTestId.get();
+            return apiClient.isKnownIssueAttachedToTest(runId, testId, failureStacktrace);
+        } else {
+            log.error("Failed to retrieve assigned known issues for stacktrace '{}' because test has not been started yet.", failureStacktrace);
+            return null;
+        }
+    }
+
 }
