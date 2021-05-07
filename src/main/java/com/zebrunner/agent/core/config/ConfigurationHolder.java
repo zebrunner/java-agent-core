@@ -4,44 +4,74 @@ import com.google.gson.Gson;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public class ConfigurationHolder {
 
-    private static final boolean REPORTING_ENABLED;
-    private static final String PROJECT_KEY;
-    private static final String HOST;
-    private static final String TOKEN;
-    private static final String RUN_DISPLAY_NAME;
-    private static final String RUN_BUILD;
-    private static final String RUN_ENVIRONMENT;
-    private static final String RUN_CONTEXT;
-    private static final String SLACK_CHANNELS;
-    private static final String MS_TEAMS_CHANNELS;
-    private static final String EMAILS;
+    private static final ConfigurationProvidersChain CONFIGURATION_PROVIDERS_CHAIN
+            = ConfigurationProvidersChain.getInstance();
+    private static ReportingConfiguration configuration = CONFIGURATION_PROVIDERS_CHAIN.getConfiguration();
 
-    static {
-        ConfigurationProvider configurationProvider = DefaultConfigurationProviderChain.getInstance();
-        ReportingConfiguration configuration = configurationProvider.getConfiguration();
+    public static void addConfigurationProviderAfter(ConfigurationProvider configurationProvider,
+                                                     Class<? extends ConfigurationProvider> afterProviderWithClass) {
+        List<ConfigurationProvider> configurationProviders = CONFIGURATION_PROVIDERS_CHAIN.getConfigurationProviders();
 
-        REPORTING_ENABLED = configuration.isReportingEnabled();
-        PROJECT_KEY = configuration.getProjectKey();
+        boolean added = false;
+        // no reason to check the latest provider because anyway we will add after it
+        for (int i = 0; i < configurationProviders.size() - 1; i++) {
+            ConfigurationProvider existingConfigurationProvider = configurationProviders.get(i);
+            if (afterProviderWithClass.isInstance(existingConfigurationProvider)) {
+                configurationProviders.add(i + 1, configurationProvider);
+                added = true;
+            }
+        }
 
-        HOST = configuration.getServer().getHostname();
-        TOKEN = configuration.getServer().getAccessToken();
+        if (!added) {
+            configurationProviders.add(configurationProvider);
+        }
 
-        RUN_DISPLAY_NAME = configuration.getRun().getDisplayName();
-        RUN_BUILD = configuration.getRun().getBuild();
-        RUN_ENVIRONMENT = configuration.getRun().getEnvironment();
+        configuration = CONFIGURATION_PROVIDERS_CHAIN.getConfiguration();
+    }
 
-        RUN_CONTEXT = Optional.ofNullable(System.getProperty("ci_run_id"))
-                              .map(ConfigurationHolder::toSerializedRunContext)
-                              .orElseGet(() -> configuration.getRun().getContext());
+    public static boolean isReportingEnabled() {
+        return configuration.isReportingEnabled();
+    }
 
-        SLACK_CHANNELS = configuration.getNotification().getSlackChannels();
-        MS_TEAMS_CHANNELS = configuration.getNotification().getMsTeamsChannels();
-        EMAILS = configuration.getNotification().getEmails();
+    public static String getProjectKey() {
+        return configuration.getProjectKey();
+    }
+
+    public static String getHost() {
+        return configuration.getServer().getHostname();
+    }
+
+    public static String getToken() {
+        return configuration.getServer().getAccessToken();
+    }
+
+    public static String getRunDisplayNameOr(String displayName) {
+        String RUN_DISPLAY_NAME = configuration.getRun().getDisplayName();
+        return RUN_DISPLAY_NAME != null ? RUN_DISPLAY_NAME : displayName;
+    }
+
+    public static String getRunBuild() {
+        return configuration.getRun().getBuild();
+    }
+
+    public static String getRunEnvironment() {
+        return configuration.getRun().getEnvironment();
+    }
+
+    public static String getRunContext() {
+        return Optional.ofNullable(System.getProperty("ci_run_id"))
+                       .map(ConfigurationHolder::toSerializedRunContext)
+                       .orElseGet(() -> configuration.getRun().getContext());
+    }
+
+    public static Boolean getRunRetryKnownIssues() {
+        return configuration.getRun().getRetryKnownIssues();
     }
 
     private static String toSerializedRunContext(String ciRunId) {
@@ -54,47 +84,24 @@ public class ConfigurationHolder {
         return new Gson().toJson(runContext);
     }
 
-    public static boolean isReportingEnabled() {
-        return REPORTING_ENABLED;
-    }
-
-    public static String getProjectKey() {
-        return PROJECT_KEY;
-    }
-
-    public static String getHost() {
-        return HOST;
-    }
-
-    public static String getToken() {
-        return TOKEN;
-    }
-
-    public static String getRunDisplayNameOr(String displayName) {
-        return RUN_DISPLAY_NAME != null ? RUN_DISPLAY_NAME : displayName;
-    }
-
-    public static String getRunBuild() {
-        return RUN_BUILD;
-    }
-
-    public static String getRunEnvironment() {
-        return RUN_ENVIRONMENT;
-    }
-
-    public static String getRunContext() {
-        return RUN_CONTEXT;
-    }
-
     public static String getSlackChannels() {
-        return SLACK_CHANNELS;
+        return configuration.getNotification().getSlackChannels();
     }
 
     public static String getMsTeamsChannels() {
-        return MS_TEAMS_CHANNELS;
+        return configuration.getNotification().getMsTeamsChannels();
     }
 
     public static String getEmails() {
-        return EMAILS;
+        return configuration.getNotification().getEmails();
     }
+
+    public static Long getMilestoneId() {
+        return configuration.getMilestone().getId();
+    }
+
+    public static String getMilestoneName() {
+        return configuration.getMilestone().getName();
+    }
+
 }

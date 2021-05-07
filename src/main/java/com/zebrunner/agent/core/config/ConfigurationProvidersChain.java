@@ -1,30 +1,44 @@
 package com.zebrunner.agent.core.config;
 
+import com.zebrunner.agent.core.config.provider.EnvironmentConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.PropertiesConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.SystemPropertiesConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.YamlConfigurationProvider;
 import com.zebrunner.agent.core.exception.TestAgentException;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-public class ConfigurationProviderChain implements ConfigurationProvider {
+class ConfigurationProvidersChain {
 
+    private static final ConfigurationProvidersChain INSTANCE = new ConfigurationProvidersChain();
     private static final String DEFAULT_PROJECT = "UNKNOWN";
 
-    private final List<ConfigurationProvider> providers = new LinkedList<>();
-
-    public ConfigurationProviderChain(List<? extends ConfigurationProvider> configurationProviders) {
-        if (configurationProviders == null || configurationProviders.size() == 0) {
-            throw new IllegalArgumentException("No configuration providers specified");
-        }
-        this.providers.addAll(configurationProviders);
+    public static ConfigurationProvidersChain getInstance() {
+        return INSTANCE;
     }
 
-    @Override
+    @Getter
+    private final List<ConfigurationProvider> configurationProviders;
+
+    private ConfigurationProvidersChain() {
+        configurationProviders = new ArrayList<>(Arrays.asList(
+                new EnvironmentConfigurationProvider(),
+                new SystemPropertiesConfigurationProvider(),
+                new YamlConfigurationProvider(),
+                new PropertiesConfigurationProvider()
+        ));
+    }
+
     public ReportingConfiguration getConfiguration() {
         ReportingConfiguration config = ReportingConfiguration.builder()
                                                               .run(new ReportingConfiguration.RunConfiguration())
                                                               .server(new ReportingConfiguration.ServerConfiguration())
+                                                              .milestone(new ReportingConfiguration.MilestoneConfiguration())
                                                               .notification(new ReportingConfiguration.NotificationConfiguration())
                                                               .build();
         assembleConfiguration(config);
@@ -42,7 +56,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
      * @param config configuration to be assembled
      */
     private void assembleConfiguration(ReportingConfiguration config) {
-        for (ConfigurationProvider provider : providers) {
+        for (ConfigurationProvider provider : configurationProviders) {
             try {
                 ReportingConfiguration providedConfig = provider.getConfiguration();
                 normalize(providedConfig);
@@ -63,6 +77,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
     private static void normalize(ReportingConfiguration config) {
         normalizeServerConfiguration(config);
         normalizeRunConfiguration(config);
+        normalizeMilestoneConfiguration(config);
         normalizeNotificationConfiguration(config);
     }
 
@@ -110,6 +125,19 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         }
     }
 
+    private static void normalizeMilestoneConfiguration(ReportingConfiguration config) {
+        if (config.getMilestone() == null) {
+            config.setMilestone(new ReportingConfiguration.MilestoneConfiguration(null, null));
+        } else {
+            ReportingConfiguration.MilestoneConfiguration milestoneConfig = config.getMilestone();
+
+            String name = milestoneConfig.getName();
+            if (name != null && name.trim().isEmpty()) {
+                milestoneConfig.setName(null);
+            }
+        }
+    }
+
     private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
         if (config.getNotification() == null) {
             config.setNotification(new ReportingConfiguration.NotificationConfiguration(null, null, null));
@@ -148,6 +176,14 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
             config.setProjectKey(providedConfig.getProjectKey());
         }
 
+        ReportingConfiguration.MilestoneConfiguration milestone = config.getMilestone();
+        if (milestone.getId() == null) {
+            milestone.setId(providedConfig.getMilestone().getId());
+        }
+        if (milestone.getName() == null) {
+            milestone.setName(providedConfig.getMilestone().getName());
+        }
+
         ReportingConfiguration.ServerConfiguration server = config.getServer();
         if (server.getHostname() == null) {
             server.setHostname(providedConfig.getServer().getHostname());
@@ -168,6 +204,9 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         }
         if (run.getContext() == null) {
             run.setContext(providedConfig.getRun().getContext());
+        }
+        if (run.getRetryKnownIssues() == null) {
+            run.setRetryKnownIssues(providedConfig.getRun().getRetryKnownIssues());
         }
 
         String slackChannels = providedConfig.getNotification().getSlackChannels();
@@ -204,6 +243,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         String build = config.getRun().getBuild();
         String environment = config.getRun().getEnvironment();
         String context = config.getRun().getContext();
+        Boolean retryKnownIssues = config.getRun().getRetryKnownIssues();
         String slackChannels = config.getNotification().getSlackChannels();
         String msTeamsChannels = config.getNotification().getMsTeamsChannels();
         String emails = config.getNotification().getEmails();
@@ -211,7 +251,7 @@ public class ConfigurationProviderChain implements ConfigurationProvider {
         return enabled != null
                 && projectKey != null
                 && hostname != null && accessToken != null
-                && displayName != null && build != null && environment != null && context != null
+                && displayName != null && build != null && environment != null && context != null && retryKnownIssues != null
                 && slackChannels != null && msTeamsChannels != null && emails != null;
     }
 

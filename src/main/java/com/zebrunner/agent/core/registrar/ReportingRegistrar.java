@@ -23,6 +23,8 @@ import java.util.Set;
 @Slf4j
 class ReportingRegistrar implements TestRunRegistrar {
 
+    private static final String TEST_RUN_WARNING_MSG_FORMAT = "[TEST RUN '{}' WARNING]: {}";
+
     private static volatile ReportingRegistrar instance;
 
     public static ReportingRegistrar getInstance() {
@@ -57,6 +59,10 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                getIntegerSystemProperty("ci_parent_build")
                                        ))
                                        .ciContext(ciContextResolver.resolve())
+                                       .milestone(new TestRunDTO.Milestone(
+                                               ConfigurationHolder.getMilestoneId(),
+                                               ConfigurationHolder.getMilestoneName()
+                                       ))
                                        .notificationTargets(collectNotificationTargets())
                                        .build();
         testRun = apiClient.registerTestRunStart(testRun);
@@ -65,8 +71,17 @@ class ReportingRegistrar implements TestRunRegistrar {
         if (testRun != null) {
             TestRunDescriptor testRunDescriptor = TestRunDescriptor.create(testRun.getId(), tr);
             RunContext.setRun(testRunDescriptor);
-
+            logTestRunWarnings(testRun);
             saveRunLocaleFromProgramArguments();
+        }
+    }
+
+    private void logTestRunWarnings(TestRunDTO testRun) {
+        TestRunDTO.Metadata metadata = testRun.getMetadata();
+        if (metadata != null) {
+            String testRunName = testRun.getName();
+            metadata.getWarningMessages()
+                    .forEach(warning -> log.warn(TEST_RUN_WARNING_MSG_FORMAT, testRunName, warning));
         }
     }
 
@@ -213,6 +228,20 @@ class ReportingRegistrar implements TestRunRegistrar {
     @Override
     public void registerAfterTestFinish() {
         RunContext.completeCurrentTest();
+    }
+
+    @Override
+    public Boolean isKnownIssueAttachedToTest(String failureStacktrace) {
+        Long runId = RunContext.getZebrunnerRunId();
+
+        Optional<Long> maybeTestId = RunContext.getCurrentTest().map(TestDescriptor::getZebrunnerId);
+        if (maybeTestId.isPresent()) {
+            Long testId = maybeTestId.get();
+            return apiClient.isKnownIssueAttachedToTest(runId, testId, failureStacktrace);
+        } else {
+            log.error("Failed to retrieve assigned known issues for stacktrace '{}' because test has not been started yet.", failureStacktrace);
+            return null;
+        }
     }
 
 }

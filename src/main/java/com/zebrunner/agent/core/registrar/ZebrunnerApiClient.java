@@ -18,6 +18,7 @@ import kong.unirest.HttpResponse;
 import kong.unirest.ObjectMapper;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestInstance;
+import kong.unirest.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
@@ -388,6 +389,24 @@ class ZebrunnerApiClient {
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not update test session.", response));
             }
+        }
+    }
+
+    Boolean isKnownIssueAttachedToTest(Long testRunId, Long testId, String failureStacktrace) {
+        if (client != null) {
+            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}/known-issue-confirmations"))
+                    .routeParam("testRunId", testRunId.toString())
+                    .routeParam("testId", testId.toString())
+                    .body(Collections.singletonMap("failureReason", failureStacktrace))
+                    .asString();
+
+            if (!response.isSuccess()) {
+                throw new ServerException(formatErrorMessage("Could not retrieve status of attached known issues.", response));
+            }
+
+            return new JSONObject(response.getBody()).getBoolean("knownIssue");
+        } else {
+            return null;
         }
     }
 

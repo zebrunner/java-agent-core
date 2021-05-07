@@ -23,10 +23,14 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_BUILD_PROPERTY = "reporting.run.build";
     private final static String RUN_ENVIRONMENT_PROPERTY = "reporting.run.environment";
     private final static String RUN_CONTEXT_PROPERTY = "reporting.run.context";
+    private final static String RUN_RETRY_KNOWN_ISSUES_PROPERTY = "reporting.run.retry-known-issues";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
+
+    private final static String MILESTONE_ID_PROPERTY = "reporting.milestone.id";
+    private final static String MILESTONE_NAME_PROPERTY = "reporting.milestone.name";
 
     private static final String[] DEFAULT_FILE_NAMES = {"agent.yaml", "agent.yml"};
     private static final Yaml YAML_MAPPER = new Yaml();
@@ -43,9 +47,12 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String build = getProperty(yamlProperties, RUN_BUILD_PROPERTY);
         String environment = getProperty(yamlProperties, RUN_ENVIRONMENT_PROPERTY);
         String runContext = getProperty(yamlProperties, RUN_CONTEXT_PROPERTY);
+        String runRetryKnownIssues = getProperty(yamlProperties, RUN_RETRY_KNOWN_ISSUES_PROPERTY);
         String slackChannels = getProperty(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = getProperty(yamlProperties, NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY);
         String emails = getProperty(yamlProperties, NOTIFICATION_EMAILS_PROPERTY);
+        String milestoneId = getProperty(yamlProperties, MILESTONE_ID_PROPERTY);
+        String milestoneName = getProperty(yamlProperties, MILESTONE_NAME_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("YAML configuration is malformed, skipping");
@@ -56,7 +63,8 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
                                      .reportingEnabled(reportingEnabled)
                                      .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
-                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext))
+                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext, ConfigurationProvider.parseBoolean(runRetryKnownIssues)))
+                                     .milestone(new ReportingConfiguration.MilestoneConfiguration(ConfigurationProvider.parseLong(milestoneId), milestoneName))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }

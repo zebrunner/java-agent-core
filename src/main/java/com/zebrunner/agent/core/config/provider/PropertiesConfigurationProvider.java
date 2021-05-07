@@ -3,6 +3,7 @@ package com.zebrunner.agent.core.config.provider;
 import com.zebrunner.agent.core.config.ConfigurationProvider;
 import com.zebrunner.agent.core.config.ReportingConfiguration;
 import com.zebrunner.agent.core.exception.TestAgentException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,10 +21,14 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_BUILD_PROPERTY = "reporting.run.build";
     private final static String RUN_ENVIRONMENT_PROPERTY = "reporting.run.environment";
     private final static String RUN_CONTEXT_PROPERTY = "reporting.run.context";
+    private final static String RUN_RETRY_KNOWN_ISSUES_PROPERTY = "reporting.run.retry-known-issues";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String NOTIFICATION_MS_TEAMS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
+
+    private final static String MILESTONE_ID_PROPERTY = "reporting.milestone.id";
+    private final static String MILESTONE_NAME_PROPERTY = "reporting.milestone.name";
 
     private static final String DEFAULT_FILE_NAME = "agent.properties";
 
@@ -39,9 +44,12 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         String build = agentProperties.getProperty(RUN_BUILD_PROPERTY);
         String environment = agentProperties.getProperty(RUN_ENVIRONMENT_PROPERTY);
         String runContext = agentProperties.getProperty(RUN_CONTEXT_PROPERTY);
+        String runRetryKnownIssues = agentProperties.getProperty(RUN_RETRY_KNOWN_ISSUES_PROPERTY);
         String slackChannels = agentProperties.getProperty(NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = agentProperties.getProperty(NOTIFICATION_MS_TEAMS_PROPERTY);
         String emails = agentProperties.getProperty(NOTIFICATION_EMAILS_PROPERTY);
+        String milestoneId = agentProperties.getProperty(MILESTONE_ID_PROPERTY);
+        String milestoneName = agentProperties.getProperty(MILESTONE_NAME_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
             throw new TestAgentException("Properties configuration is malformed, skipping");
@@ -52,7 +60,8 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
                                      .reportingEnabled(reportingEnabled)
                                      .projectKey(projectKey)
                                      .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
-                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext))
+                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext, ConfigurationProvider.parseBoolean(runRetryKnownIssues)))
+                                     .milestone(new ReportingConfiguration.MilestoneConfiguration(ConfigurationProvider.parseLong(milestoneId), milestoneName))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
                                      .build();
     }
