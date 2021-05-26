@@ -12,6 +12,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.net.URL;
 import java.util.Map;
+import java.util.Optional;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RemoteWebDriverFactory {
@@ -23,10 +24,12 @@ public class RemoteWebDriverFactory {
     @SneakyThrows
     public static URL getSeleniumHubUrl() {
         String hubUrl = System.getenv("ZEBRUNNER_HUB_URL");
-        if (hubUrl == null) {
-            throw new RuntimeException("You cannot");
-        }
-        return new URL(hubUrl);
+        return hubUrl != null ? new URL(hubUrl) : null;
+    }
+
+    private static URL getMandatorySeleniumHubUrl() {
+        return Optional.ofNullable(getSeleniumHubUrl())
+                       .orElseThrow(() -> new RuntimeException("Zebrunner didn't provide a selenium hub url."));
     }
 
     public static Capabilities getCapabilities() {
@@ -42,18 +45,18 @@ public class RemoteWebDriverFactory {
     }
 
     public static RemoteWebDriver getDriver() {
-        return new RemoteWebDriver(getSeleniumHubUrl(), getCapabilities());
+        return new RemoteWebDriver(getMandatorySeleniumHubUrl(), getCapabilities());
     }
 
     public static RemoteWebDriver getDriver(Capabilities capabilities) {
         capabilities = capabilities.merge(getCapabilities());
-        return new RemoteWebDriver(getSeleniumHubUrl(), capabilities);
+        return new RemoteWebDriver(getMandatorySeleniumHubUrl(), capabilities);
     }
 
     public static RemoteWebDriver getDriver(Map<String, ?> capabilitiesMap) {
         Capabilities capabilities = new DesiredCapabilities(capabilitiesMap);
         capabilities = capabilities.merge(getCapabilities());
-        return new RemoteWebDriver(getSeleniumHubUrl(), capabilities);
+        return new RemoteWebDriver(getMandatorySeleniumHubUrl(), capabilities);
     }
 
 }

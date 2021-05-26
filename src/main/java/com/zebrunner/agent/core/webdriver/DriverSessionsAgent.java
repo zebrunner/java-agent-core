@@ -30,12 +30,12 @@ public class DriverSessionsAgent {
 
     // getSessionId and getCapabilities are used by the agent interceptors
     private static final Set<String> PUBLIC_METHODS_TO_NOT_INTERCEPT = new HashSet<>(Arrays.asList(
-            START_SESSION_METHOD_MAME, QUIT_METHOD_MAME, "getSessionId", "getCapabilities",
+            START_SESSION_METHOD_MAME, QUIT_METHOD_MAME, "getSessionId", "getCapabilities", "getCommandExecutor",
             "wait", "equals", "hashCode", "getClass", "notify", "notifyAll", "toString"
     ));
     // the rest of the public methods
-    // setFileDetector, getErrorHandler, setErrorHandler, getCommandExecutor, getTitle, getCurrentUrl, getScreenshotAs,
-    // findElements, findElement, findElementById, findElementsById, findElementByLinkText, findElementsByLinkText,
+    // setFileDetector, getErrorHandler, setErrorHandler, getTitle, getCurrentUrl, getScreenshotAs, findElements,
+    // findElement, findElementById, findElementsById, findElementByLinkText, findElementsByLinkText,
     // findElementByPartialLinkText, findElementsByPartialLinkText, findElementByTagName, findElementsByTagName,
     // findElementByName, findElementsByName, findElementByClassName, findElementsByClassName, findElementByCssSelector,
     // findElementsByCssSelector, findElementByXPath, findElementsByXPath, getPageSource, getWindowHandles,
@@ -44,7 +44,7 @@ public class DriverSessionsAgent {
 
     public static void premain(String args, Instrumentation instrumentation) {
         try {
-            log.info("Zebrunner driver sessions agent is enabled.");
+            log.info("Zebrunner RemoteDriverSession agent is enabled.");
             new AgentBuilder.Default()
                     .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
                     .type(named(REMOTE_WEB_DRIVER_CLASS_MAME))

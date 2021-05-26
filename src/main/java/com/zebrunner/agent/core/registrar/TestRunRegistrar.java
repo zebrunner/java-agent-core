@@ -83,6 +83,6 @@ public interface TestRunRegistrar {
 
     void registerAfterTestFinish();
 
-    Boolean isKnownIssueAttachedToTest(String failureStacktrace);
+    boolean isKnownIssueAttachedToTest(String failureStacktrace);
 
 }

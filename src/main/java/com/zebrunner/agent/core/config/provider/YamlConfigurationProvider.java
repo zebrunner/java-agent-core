@@ -1,6 +1,7 @@
 package com.zebrunner.agent.core.config.provider;
 
 import com.zebrunner.agent.core.config.ConfigurationProvider;
+import com.zebrunner.agent.core.config.ConfigurationUtils;
 import com.zebrunner.agent.core.config.ReportingConfiguration;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import org.yaml.snakeyaml.Yaml;
@@ -10,6 +11,9 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.zebrunner.agent.core.config.ConfigurationUtils.parseBoolean;
+import static com.zebrunner.agent.core.config.ConfigurationUtils.parseLong;
 
 public class YamlConfigurationProvider implements ConfigurationProvider {
 
@@ -24,6 +28,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_ENVIRONMENT_PROPERTY = "reporting.run.environment";
     private final static String RUN_CONTEXT_PROPERTY = "reporting.run.context";
     private final static String RUN_RETRY_KNOWN_ISSUES_PROPERTY = "reporting.run.retry-known-issues";
+    private final static String RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY = "reporting.run.substitute-remote-web-drivers";
 
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
@@ -47,25 +52,33 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String build = getProperty(yamlProperties, RUN_BUILD_PROPERTY);
         String environment = getProperty(yamlProperties, RUN_ENVIRONMENT_PROPERTY);
         String runContext = getProperty(yamlProperties, RUN_CONTEXT_PROPERTY);
-        String runRetryKnownIssues = getProperty(yamlProperties, RUN_RETRY_KNOWN_ISSUES_PROPERTY);
+        Boolean runRetryKnownIssues = parseBoolean(getProperty(yamlProperties, RUN_RETRY_KNOWN_ISSUES_PROPERTY));
+        Boolean substituteRemoteWebDrivers = parseBoolean(getProperty(yamlProperties, RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY));
         String slackChannels = getProperty(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = getProperty(yamlProperties, NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY);
         String emails = getProperty(yamlProperties, NOTIFICATION_EMAILS_PROPERTY);
-        String milestoneId = getProperty(yamlProperties, MILESTONE_ID_PROPERTY);
+        Long milestoneId = parseLong(getProperty(yamlProperties, MILESTONE_ID_PROPERTY));
         String milestoneName = getProperty(yamlProperties, MILESTONE_NAME_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
-            throw new TestAgentException("YAML configuration is malformed, skipping");
+            throw new TestAgentException("YAML configuration is malformed");
         }
 
-        Boolean reportingEnabled = enabled != null ? Boolean.parseBoolean(enabled) : null;
         return ReportingConfiguration.builder()
-                                     .reportingEnabled(reportingEnabled)
+                                     .reportingEnabled(ConfigurationUtils.parseBoolean(enabled))
                                      .projectKey(projectKey)
-                                     .server(new ReportingConfiguration.ServerConfiguration(hostname, accessToken))
-                                     .run(new ReportingConfiguration.RunConfiguration(displayName, build, environment, runContext, ConfigurationProvider.parseBoolean(runRetryKnownIssues)))
-                                     .milestone(new ReportingConfiguration.MilestoneConfiguration(ConfigurationProvider.parseLong(milestoneId), milestoneName))
-                                     .notification(new ReportingConfiguration.NotificationConfiguration(slackChannels, msTeamsChannels, emails))
+                                     .server(new ReportingConfiguration.ServerConfiguration(
+                                             hostname, accessToken
+                                     ))
+                                     .run(new ReportingConfiguration.RunConfiguration(
+                                             displayName, build, environment, runContext, runRetryKnownIssues, substituteRemoteWebDrivers
+                                     ))
+                                     .milestone(new ReportingConfiguration.MilestoneConfiguration(
+                                             milestoneId, milestoneName
+                                     ))
+                                     .notification(new ReportingConfiguration.NotificationConfiguration(
+                                             slackChannels, msTeamsChannels, emails
+                                     ))
                                      .build();
     }
 
