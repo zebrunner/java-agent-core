@@ -31,7 +31,7 @@ public class QuitSessionInterceptor {
         }
 
         if (CLOSED_SESSIONS.put(sessionId, MAP_VALUE) == null) {
-            SessionCloseDescriptor closeDescriptor = new SessionCloseDescriptor(sessionId);
+            SessionCloseDescriptor closeDescriptor = SessionCloseDescriptor.of(sessionId);
 
             REGISTRAR.registerClose(closeDescriptor);
         } else {

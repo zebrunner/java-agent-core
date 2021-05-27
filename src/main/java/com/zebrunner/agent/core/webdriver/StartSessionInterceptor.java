@@ -29,20 +29,24 @@ public class StartSessionInterceptor {
             capabilities = mergeZebrunnerCapabilities(methodInvocationProxy, capabilities);
         }
 
-        methodInvocationProxy.run();
+        SessionStartDescriptor startDescriptor = SessionStartDescriptor.initiatedWith(capabilities.asMap());
+        try {
+            methodInvocationProxy.run();
 
-        String sessionId = driver.getSessionId().toString();
-        if (sessionId.length() >= 64) {
-            // use case with GoGridRouter so we have to cut first 32 symbols!
-            // have no idea what it actually means, but Vadim Delendik can provide more information
-            sessionId = sessionId.substring(32);
+            String sessionId = driver.getSessionId().toString();
+            if (sessionId.length() >= 64) {
+                // use case with GoGridRouter so we have to cut first 32 symbols!
+                // have no idea what it actually means, but Vadim Delendik can provide more information
+                sessionId = sessionId.substring(32);
+            }
+
+            startDescriptor.successfullyStartedWith(sessionId, driver.getCapabilities().asMap());
+        } catch (Exception e) {
+            startDescriptor.failedToStart();
+            throw e;
+        } finally {
+            REGISTRAR.registerStart(startDescriptor);
         }
-        SessionStartDescriptor startDescriptor = new SessionStartDescriptor(
-                sessionId,
-                driver.getCapabilities().asMap(),
-                capabilities.asMap()
-        );
-        REGISTRAR.registerStart(startDescriptor);
     }
 
     private static void substituteSeleniumHub(RemoteWebDriver driver) throws NoSuchFieldException, IllegalAccessException {
