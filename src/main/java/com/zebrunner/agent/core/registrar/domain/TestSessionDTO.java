@@ -28,8 +28,8 @@ public class TestSessionDTO {
 
     public enum Status {
 
-        STARTED,
-        ENDED,
+        RUNNING,
+        COMPLETED,
         FAILED
 
     }

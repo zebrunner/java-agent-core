@@ -26,7 +26,7 @@ public class SessionStartDescriptor {
     }
 
     public void successfullyStartedWith(String sessionId, Map<String, Object> capabilities) {
-        this.status = TestSessionDTO.Status.STARTED;
+        this.status = TestSessionDTO.Status.RUNNING;
         this.startedAt = Instant.now();
         this.sessionId = sessionId;
         this.capabilities = capabilities;
