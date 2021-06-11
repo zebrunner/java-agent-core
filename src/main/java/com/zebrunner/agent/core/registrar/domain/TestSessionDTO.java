@@ -17,11 +17,21 @@ public class TestSessionDTO {
 
     private Long id;
     private String sessionId;
+    private Instant initiatedAt;
     private Instant startedAt;
     private Instant endedAt;
+    private Status status;
     private Object desiredCapabilities;
     private Object capabilities;
     @Builder.Default
     private Set<Long> testIds = new HashSet<>();
+
+    public enum Status {
+
+        RUNNING,
+        COMPLETED,
+        FAILED
+
+    }
 
 }

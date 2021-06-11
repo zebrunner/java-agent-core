@@ -6,7 +6,6 @@ import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -27,14 +26,15 @@ class SessionRegistrar implements TestSessionRegistrar {
     private final ThreadLocal<Set<String>> threadSessionIds = InheritableThreadLocal.withInitial(HashSet::new);
 
     @Override
-    public void registerStart(SessionStartDescriptor context) {
-        log.debug("Registering test session start. {}", context);
-        String sessionId = context.getSessionId();
+    public void registerStart(SessionStartDescriptor startDescriptor) {
+        log.debug("Registering test session start. {}", startDescriptor);
         TestSessionDTO testSession = TestSessionDTO.builder()
-                                                   .sessionId(sessionId)
-                                                   .startedAt(Instant.now())
-                                                   .capabilities(context.getCapabilities())
-                                                   .desiredCapabilities(context.getDesiredCapabilities())
+                                                   .sessionId(startDescriptor.getSessionId())
+                                                   .initiatedAt(startDescriptor.getInitiatedAt())
+                                                   .startedAt(startDescriptor.getStartedAt())
+                                                   .status(startDescriptor.getStatus())
+                                                   .capabilities(startDescriptor.getCapabilities())
+                                                   .desiredCapabilities(startDescriptor.getDesiredCapabilities())
                                                    .build();
 
         RunContext.getCurrentTest()
@@ -43,29 +43,29 @@ class SessionRegistrar implements TestSessionRegistrar {
 
         testSession = apiClient.startSession(RunContext.getZebrunnerRunId(), testSession);
 
-        // if reporting is enabled and test run was actually registered
-        if (testSession != null) {
+        // if reporting is enabled and test session was actually registered
+        if (testSession != null && testSession.getStatus() != TestSessionDTO.Status.FAILED) {
             sessionIdToSession.put(testSession.getSessionId(), testSession);
             threadSessionIds.get().add(testSession.getSessionId());
         }
 
-        log.debug("Registration of test session start completed. {}", context);
+        log.debug("Registration of test session start completed. {}", startDescriptor);
     }
 
     @Override
-    public void registerClose(SessionCloseDescriptor context) {
-        log.debug("Registering test session close. {}", context);
-        TestSessionDTO testSession = sessionIdToSession.get(context.getSessionId());
+    public void registerClose(SessionCloseDescriptor closeDescriptor) {
+        log.debug("Registering test session close. {}", closeDescriptor);
+        TestSessionDTO testSession = sessionIdToSession.get(closeDescriptor.getSessionId());
         if (testSession != null) {
-            testSession.setEndedAt(Instant.now());
+            testSession.setEndedAt(closeDescriptor.getEndedAt());
 
             apiClient.updateSession(RunContext.getZebrunnerRunId(), testSession);
 
-            sessionIdToSession.remove(context.getSessionId());
-            threadSessionIds.get().remove(context.getSessionId());
+            sessionIdToSession.remove(closeDescriptor.getSessionId());
+            threadSessionIds.get().remove(closeDescriptor.getSessionId());
         }
 
-        log.debug("Registration of test session close completed. {}", context);
+        log.debug("Registration of test session close completed. {}", closeDescriptor);
     }
 
     @Override

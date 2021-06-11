@@ -70,8 +70,14 @@ public class ConfigurationHolder {
                        .orElseGet(() -> configuration.getRun().getContext());
     }
 
-    public static Boolean getRunRetryKnownIssues() {
-        return configuration.getRun().getRetryKnownIssues();
+    public static boolean shouldRetryKnownIssues() {
+        Boolean retryKnownIssues = configuration.getRun().getRetryKnownIssues();
+        return retryKnownIssues != null && retryKnownIssues;
+    }
+
+    public static boolean shouldSubstituteRemoteWebDrivers() {
+        Boolean substituteRemoteWebDrivers = configuration.getRun().getSubstituteRemoteWebDrivers();
+        return substituteRemoteWebDrivers != null && substituteRemoteWebDrivers;
     }
 
     private static String toSerializedRunContext(String ciRunId) {

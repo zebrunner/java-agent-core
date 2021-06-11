@@ -392,9 +392,10 @@ class ZebrunnerApiClient {
         }
     }
 
-    Boolean isKnownIssueAttachedToTest(Long testRunId, Long testId, String failureStacktrace) {
+    boolean isKnownIssueAttachedToTest(Long testRunId, Long testId, String failureStacktrace) {
         if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}/known-issue-confirmations"))
+            HttpResponse<String> response = client
+                    .post(reporting("test-runs/{testRunId}/tests/{testId}/known-issue-confirmations"))
                     .routeParam("testRunId", testRunId.toString())
                     .routeParam("testId", testId.toString())
                     .body(Collections.singletonMap("failureReason", failureStacktrace))
@@ -406,7 +407,7 @@ class ZebrunnerApiClient {
 
             return new JSONObject(response.getBody()).getBoolean("knownIssue");
         } else {
-            return null;
+            return false;
         }
     }
 

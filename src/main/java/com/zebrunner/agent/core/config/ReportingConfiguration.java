@@ -55,6 +55,7 @@ public class ReportingConfiguration {
         private String environment;
         private String context;
         private Boolean retryKnownIssues;
+        private Boolean substituteRemoteWebDrivers;
 
     }
 

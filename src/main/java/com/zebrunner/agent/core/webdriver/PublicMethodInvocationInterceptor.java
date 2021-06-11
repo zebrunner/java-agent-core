@@ -18,7 +18,7 @@ public class PublicMethodInvocationInterceptor {
         Object returnValue = proxy.call();
 
         String sessionId = driver.getSessionId().toString();
-        if (sessionId.length() >= 64 ) {
+        if (sessionId.length() >= 64) {
             sessionId = sessionId.substring(32);
         }
         REGISTRAR.linkToCurrentTest(sessionId);

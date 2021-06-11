@@ -63,7 +63,7 @@ public class NoOpTestRunRegistrar implements TestRunRegistrar {
     }
 
     @Override
-    public Boolean isKnownIssueAttachedToTest(String failureStacktrace) {
+    public boolean isKnownIssueAttachedToTest(String failureStacktrace) {
         log.trace("Is known issue attached to test");
         return false;
     }
