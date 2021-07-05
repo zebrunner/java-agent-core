@@ -9,25 +9,25 @@ import static com.zebrunner.agent.core.config.ConfigurationUtils.parseBoolean;
 
 public class EnvironmentConfigurationProvider implements ConfigurationProvider {
 
-    private final static String ENABLED_VARIABLE = "REPORTING_ENABLED";
-    private final static String PROJECT_KEY_VARIABLE = "REPORTING_PROJECT_KEY";
+    private static final String ENABLED_VARIABLE = "REPORTING_ENABLED";
+    private static final String PROJECT_KEY_VARIABLE = "REPORTING_PROJECT_KEY";
 
-    private final static String HOSTNAME_VARIABLE = "REPORTING_SERVER_HOSTNAME";
-    private final static String ACCESS_TOKEN_VARIABLE = "REPORTING_SERVER_ACCESS_TOKEN";
+    private static final String HOSTNAME_VARIABLE = "REPORTING_SERVER_HOSTNAME";
+    private static final String ACCESS_TOKEN_VARIABLE = "REPORTING_SERVER_ACCESS_TOKEN";
 
-    private final static String RUN_DISPLAY_NAME_VARIABLE = "REPORTING_RUN_DISPLAY_NAME";
-    private final static String RUN_BUILD_VARIABLE = "REPORTING_RUN_BUILD";
-    private final static String RUN_ENVIRONMENT_VARIABLE = "REPORTING_RUN_ENVIRONMENT";
-    private final static String RUN_CONTEXT_VARIABLE = "REPORTING_RUN_CONTEXT";
-    private final static String RUN_RETRY_KNOWN_ISSUES_VARIABLE = "REPORTING_RUN_RETRY_KNOWN_ISSUES";
-    private final static String RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_VARIABLE = "REPORTING_RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS";
+    private static final String RUN_DISPLAY_NAME_VARIABLE = "REPORTING_RUN_DISPLAY_NAME";
+    private static final String RUN_BUILD_VARIABLE = "REPORTING_RUN_BUILD";
+    private static final String RUN_ENVIRONMENT_VARIABLE = "REPORTING_RUN_ENVIRONMENT";
+    private static final String RUN_CONTEXT_VARIABLE = "REPORTING_RUN_CONTEXT";
+    private static final String RUN_RETRY_KNOWN_ISSUES_VARIABLE = "REPORTING_RUN_RETRY_KNOWN_ISSUES";
+    private static final String RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_VARIABLE = "REPORTING_RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS";
 
-    private final static String NOTIFICATION_SLACK_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_SLACK_CHANNELS";
-    private final static String NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS";
-    private final static String NOTIFICATION_EMAILS = "REPORTING_NOTIFICATION_EMAILS";
+    private static final String NOTIFICATION_SLACK_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_SLACK_CHANNELS";
+    private static final String NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS";
+    private static final String NOTIFICATION_EMAILS = "REPORTING_NOTIFICATION_EMAILS";
 
-    private final static String MILESTONE_ID_VARIABLE = "REPORTING_MILESTONE_ID";
-    private final static String MILESTONE_NAME_VARIABLE = "REPORTING_MILESTONE_NAME";
+    private static final String MILESTONE_ID_VARIABLE = "REPORTING_MILESTONE_ID";
+    private static final String MILESTONE_NAME_VARIABLE = "REPORTING_MILESTONE_NAME";
 
     @Override
     public ReportingConfiguration getConfiguration() {
