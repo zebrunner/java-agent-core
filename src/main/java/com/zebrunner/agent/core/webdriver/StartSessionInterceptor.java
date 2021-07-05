@@ -11,6 +11,7 @@ import net.bytebuddy.implementation.bind.annotation.This;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.internal.OkHttpClient;
 
 import java.lang.reflect.Field;
 import java.net.URL;
@@ -52,15 +53,43 @@ public class StartSessionInterceptor {
     private static void substituteSeleniumHub(RemoteWebDriver driver) throws NoSuchFieldException, IllegalAccessException {
         URL seleniumHubUrl = RemoteWebDriverFactory.getSeleniumHubUrl();
         if (driver.getCommandExecutor() instanceof HttpCommandExecutor && seleniumHubUrl != null) {
-            log.info("Selenium Hub URL will be substituted by the value provided from Zebrunner.");
+            log.debug("Selenium Hub URL will be substituted by the value provided from Zebrunner.");
 
-            Field executorField = driver.getClass().getDeclaredField("executor");
-            executorField.setAccessible(true);
+            HttpCommandExecutor commandExecutor = (HttpCommandExecutor) driver.getCommandExecutor();
+            setFieldValue(commandExecutor, "remoteServer", seleniumHubUrl);
 
-            executorField.set(driver, new HttpCommandExecutor(seleniumHubUrl));
+            Object clientObject = getFieldValue(commandExecutor, "client");
+            if (clientObject instanceof OkHttpClient) {
+                setFieldValue(clientObject, "baseUrl", seleniumHubUrl);
 
-            executorField.setAccessible(false);
+                String userInfo = seleniumHubUrl.getUserInfo();
+                if (userInfo != null && !userInfo.isEmpty()) {
+                    String[] credentials = userInfo.split(":", 2);
+                    String username = credentials[0];
+                    String password = credentials.length > 1 ? credentials[1] : null;
+
+                    Object internalClientObject = getFieldValue(clientObject, "client");
+                    setFieldValue(internalClientObject, "authenticator", new BasicAuthenticator(username, password));
+                }
+            } else {
+                log.debug("Could not substitute address of remote selenium hub because of unknown http client.");
+            }
         }
+    }
+
+    private static Object getFieldValue(Object targetObject, String fieldName) throws NoSuchFieldException, IllegalAccessException {
+        Field remoteServer = targetObject.getClass().getDeclaredField(fieldName);
+        remoteServer.setAccessible(true);
+        Object value = remoteServer.get(targetObject);
+        remoteServer.setAccessible(false);
+        return value;
+    }
+
+    private static void setFieldValue(Object targetObject, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+        Field remoteServer = targetObject.getClass().getDeclaredField(fieldName);
+        remoteServer.setAccessible(true);
+        remoteServer.set(targetObject, value);
+        remoteServer.setAccessible(false);
     }
 
     private static Capabilities mergeZebrunnerCapabilities(Runnable methodInvocationProxy, Capabilities capabilities) {
@@ -80,20 +109,20 @@ public class StartSessionInterceptor {
                 if (!zebrunnerCapabilities.asMap().isEmpty()) {
                     log.info("Capabilities will be modified with the values provided from Zebrunner.");
 
-                    capabilities = zebrunnerCapabilities.merge(capabilities);
+                    capabilities = capabilities.merge(zebrunnerCapabilities);
                     argument1Field.set(methodInvocationProxy, capabilities);
                 }
 
                 argument1Field.setAccessible(false);
             } else {
-                log.error("#startSession() argument has unexpected type, this it will not be modified. " +
+                log.debug("#startSession() argument has unexpected type, thus it will not be modified. " +
                         "Capabilities from Zebrunner will not be taken into account.");
             }
         } catch (NoSuchFieldException e) {
-            log.error("#startSession() invocation proxy class does not contain an expected field. " +
+            log.debug("#startSession() invocation proxy class does not contain an expected field. " +
                     "Capabilities from Zebrunner will not be taken into account.");
         } catch (IllegalAccessException e) {
-            log.error("Could not get access to the original argument of #startSession() method. " +
+            log.debug("Could not get access to the original argument of #startSession() method. " +
                     "Capabilities from Zebrunner will not be taken into account.");
         }
 
