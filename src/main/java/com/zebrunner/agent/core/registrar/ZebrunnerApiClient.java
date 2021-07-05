@@ -16,6 +16,7 @@ import kong.unirest.ContentType;
 import kong.unirest.HeaderNames;
 import kong.unirest.HttpResponse;
 import kong.unirest.ObjectMapper;
+import kong.unirest.RequestBodyEntity;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestInstance;
 import kong.unirest.json.JSONObject;
@@ -25,9 +26,13 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 class ZebrunnerApiClient {
+
+    private static final String REPORTING_RETRY_ENABLED = "REPORTING_RETRY_ENABLED";
+    private static final String REPORTING_RETRY_MAX_COUNT = "REPORTING_RETRY_MAX_COUNT";
 
     private static final String SERVER_ERROR_MSG_FORMAT = "%s\nResponse status code: %d.\nRaw response body: \n%s";
 
@@ -98,12 +103,54 @@ class ZebrunnerApiClient {
         return new UnirestInstance(config);
     }
 
+    private HttpResponse<String> sendRequest(RequestBodyEntity requestBodyEntity) {
+        try {
+            HttpResponse<String> httpResponse = requestBodyEntity.asString();
+
+            if (httpResponse.getStatus() == 504) {
+                HttpResponse<String> retryResponse = retrySendRequest(requestBodyEntity, 1);
+                if (retryResponse != null) {
+                    httpResponse = retryResponse;
+                }
+            }
+
+            return httpResponse;
+        } catch (Exception e) {
+            HttpResponse<String> retryResponse = retrySendRequest(requestBodyEntity, 1);
+            if (retryResponse == null) {
+                throw e;
+            } else {
+                return retryResponse;
+            }
+        }
+    }
+
+    private HttpResponse<String> retrySendRequest(RequestBodyEntity requestBodyEntity, int attempt) {
+        if ("true".equalsIgnoreCase(System.getenv().get(REPORTING_RETRY_ENABLED))) {
+            Long maxRetries = Optional.ofNullable(System.getenv().get(REPORTING_RETRY_MAX_COUNT))
+                                      .map(Long::valueOf)
+                                      .orElse(3L);
+            if (attempt <= maxRetries) {
+                log.info("Retrying to send request. Attempt {} of {}.", attempt, maxRetries);
+                try {
+                    HttpResponse<String> httpResponse = requestBodyEntity.asString();
+                    return httpResponse.getStatus() != 504
+                            ? httpResponse
+                            : retrySendRequest(requestBodyEntity, ++attempt);
+                } catch (Exception e) {
+                    return retrySendRequest(requestBodyEntity, ++attempt);
+                }
+            }
+        }
+        return null;
+    }
+
     TestRunDTO registerTestRunStart(TestRunDTO testRun) {
         if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs"))
-                                                  .body(testRun)
-                                                  .queryString("projectKey", ConfigurationHolder.getProjectKey())
-                                                  .asString();
+            RequestBodyEntity request = client.post(reporting("test-runs"))
+                                              .body(testRun)
+                                              .queryString("projectKey", ConfigurationHolder.getProjectKey());
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 // null out the api client since it we cannot use it anymore
@@ -132,10 +179,10 @@ class ZebrunnerApiClient {
 
     void registerTestRunFinish(TestRunDTO testRun) {
         if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}"))
-                                                  .body(testRun)
-                                                  .routeParam("testRunId", testRun.getId().toString())
-                                                  .asString();
+            RequestBodyEntity request = client.put(reporting("test-runs/{testRunId}"))
+                                              .body(testRun)
+                                              .routeParam("testRunId", testRun.getId().toString());
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not register finish of the test run.", response));
@@ -145,11 +192,11 @@ class ZebrunnerApiClient {
 
     TestDTO registerTestStart(Long testRunId, TestDTO test, boolean headless) {
         if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests"))
-                                                  .body(test)
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .queryString("headless", headless)
-                                                  .asString();
+            RequestBodyEntity request = client.post(reporting("test-runs/{testRunId}/tests"))
+                                              .body(test)
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .queryString("headless", headless);
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not register start of the test.", response));
@@ -162,12 +209,12 @@ class ZebrunnerApiClient {
 
     TestDTO registerTestRerunStart(Long testRunId, Long testId, TestDTO test, boolean headless) {
         if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}"))
-                                                  .body(test)
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testId", testId.toString())
-                                                  .queryString("headless", headless)
-                                                  .asString();
+            RequestBodyEntity request = client.post(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                              .body(test)
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .routeParam("testId", testId.toString())
+                                              .queryString("headless", headless);
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not register start of rerun of the test.", response));
@@ -180,12 +227,12 @@ class ZebrunnerApiClient {
 
     TestDTO registerHeadlessTestUpdate(Long testRunId, TestDTO test) {
         if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testId", test.getId().toString())
-                                                  .queryString("headless", true)
-                                                  .body(test)
-                                                  .asString();
+            RequestBodyEntity request = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .routeParam("testId", test.getId().toString())
+                                              .queryString("headless", true)
+                                              .body(test);
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not register start of the test.", response));
@@ -211,12 +258,12 @@ class ZebrunnerApiClient {
 
     void registerTestFinish(Long testRunId, TestDTO test) {
         if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testId", test.getId().toString())
-                                                  .queryString("headless", false)
-                                                  .body(test)
-                                                  .asString();
+            RequestBodyEntity request = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .routeParam("testId", test.getId().toString())
+                                              .queryString("headless", false)
+                                              .body(test);
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not register finish of the test.", response));
@@ -226,10 +273,10 @@ class ZebrunnerApiClient {
 
     void sendLogs(Collection<Log> logs, Long testRunId) {
         if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/logs"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .body(logs)
-                                                  .asString();
+            RequestBodyEntity request = client.post(reporting("test-runs/{testRunId}/logs"))
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .body(logs);
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 log.error(formatErrorMessage("Could not send a batch of test logs.", response));
@@ -239,13 +286,13 @@ class ZebrunnerApiClient {
 
     void uploadScreenshot(byte[] screenshot, Long testRunId, Long testId, Long capturedAt) {
         if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}/screenshots"))
-                                                  .headerReplace("Content-Type", ContentType.IMAGE_PNG.getMimeType())
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testId", testId.toString())
-                                                  .header("x-zbr-screenshot-captured-at", capturedAt.toString())
-                                                  .body(screenshot)
-                                                  .asString();
+            RequestBodyEntity request = client.post(reporting("test-runs/{testRunId}/tests/{testId}/screenshots"))
+                                              .headerReplace("Content-Type", ContentType.IMAGE_PNG.getMimeType())
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .routeParam("testId", testId.toString())
+                                              .header("x-zbr-screenshot-captured-at", capturedAt.toString())
+                                              .body(screenshot);
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 log.error(formatErrorMessage("Could not upload a screenshot.", response));
@@ -285,10 +332,10 @@ class ZebrunnerApiClient {
     void attachArtifactReferenceToTestRun(Long testRunId, ArtifactReferenceDTO artifactReference) {
         if (client != null) {
             List<ArtifactReferenceDTO> artifactReferences = Collections.singletonList(artifactReference);
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/artifact-references"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .body(Collections.singletonMap("items", artifactReferences))
-                                                  .asString();
+            RequestBodyEntity request = client.put(reporting("test-runs/{testRunId}/artifact-references"))
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .body(Collections.singletonMap("items", artifactReferences));
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 log.error(formatErrorMessage(
@@ -302,12 +349,12 @@ class ZebrunnerApiClient {
     void attachArtifactReferenceToTest(Long testRunId, Long testId, ArtifactReferenceDTO artifactReference) {
         if (client != null) {
             List<ArtifactReferenceDTO> artifactReferences = Collections.singletonList(artifactReference);
-            HttpResponse<String> response = client
+            RequestBodyEntity request = client
                     .put(reporting("test-runs/{testRunId}/tests/{testId}/artifact-references"))
                     .routeParam("testRunId", testRunId.toString())
                     .routeParam("testId", testId.toString())
-                    .body(Collections.singletonMap("items", artifactReferences))
-                    .asString();
+                    .body(Collections.singletonMap("items", artifactReferences));
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 log.error(formatErrorMessage(
@@ -320,10 +367,10 @@ class ZebrunnerApiClient {
 
     void attachLabelsToTestRun(Long testRunId, Collection<LabelDTO> labels) {
         if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/labels"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .body(Collections.singletonMap("items", labels))
-                                                  .asString();
+            RequestBodyEntity request = client.put(reporting("test-runs/{testRunId}/labels"))
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .body(Collections.singletonMap("items", labels));
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 log.error(formatErrorMessage("Could not attach the following labels to test run: " + labels, response));
@@ -333,12 +380,12 @@ class ZebrunnerApiClient {
 
     void attachLabelsToTest(Long testRunId, Long testId, Collection<LabelDTO> labels) {
         if (client != null) {
-            HttpResponse<String> response = client
+            RequestBodyEntity request = client
                     .put(reporting("test-runs/{testRunId}/tests/{testId}/labels"))
                     .routeParam("testRunId", testRunId.toString())
                     .routeParam("testId", testId.toString())
-                    .body(Collections.singletonMap("items", labels))
-                    .asString();
+                    .body(Collections.singletonMap("items", labels));
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 log.error(formatErrorMessage("Could not attach the following labels to test: " + labels, response));
@@ -348,9 +395,9 @@ class ZebrunnerApiClient {
 
     ExchangeRunContextResponse exchangeRerunCondition(String rerunCondition) {
         if (client != null) {
-            HttpResponse<String> response = client.post(reporting("run-context-exchanges"))
-                                                  .body(rerunCondition)
-                                                  .asString();
+            RequestBodyEntity request = client.post(reporting("run-context-exchanges"))
+                                              .body(rerunCondition);
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not get tests by ci run id.", response));
@@ -364,10 +411,10 @@ class ZebrunnerApiClient {
 
     TestSessionDTO startSession(Long testRunId, TestSessionDTO testSession) {
         if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/test-sessions"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .body(testSession)
-                                                  .asString();
+            RequestBodyEntity request = client.post(reporting("test-runs/{testRunId}/test-sessions"))
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .body(testSession);
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not register start of the test session.", response));
@@ -381,11 +428,11 @@ class ZebrunnerApiClient {
 
     void updateSession(Long testRunId, TestSessionDTO testSession) {
         if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/test-sessions/{testSessionId}"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testSessionId", testSession.getId().toString())
-                                                  .body(testSession)
-                                                  .asString();
+            RequestBodyEntity request = client.put(reporting("test-runs/{testRunId}/test-sessions/{testSessionId}"))
+                                              .routeParam("testRunId", testRunId.toString())
+                                              .routeParam("testSessionId", testSession.getId().toString())
+                                              .body(testSession);
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not update test session.", response));
@@ -395,12 +442,12 @@ class ZebrunnerApiClient {
 
     boolean isKnownIssueAttachedToTest(Long testRunId, Long testId, String failureStacktrace) {
         if (client != null) {
-            HttpResponse<String> response = client
+            RequestBodyEntity request = client
                     .post(reporting("test-runs/{testRunId}/tests/{testId}/known-issue-confirmations"))
                     .routeParam("testRunId", testRunId.toString())
                     .routeParam("testId", testId.toString())
-                    .body(Collections.singletonMap("failureReason", failureStacktrace))
-                    .asString();
+                    .body(Collections.singletonMap("failureReason", failureStacktrace));
+            HttpResponse<String> response = sendRequest(request);
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not retrieve status of attached known issues.", response));
