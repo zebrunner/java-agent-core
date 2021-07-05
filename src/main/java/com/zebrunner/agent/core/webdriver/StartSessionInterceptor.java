@@ -58,10 +58,7 @@ public class StartSessionInterceptor {
             HttpCommandExecutor commandExecutor = (HttpCommandExecutor) driver.getCommandExecutor();
             setFieldValue(commandExecutor, "remoteServer", seleniumHubUrl);
 
-            Field client = HttpCommandExecutor.class.getDeclaredField("client");
-            client.setAccessible(true);
-
-            Object clientObject = client.get(commandExecutor);
+            Object clientObject = getFieldValue(commandExecutor, "client");
             if (clientObject instanceof OkHttpClient) {
                 setFieldValue(clientObject, "baseUrl", seleniumHubUrl);
 
@@ -71,14 +68,21 @@ public class StartSessionInterceptor {
                     String username = credentials[0];
                     String password = credentials.length > 1 ? credentials[1] : null;
 
-                    setFieldValue(clientObject, "authenticator", new BasicAuthenticator(username, password));
+                    Object internalClientObject = getFieldValue(clientObject, "client");
+                    setFieldValue(internalClientObject, "authenticator", new BasicAuthenticator(username, password));
                 }
             } else {
                 log.debug("Could not substitute address of remote selenium hub because of unknown http client.");
             }
-
-            client.setAccessible(false);
         }
+    }
+
+    private static Object getFieldValue(Object targetObject, String fieldName) throws NoSuchFieldException, IllegalAccessException {
+        Field remoteServer = targetObject.getClass().getDeclaredField(fieldName);
+        remoteServer.setAccessible(true);
+        Object value = remoteServer.get(targetObject);
+        remoteServer.setAccessible(false);
+        return value;
     }
 
     private static void setFieldValue(Object targetObject, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
