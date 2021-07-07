@@ -9,9 +9,14 @@ import java.util.List;
 @NoArgsConstructor
 public class ExchangeRunContextResponse {
 
-    private String id;
-    private boolean runExists;
-    private boolean rerunOnlyFailedTests;
-    private List<TestDTO> tests;
+
+    private String testRunUuid;
+    private String mode;
+
+    private boolean runAllowed;
+    private String reason;
+
+    private boolean runOnlySpecificTests;
+    private List<TestDTO> testsToRun;
 
 }

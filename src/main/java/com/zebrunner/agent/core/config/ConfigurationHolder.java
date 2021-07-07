@@ -82,10 +82,15 @@ public class ConfigurationHolder {
 
     private static String toSerializedRunContext(String ciRunId) {
         Map<String, Object> runContext = new HashMap<>();
-        runContext.put("id", ciRunId);
+        runContext.put("testRunUuid", ciRunId);
+        runContext.put("mode", "LEGACY");
         if ("true".equalsIgnoreCase(System.getProperty("rerun_failures"))) {
-            runContext.put("rerunOnlyFailures", true);
-            runContext.put("statuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED", "IN_PROGRESS"));
+            Map<String, Object> rerunCriteria = new HashMap<>();
+            rerunCriteria.put("anyOfStatuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED"));
+            rerunCriteria.put("knownIssue", false);
+
+            runContext.put("rerunCriteria", rerunCriteria);
+            runContext.put("mode", "RERUN");
         }
         return new Gson().toJson(runContext);
     }
