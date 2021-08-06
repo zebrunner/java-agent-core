@@ -51,7 +51,6 @@ class ZebrunnerApiClient {
             authToken = authData.getAuthTokenType() + " " + authData.getAuthToken();
 
             Config config = client.config();
-            config.verifySsl(false); // temporarily disable
             config.addDefaultHeader(HeaderNames.AUTHORIZATION, authToken);
         }
     }
