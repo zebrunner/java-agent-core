@@ -14,17 +14,17 @@ public final class Zephyr {
     public static final String TEST_CASE_KEY = "com.zebrunner.app/tcm.zephyr.test-case-key";
 
     public static void disableSync() {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(SYNC_ENABLED, "false");
     }
 
     public static void enableRealTimeSync() {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(SYNC_REAL_TIME, "true");
     }
 
     public static void setTestCycleKey(String testCycleKey) {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(TEST_CYCLE_KEY, testCycleKey);
     }
 
@@ -32,7 +32,7 @@ public final class Zephyr {
         Label.attachToTest(TEST_CASE_KEY, testCaseKey);
     }
 
-    private static void verifyRunContext() {
+    private static void verifyTestsStart() {
         if (RunContext.getTests().size() > 0) {
             throw new TestAgentException("Zephyr test run labels can't be modified after the start of tests");
         }

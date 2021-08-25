@@ -22,42 +22,42 @@ public final class TestRail {
     public static final String CASE_ID = "com.zebrunner.app/tcm.testrail.case-id";
 
     public static void disableSync() {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(SYNC_ENABLED, "false");
     }
 
     public static void enableRealTimeSync() {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(SYNC_REAL_TIME, "true");
     }
 
     public static void includeAllTestCasesInNewRun() {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(INCLUDE_ALL, "true");
     }
 
     public static void setSuiteId(String suiteId) {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(SUITE_ID, suiteId);
     }
 
     public static void setRunId(String runId) {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(RUN_ID, runId);
     }
 
     public static void setRunName(String runName) {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(RUN_NAME, runName);
     }
 
     public static void setMilestone(String milestone) {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(MILESTONE, milestone);
     }
 
     public static void setAssignee(String assignee) {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(ASSIGNEE, assignee);
     }
 
@@ -65,7 +65,7 @@ public final class TestRail {
         Label.attachToTest(CASE_ID, testCaseId);
     }
 
-    private static void verifyRunContext() {
+    private static void verifyTestsStart() {
         if (RunContext.getTests().size() > 0) {
             throw new TestAgentException("TestRail test run labels can't be modified after the start of tests");
         }

@@ -15,17 +15,17 @@ public final class Xray {
     public static final String TEST_KEY = "com.zebrunner.app/tcm.xray.test-key";
 
     public static void disableSync() {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(SYNC_ENABLED, "false");
     }
 
     public static void enableRealTimeSync() {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(SYNC_REAL_TIME, "true");
     }
 
     public static void setExecutionKey(String executionKey) {
-        verifyRunContext();
+        verifyTestsStart();
         Label.attachToTestRun(EXECUTION_KEY, executionKey);
     }
 
@@ -33,7 +33,7 @@ public final class Xray {
         Label.attachToTest(TEST_KEY, testKey);
     }
 
-    private static void verifyRunContext() {
+    private static void verifyTestsStart() {
         if (RunContext.getTests().size() > 0) {
             throw new TestAgentException("Xray test run labels can't be modified after the start of tests");
         }
