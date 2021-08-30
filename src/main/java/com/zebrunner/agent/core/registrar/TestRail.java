@@ -3,9 +3,13 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TestRail {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestRunRegistrar.class);
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.testrail.sync.enabled";
     public static final String SYNC_REAL_TIME = "com.zebrunner.app/tcm.testrail.sync.real-time";
@@ -29,6 +33,8 @@ public final class TestRail {
     public static void enableRealTimeSync() {
         verifyTestsStart();
         Label.attachToTestRun(SYNC_REAL_TIME, "true");
+        Label.attachToTestRun(INCLUDE_ALL, "true");
+        LOGGER.warn("Runtime upload is enabled, all cases will be included in new run by default");
     }
 
     public static void includeAllTestCasesInNewRun() {
