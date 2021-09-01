@@ -11,6 +11,7 @@ public final class Zephyr {
     public static final String SYNC_REAL_TIME = "com.zebrunner.app/tcm.zephyr.sync.real-time";
 
     public static final String TEST_CYCLE_KEY = "com.zebrunner.app/tcm.zephyr.test-cycle-key";
+    public static final String JIRA_PROJECT_KEY = "com.zebrunner.app/tcm.zephyr.jira-project-key";
     public static final String TEST_CASE_KEY = "com.zebrunner.app/tcm.zephyr.test-case-key";
 
     public static void disableSync() {
@@ -26,6 +27,11 @@ public final class Zephyr {
     public static void setTestCycleKey(String testCycleKey) {
         verifyTestsStart();
         Label.attachToTestRun(TEST_CYCLE_KEY, testCycleKey);
+    }
+
+    public static void setJiraProjectKey(String jiraProjectKey) {
+        verifyTestsStart();
+        Label.attachToTestRun(JIRA_PROJECT_KEY, jiraProjectKey);
     }
 
     public static void setTestCaseKey(String testCaseKey) {
