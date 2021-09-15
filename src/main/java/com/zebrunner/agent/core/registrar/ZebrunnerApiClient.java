@@ -91,6 +91,7 @@ class ZebrunnerApiClient {
 
     private UnirestInstance initClient() {
         Config config = new Config();
+        config.addDefaultHeader("Connection", "close");
         config.addDefaultHeader("Content-Type", "application/json");
         config.addDefaultHeader("Accept", "application/json");
         config.setObjectMapper(new ObjectMapperImpl());
