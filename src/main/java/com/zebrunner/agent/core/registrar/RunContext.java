@@ -18,6 +18,7 @@ class RunContext {
     private static TestRunDescriptor testRun;
     private static final Map<String, TestDescriptor> TESTS = new ConcurrentHashMap<>();
     private static final ThreadLocal<TestDescriptor> CURRENT_THREAD_LOCAL_TEST = new InheritableThreadLocal<>();
+    private static final ThreadLocal<TestDescriptor> CURRENT_AFTER_METHOD_THREAD_LOCAL_TEST = new InheritableThreadLocal<>();
     private static final ThreadLocal<TestDescriptor> PREVIOUS_COMPLETED_THREAD_LOCAL_TEST = new ThreadLocal<>();
 
     static void setRun(TestRunDescriptor testRunDescriptor) {
@@ -78,15 +79,16 @@ class RunContext {
         if (previousTest != null) {
             PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.remove();
             CURRENT_THREAD_LOCAL_TEST.set(previousTest);
+            CURRENT_AFTER_METHOD_THREAD_LOCAL_TEST.set(previousTest);
         }
     }
 
-    static void completeCurrentTest() {
-        TestDescriptor testToComplete = CURRENT_THREAD_LOCAL_TEST.get();
-
+    static void completeCurrentAfterMethod() {
+        TestDescriptor testToComplete = CURRENT_AFTER_METHOD_THREAD_LOCAL_TEST.get();
         if (testToComplete != null) {
             PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.set(testToComplete);
             CURRENT_THREAD_LOCAL_TEST.remove();
+            CURRENT_AFTER_METHOD_THREAD_LOCAL_TEST.remove();
         }
     }
 
