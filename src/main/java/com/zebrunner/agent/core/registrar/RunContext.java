@@ -18,7 +18,7 @@ class RunContext {
     private static TestRunDescriptor testRun;
     private static final Map<String, TestDescriptor> TESTS = new ConcurrentHashMap<>();
     private static final ThreadLocal<TestDescriptor> CURRENT_THREAD_LOCAL_TEST = new InheritableThreadLocal<>();
-    private static final ThreadLocal<TestDescriptor> CURRENT_AFTER_METHOD_THREAD_LOCAL_TEST = new InheritableThreadLocal<>();
+    private static final ThreadLocal<TestDescriptor> CURRENT_THREAD_LOCAL_AFTER_METHOD = new InheritableThreadLocal<>();
     private static final ThreadLocal<TestDescriptor> PREVIOUS_COMPLETED_THREAD_LOCAL_TEST = new ThreadLocal<>();
 
     static void setRun(TestRunDescriptor testRunDescriptor) {
@@ -74,21 +74,25 @@ class RunContext {
         }
     }
 
-    static void restorePreviousCompletedTest() {
-        TestDescriptor previousTest = PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.get();
-        if (previousTest != null) {
-            PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.remove();
-            CURRENT_THREAD_LOCAL_TEST.set(previousTest);
-            CURRENT_AFTER_METHOD_THREAD_LOCAL_TEST.set(previousTest);
+    static void startAfterMethod() {
+        // we need to restore previous completed test as current one only if retry is not in progress
+        // when retry is in progress, CURRENT_THREAD_LOCAL_TEST stores non-null value
+        if (CURRENT_THREAD_LOCAL_TEST.get() == null) {
+            TestDescriptor previousTest = PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.get();
+            if (previousTest != null) {
+                PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.remove();
+                CURRENT_THREAD_LOCAL_TEST.set(previousTest);
+                CURRENT_THREAD_LOCAL_AFTER_METHOD.set(previousTest);
+            }
         }
     }
 
-    static void completeCurrentAfterMethod() {
-        TestDescriptor testToComplete = CURRENT_AFTER_METHOD_THREAD_LOCAL_TEST.get();
+    static void finishAfterMethod() {
+        TestDescriptor testToComplete = CURRENT_THREAD_LOCAL_AFTER_METHOD.get();
         if (testToComplete != null) {
             PREVIOUS_COMPLETED_THREAD_LOCAL_TEST.set(testToComplete);
             CURRENT_THREAD_LOCAL_TEST.remove();
-            CURRENT_AFTER_METHOD_THREAD_LOCAL_TEST.remove();
+            CURRENT_THREAD_LOCAL_AFTER_METHOD.remove();
         }
     }
 

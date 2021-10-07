@@ -222,12 +222,12 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerAfterTestStart() {
-        RunContext.restorePreviousCompletedTest();
+        RunContext.startAfterMethod();
     }
 
     @Override
     public void registerAfterTestFinish() {
-        RunContext.completeCurrentAfterMethod();
+        RunContext.finishAfterMethod();
     }
 
     @Override
