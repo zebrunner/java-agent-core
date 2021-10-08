@@ -44,7 +44,6 @@ public class DriverSessionsAgent {
 
     public static void premain(String args, Instrumentation instrumentation) {
         try {
-            log.info("Zebrunner RemoteDriverSession agent is enabled.");
             new AgentBuilder.Default()
                     .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
                     .type(named(REMOTE_WEB_DRIVER_CLASS_MAME))
@@ -62,7 +61,6 @@ public class DriverSessionsAgent {
     }
 
     private static DynamicType.Builder<?> addInterceptors(DynamicType.Builder<?> builder) {
-        log.info("Zebrunner driver sessions agent is adding interceptors for RemoteWebDriver.");
         return builder.method(isPublicMethodToIntercept())
                       .intercept(to(publicMethodsInterceptor()))
                       .method(named(START_SESSION_METHOD_MAME))
@@ -72,21 +70,18 @@ public class DriverSessionsAgent {
     }
 
     private static TypeDescription publicMethodsInterceptor() {
-        log.debug("Creating interceptor for public methods.");
         return TypePool.Default.ofSystemLoader()
                                .describe(PublicMethodInvocationInterceptor.class.getName())
                                .resolve();
     }
 
     private static TypeDescription startSessionInterceptor() {
-        log.debug("Creating interceptor for 'start' method.");
         return TypePool.Default.ofSystemLoader()
                                .describe(StartSessionInterceptor.class.getName())
                                .resolve();
     }
 
     private static TypeDescription quitSessionInterceptor() {
-        log.debug("Creating interceptor for 'quit' and 'close' methods.");
         return TypePool.Default.ofSystemLoader()
                                .describe(QuitSessionInterceptor.class.getName())
                                .resolve();

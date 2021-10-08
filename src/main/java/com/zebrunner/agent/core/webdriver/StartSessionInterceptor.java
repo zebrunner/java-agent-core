@@ -107,7 +107,7 @@ public class StartSessionInterceptor {
                 Capabilities zebrunnerCapabilities = RemoteWebDriverFactory.getCapabilities();
 
                 if (!zebrunnerCapabilities.asMap().isEmpty()) {
-                    log.info("Capabilities will be modified with the values provided from Zebrunner.");
+                    log.debug("Capabilities will be modified with the values provided from Zebrunner.");
 
                     capabilities = capabilities.merge(zebrunnerCapabilities);
                     argument1Field.set(methodInvocationProxy, capabilities);
