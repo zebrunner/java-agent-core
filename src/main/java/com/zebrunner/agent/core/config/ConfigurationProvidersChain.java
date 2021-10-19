@@ -140,7 +140,7 @@ class ConfigurationProvidersChain {
 
     private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
         if (config.getNotification() == null) {
-            config.setNotification(new ReportingConfiguration.NotificationConfiguration(null, null, null));
+            config.setNotification(new ReportingConfiguration.NotificationConfiguration(null, null, null, null));
         } else {
             ReportingConfiguration.NotificationConfiguration notificationConfig = config.getNotification();
 
@@ -176,14 +176,6 @@ class ConfigurationProvidersChain {
             config.setProjectKey(providedConfig.getProjectKey());
         }
 
-        ReportingConfiguration.MilestoneConfiguration milestone = config.getMilestone();
-        if (milestone.getId() == null) {
-            milestone.setId(providedConfig.getMilestone().getId());
-        }
-        if (milestone.getName() == null) {
-            milestone.setName(providedConfig.getMilestone().getName());
-        }
-
         ReportingConfiguration.ServerConfiguration server = config.getServer();
         if (server.getHostname() == null) {
             server.setHostname(providedConfig.getServer().getHostname());
@@ -212,19 +204,26 @@ class ConfigurationProvidersChain {
             run.setSubstituteRemoteWebDrivers(providedConfig.getRun().getSubstituteRemoteWebDrivers());
         }
 
-        String slackChannels = providedConfig.getNotification().getSlackChannels();
-        if (slackChannels != null && !slackChannels.isEmpty()) {
-            config.getNotification().setSlackChannels(slackChannels);
+        ReportingConfiguration.NotificationConfiguration notification = config.getNotification();
+        if (notification.getNotifyOnEachFailure() == null) {
+            notification.setNotifyOnEachFailure(providedConfig.getNotification().getNotifyOnEachFailure());
+        }
+        if (notification.getSlackChannels() == null) {
+            notification.setSlackChannels(providedConfig.getNotification().getSlackChannels());
+        }
+        if (notification.getMsTeamsChannels() == null) {
+            notification.setMsTeamsChannels(providedConfig.getNotification().getMsTeamsChannels());
+        }
+        if (notification.getEmails() == null) {
+            notification.setEmails(providedConfig.getNotification().getEmails());
         }
 
-        String msTeamsChannels = providedConfig.getNotification().getMsTeamsChannels();
-        if (msTeamsChannels != null && !msTeamsChannels.isEmpty()) {
-            config.getNotification().setMsTeamsChannels(msTeamsChannels);
+        ReportingConfiguration.MilestoneConfiguration milestone = config.getMilestone();
+        if (milestone.getId() == null) {
+            milestone.setId(providedConfig.getMilestone().getId());
         }
-
-        String emails = providedConfig.getNotification().getEmails();
-        if (emails != null && !emails.isEmpty()) {
-            config.getNotification().setEmails(emails);
+        if (milestone.getName() == null) {
+            milestone.setName(providedConfig.getMilestone().getName());
         }
 
     }
@@ -239,15 +238,19 @@ class ConfigurationProvidersChain {
 
     private static boolean areAllArgsSet(ReportingConfiguration config) {
         Boolean enabled = config.getReportingEnabled();
+
         String projectKey = config.getProjectKey();
         String hostname = config.getServer().getHostname();
         String accessToken = config.getServer().getAccessToken();
+
         String displayName = config.getRun().getDisplayName();
         String build = config.getRun().getBuild();
         String environment = config.getRun().getEnvironment();
         String context = config.getRun().getContext();
         Boolean retryKnownIssues = config.getRun().getRetryKnownIssues();
         Boolean substituteRemoteWebDrivers = config.getRun().getSubstituteRemoteWebDrivers();
+
+        Boolean notifyOnEachFailure = config.getNotification().getNotifyOnEachFailure();
         String slackChannels = config.getNotification().getSlackChannels();
         String msTeamsChannels = config.getNotification().getMsTeamsChannels();
         String emails = config.getNotification().getEmails();
@@ -257,7 +260,7 @@ class ConfigurationProvidersChain {
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null && context != null
                 && retryKnownIssues != null && substituteRemoteWebDrivers != null
-                && slackChannels != null && msTeamsChannels != null && emails != null;
+                && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null;
     }
 
 }

@@ -63,7 +63,10 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                ConfigurationHolder.getMilestoneId(),
                                                ConfigurationHolder.getMilestoneName()
                                        ))
-                                       .notificationTargets(collectNotificationTargets())
+                                       .notifications(new TestRunDTO.Notifications(
+                                               collectNotificationTargets(),
+                                               ConfigurationHolder.shouldNotifyOnEachFailure()
+                                       ))
                                        .build();
         testRun = apiClient.registerTestRunStart(testRun);
 

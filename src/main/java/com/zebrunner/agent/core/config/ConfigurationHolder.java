@@ -95,6 +95,11 @@ public class ConfigurationHolder {
         return new Gson().toJson(runContext);
     }
 
+    public static boolean shouldNotifyOnEachFailure() {
+        Boolean notifyOnEachFailure = configuration.getNotification().getNotifyOnEachFailure();
+        return notifyOnEachFailure != null && notifyOnEachFailure;
+    }
+
     public static String getSlackChannels() {
         return configuration.getNotification().getSlackChannels();
     }

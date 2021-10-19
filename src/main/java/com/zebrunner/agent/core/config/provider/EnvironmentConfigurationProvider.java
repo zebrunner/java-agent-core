@@ -22,6 +22,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     private static final String RUN_RETRY_KNOWN_ISSUES_VARIABLE = "REPORTING_RUN_RETRY_KNOWN_ISSUES";
     private static final String RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_VARIABLE = "REPORTING_RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS";
 
+    private static final String NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE = "REPORTING_NOTIFICATION_NOTIFY_ON_EACH_FAILURE";
     private static final String NOTIFICATION_SLACK_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_SLACK_CHANNELS";
     private static final String NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE = "REPORTING_NOTIFICATION_MS_TEAMS_CHANNELS";
     private static final String NOTIFICATION_EMAILS = "REPORTING_NOTIFICATION_EMAILS";
@@ -32,18 +33,23 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     @Override
     public ReportingConfiguration getConfiguration() {
         String enabled = System.getenv(ENABLED_VARIABLE);
-        String projectKey = System.getenv(PROJECT_KEY_VARIABLE);
+
         String hostname = System.getenv(HOSTNAME_VARIABLE);
         String accessToken = System.getenv(ACCESS_TOKEN_VARIABLE);
+        String projectKey = System.getenv(PROJECT_KEY_VARIABLE);
+
         String displayName = System.getenv(RUN_DISPLAY_NAME_VARIABLE);
         String build = System.getenv(RUN_BUILD_VARIABLE);
         String environment = System.getenv(RUN_ENVIRONMENT_VARIABLE);
         String runContext = System.getenv(RUN_CONTEXT_VARIABLE);
         Boolean runRetryKnownIssues = parseBoolean(System.getenv(RUN_RETRY_KNOWN_ISSUES_VARIABLE));
         Boolean substituteRemoteWebDrivers = parseBoolean(System.getenv(RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_VARIABLE));
+
+        Boolean notifyOnEachFailure = parseBoolean(System.getenv(NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE));
         String slackChannels = System.getenv(NOTIFICATION_SLACK_CHANNELS_VARIABLE);
         String msTeamsChannels = System.getenv(NOTIFICATION_MS_TEAMS_CHANNELS_VARIABLE);
         String emails = System.getenv(NOTIFICATION_EMAILS);
+
         Long milestoneId = ConfigurationUtils.parseLong(System.getenv(MILESTONE_ID_VARIABLE));
         String milestoneName = System.getenv(MILESTONE_NAME_VARIABLE);
 
@@ -64,7 +70,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
                                              milestoneId, milestoneName
                                      ))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(
-                                             slackChannels, msTeamsChannels, emails
+                                             notifyOnEachFailure, slackChannels, msTeamsChannels, emails
                                      ))
                                      .build();
     }

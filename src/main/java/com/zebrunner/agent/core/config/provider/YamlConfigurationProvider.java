@@ -30,6 +30,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_RETRY_KNOWN_ISSUES_PROPERTY = "reporting.run.retry-known-issues";
     private final static String RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY = "reporting.run.substitute-remote-web-drivers";
 
+    private static final String NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE = "reporting.notification.notify-on-each-failure";
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
@@ -45,18 +46,23 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         Map<String, Object> yamlProperties = loadYaml();
 
         String enabled = getProperty(yamlProperties, ENABLED_PROPERTY);
+
         String projectKey = getProperty(yamlProperties, PROJECT_KEY_PROPERTY);
         String hostname = getProperty(yamlProperties, HOSTNAME_PROPERTY);
         String accessToken = getProperty(yamlProperties, ACCESS_TOKEN_PROPERTY);
+
         String displayName = getProperty(yamlProperties, RUN_DISPLAY_NAME_PROPERTY);
         String build = getProperty(yamlProperties, RUN_BUILD_PROPERTY);
         String environment = getProperty(yamlProperties, RUN_ENVIRONMENT_PROPERTY);
         String runContext = getProperty(yamlProperties, RUN_CONTEXT_PROPERTY);
         Boolean runRetryKnownIssues = parseBoolean(getProperty(yamlProperties, RUN_RETRY_KNOWN_ISSUES_PROPERTY));
         Boolean substituteRemoteWebDrivers = parseBoolean(getProperty(yamlProperties, RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY));
+
+        Boolean notifyOnEachFailure = parseBoolean(System.getenv(NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE));
         String slackChannels = getProperty(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = getProperty(yamlProperties, NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY);
         String emails = getProperty(yamlProperties, NOTIFICATION_EMAILS_PROPERTY);
+
         Long milestoneId = parseLong(getProperty(yamlProperties, MILESTONE_ID_PROPERTY));
         String milestoneName = getProperty(yamlProperties, MILESTONE_NAME_PROPERTY);
 
@@ -77,7 +83,7 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
                                              milestoneId, milestoneName
                                      ))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(
-                                             slackChannels, msTeamsChannels, emails
+                                             notifyOnEachFailure, slackChannels, msTeamsChannels, emails
                                      ))
                                      .build();
     }

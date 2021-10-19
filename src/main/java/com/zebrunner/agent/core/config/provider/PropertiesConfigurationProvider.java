@@ -26,6 +26,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_RETRY_KNOWN_ISSUES_PROPERTY = "reporting.run.retry-known-issues";
     private final static String RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY = "reporting.run.substitute-remote-web-drivers";
 
+    private static final String NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE = "reporting.notification.notify-on-each-failure";
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String NOTIFICATION_MS_TEAMS_PROPERTY = "reporting.notification.ms-teams-channels";
     private final static String NOTIFICATION_EMAILS_PROPERTY = "reporting.notification.emails";
@@ -40,18 +41,23 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         Properties agentProperties = loadProperties();
 
         String enabled = agentProperties.getProperty(ENABLED_PROPERTY);
-        String projectKey = agentProperties.getProperty(PROJECT_KEY_PROPERTY);
+
         String hostname = agentProperties.getProperty(HOSTNAME_PROPERTY);
         String accessToken = agentProperties.getProperty(ACCESS_TOKEN_PROPERTY);
+        String projectKey = agentProperties.getProperty(PROJECT_KEY_PROPERTY);
+
         String displayName = agentProperties.getProperty(RUN_DISPLAY_NAME_PROPERTY);
         String build = agentProperties.getProperty(RUN_BUILD_PROPERTY);
         String environment = agentProperties.getProperty(RUN_ENVIRONMENT_PROPERTY);
         String runContext = agentProperties.getProperty(RUN_CONTEXT_PROPERTY);
         Boolean runRetryKnownIssues = parseBoolean(System.getenv(RUN_RETRY_KNOWN_ISSUES_PROPERTY));
         Boolean substituteRemoteWebDrivers = parseBoolean(System.getenv(RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY));
+
+        Boolean notifyOnEachFailure = parseBoolean(System.getenv(NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE));
         String slackChannels = agentProperties.getProperty(NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = agentProperties.getProperty(NOTIFICATION_MS_TEAMS_PROPERTY);
         String emails = agentProperties.getProperty(NOTIFICATION_EMAILS_PROPERTY);
+
         Long milestoneId = ConfigurationUtils.parseLong(System.getenv(MILESTONE_ID_PROPERTY));
         String milestoneName = agentProperties.getProperty(MILESTONE_NAME_PROPERTY);
 
@@ -72,7 +78,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
                                              milestoneId, milestoneName
                                      ))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(
-                                             slackChannels, msTeamsChannels, emails
+                                             notifyOnEachFailure, slackChannels, msTeamsChannels, emails
                                      ))
                                      .build();
     }
