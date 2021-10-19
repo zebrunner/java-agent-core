@@ -139,7 +139,7 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerHeadlessTestStart(String id, TestStartDescriptor ts) {
-        if (RunContext.getCurrentTest().isPresent()) { // we should not register the same headless test twice
+        if (!RunContext.getCurrentTest().isPresent()) { // we should not register the same headless test twice
             TestDTO test = TestDTO.builder()
                                   .name(ts.getName())
                                   .startedAt(ts.getStartedAt())
@@ -222,12 +222,12 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerAfterTestStart() {
-        RunContext.restorePreviousCompletedTest();
+        RunContext.startAfterMethod();
     }
 
     @Override
     public void registerAfterTestFinish() {
-        RunContext.completeCurrentTest();
+        RunContext.finishAfterMethod();
     }
 
     @Override

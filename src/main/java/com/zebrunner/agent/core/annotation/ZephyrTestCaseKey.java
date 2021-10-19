@@ -7,16 +7,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(JiraReference.List.class)
-@Target({ElementType.METHOD, ElementType.TYPE})
-public @interface JiraReference {
+@Repeatable(ZephyrTestCaseKey.List.class)
+@Target({ElementType.METHOD})
+public @interface ZephyrTestCaseKey {
 
     String[] value();
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.METHOD, ElementType.TYPE})
+    @Target({ElementType.METHOD})
     @interface List {
-        JiraReference[] value();
+        ZephyrTestCaseKey[] value();
     }
 
 }

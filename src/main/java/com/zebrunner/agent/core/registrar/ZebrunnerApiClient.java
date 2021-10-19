@@ -51,7 +51,6 @@ class ZebrunnerApiClient {
             authToken = authData.getAuthTokenType() + " " + authData.getAuthToken();
 
             Config config = client.config();
-            config.verifySsl(false); // temporarily disable
             config.addDefaultHeader(HeaderNames.AUTHORIZATION, authToken);
         }
     }
@@ -92,6 +91,7 @@ class ZebrunnerApiClient {
 
     private UnirestInstance initClient() {
         Config config = new Config();
+        config.addDefaultHeader("Connection", "close");
         config.addDefaultHeader("Content-Type", "application/json");
         config.addDefaultHeader("Accept", "application/json");
         config.setObjectMapper(new ObjectMapperImpl());

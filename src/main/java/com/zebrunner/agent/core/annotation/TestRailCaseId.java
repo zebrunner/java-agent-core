@@ -7,16 +7,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(TestRailReference.List.class)
-@Target({ElementType.METHOD, ElementType.TYPE})
-public @interface TestRailReference {
+@Repeatable(TestRailCaseId.List.class)
+@Target({ElementType.METHOD})
+public @interface TestRailCaseId {
 
     String[] value();
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.METHOD, ElementType.TYPE})
+    @Target({ElementType.METHOD})
     @interface List {
-        TestRailReference[] value();
+        TestRailCaseId[] value();
     }
 
 }
