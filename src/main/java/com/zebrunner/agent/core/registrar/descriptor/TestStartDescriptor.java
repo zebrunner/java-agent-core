@@ -56,8 +56,13 @@ public class TestStartDescriptor {
      */
     private final Method testMethod;
 
-    public TestStartDescriptor(String uuid, String name, Class<?> testClass, Method testMethod) {
-        this(uuid, name, OffsetDateTime.now(), testClass, testMethod);
+    /**
+     * Index of the arguments passed into test method. If test method does not accept arguments, null value should be provided
+     */
+    private final Integer argumentsIndex;
+
+    public TestStartDescriptor(String uuid, String name, Class<?> testClass, Method testMethod, Integer argumentsIndex) {
+        this(uuid, name, OffsetDateTime.now(), testClass, testMethod, argumentsIndex);
     }
 
 }

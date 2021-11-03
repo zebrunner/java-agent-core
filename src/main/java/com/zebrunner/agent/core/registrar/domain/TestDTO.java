@@ -21,10 +21,10 @@ public class TestDTO {
     private String correlationData;
     private String className;
     private String methodName;
+    private Integer argumentsIndex;
     private OffsetDateTime startedAt;
     private OffsetDateTime endedAt;
     private String maintainer;
-    private String testCase;
     private List<LabelDTO> labels;
     private List<ArtifactReferenceDTO> artifactReferences;
     private String result;

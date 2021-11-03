@@ -171,6 +171,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .name(ts.getName())
                               .className(ts.getTestClass().getName())
                               .methodName(ts.getTestMethod().getName())
+                              .argumentsIndex(ts.getArgumentsIndex())
                               .maintainer(maintainerResolver.resolve(ts.getTestClass(), ts.getTestMethod()))
                               .startedAt(ts.getStartedAt())
                               .labels(labelResolver.resolve(ts.getTestClass(), ts.getTestMethod()))
