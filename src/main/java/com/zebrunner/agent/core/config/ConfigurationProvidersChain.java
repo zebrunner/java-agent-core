@@ -16,7 +16,7 @@ import java.util.List;
 class ConfigurationProvidersChain {
 
     private static final ConfigurationProvidersChain INSTANCE = new ConfigurationProvidersChain();
-    private static final String DEFAULT_PROJECT = "UNKNOWN";
+    private static final String DEFAULT_PROJECT = "DEF";
 
     public static ConfigurationProvidersChain getInstance() {
         return INSTANCE;
