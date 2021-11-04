@@ -28,7 +28,7 @@ public class TestRunDTO {
     private Milestone milestone;
     private JenkinsContext jenkinsContext;
     private CiContextDTO ciContext;
-    private Set<NotificationTargetDTO> notificationTargets;
+    private Notifications notifications;
     private Metadata metadata;
 
     @Value
@@ -61,6 +61,14 @@ public class TestRunDTO {
         Integer jobNumber;
         String parentJobUrl;
         Integer parentJobNumber;
+
+    }
+
+    @Value
+    public static class Notifications {
+
+        Set<NotificationTargetDTO> targets;
+        boolean notifyOnEachFailure;
 
     }
 

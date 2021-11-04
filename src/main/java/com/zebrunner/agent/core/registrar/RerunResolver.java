@@ -44,14 +44,13 @@ final class RerunResolver {
         ExchangeRunContextResponse response = apiClient.exchangeRerunCondition(rerunCondition);
 
         if (response != null) {
-            if (!response.isRunExists() && response.isRerunOnlyFailedTests()) {
-                throw new TestAgentException("You cannot rerun failed tests because there is no test run with given ci run id in Zebrunner");
+            if (!response.isRunAllowed()) {
+                throw new TestAgentException(response.getReason());
             }
 
-            ciRunId = response.getId();
-
-            if (response.isRunExists()) {
-                List<TestDTO> tests = response.getTests();
+            ciRunId = response.getTestRunUuid();
+            if (response.isRunOnlySpecificTests()) {
+                List<TestDTO> tests = response.getTestsToRun();
                 RerunContextHolder.setTests(tests);
 
                 for (RerunListener listener : AgentListenerHolder.getRerunListeners()) {

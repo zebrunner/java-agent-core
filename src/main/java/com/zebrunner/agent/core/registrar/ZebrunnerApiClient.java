@@ -10,6 +10,7 @@ import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
 import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
+import com.zebrunner.agent.core.registrar.domain.TestRunPlatform;
 import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
 import kong.unirest.Config;
 import kong.unirest.ContentType;
@@ -126,6 +127,19 @@ class ZebrunnerApiClient {
 
             if (!response.isSuccess()) {
                 throw new ServerException(formatErrorMessage("Could not patch build of the test run.", response));
+            }
+        }
+    }
+
+    void setTestRunPlatform(Long testRunId, String platformName, String platformVersion) {
+        if (client != null) {
+            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/platform"))
+                                                  .routeParam("testRunId", testRunId.toString())
+                                                  .body(new TestRunPlatform(platformName, platformVersion))
+                                                  .asString();
+
+            if (!response.isSuccess()) {
+                throw new ServerException(formatErrorMessage("Could not set platform of the test run.", response));
             }
         }
     }

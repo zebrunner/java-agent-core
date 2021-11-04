@@ -27,4 +27,19 @@ public class CurrentTestRun {
         Label.attachToTestRun(Label.LOCALE, locale);
     }
 
+    public static void setPlatform(String name) {
+        setPlatform(name, null);
+    }
+
+    public static void setPlatform(String name, String version) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new TestAgentException("Test Run platform name must not be empty.");
+        }
+
+        Long runId = RunContext.getZebrunnerRunId();
+        if (runId != null) {
+            API_CLIENT.setTestRunPlatform(runId, name, version);
+        }
+    }
+
 }
