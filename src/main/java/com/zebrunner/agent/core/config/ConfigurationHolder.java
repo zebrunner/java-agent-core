@@ -82,18 +82,28 @@ public class ConfigurationHolder {
 
     private static String toSerializedRunContext(String ciRunId) {
         Map<String, Object> runContext = new HashMap<>();
-        runContext.put("testRunUuid", ciRunId);
-        runContext.put("mode", "LEGACY");
+        runContext.put("id", ciRunId);
         if ("true".equalsIgnoreCase(System.getProperty("rerun_failures"))) {
-            Map<String, Object> rerunCriteria = new HashMap<>();
-            rerunCriteria.put("anyOfStatuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED"));
-            rerunCriteria.put("knownIssue", false);
-
-            runContext.put("rerunCriteria", rerunCriteria);
-            runContext.put("mode", "RERUN");
+            runContext.put("rerunOnlyFailures", true);
+            runContext.put("statuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED", "IN_PROGRESS"));
         }
         return new Gson().toJson(runContext);
     }
+
+//    private static String toSerializedRunContext(String ciRunId) {
+//        Map<String, Object> runContext = new HashMap<>();
+//        runContext.put("testRunUuid", ciRunId);
+//        runContext.put("mode", "LEGACY");
+//        if ("true".equalsIgnoreCase(System.getProperty("rerun_failures"))) {
+//            Map<String, Object> rerunCriteria = new HashMap<>();
+//            rerunCriteria.put("anyOfStatuses", Arrays.asList("FAILED", "SKIPPED", "ABORTED"));
+//            rerunCriteria.put("knownIssue", false);
+//
+//            runContext.put("rerunCriteria", rerunCriteria);
+//            runContext.put("mode", "RERUN");
+//        }
+//        return new Gson().toJson(runContext);
+//    }
 
     public static boolean shouldNotifyOnEachFailure() {
         Boolean notifyOnEachFailure = configuration.getNotification().getNotifyOnEachFailure();
