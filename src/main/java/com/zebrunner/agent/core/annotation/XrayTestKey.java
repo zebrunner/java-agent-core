@@ -6,15 +6,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 @Repeatable(XrayTestKey.List.class)
-@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
 public @interface XrayTestKey {
 
     String[] value();
 
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
-    @Target({ElementType.METHOD})
     @interface List {
         XrayTestKey[] value();
     }

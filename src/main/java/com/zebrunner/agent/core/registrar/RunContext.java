@@ -29,8 +29,8 @@ class RunContext {
         return testRun;
     }
 
-    static Map<String, TestDescriptor> getTests() {
-        return TESTS;
+    static boolean hasTests() {
+        return !TESTS.isEmpty();
     }
 
     static Long getZebrunnerRunId() {

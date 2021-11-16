@@ -34,8 +34,8 @@ public final class Xray {
     }
 
     private static void verifyTestsStart() {
-        if (RunContext.getTests().size() > 0) {
-            throw new TestAgentException("Xray test run labels can't be modified after the start of tests");
+        if (RunContext.hasTests()) {
+            throw new TestAgentException("The Xray configuration must be provided before start of tests. Hint: move the configuration to the code block which is executed before all tests.");
         }
     }
 
