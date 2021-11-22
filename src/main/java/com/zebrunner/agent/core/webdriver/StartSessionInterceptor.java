@@ -78,7 +78,7 @@ public class StartSessionInterceptor {
     }
 
     private static Object getFieldValue(Object targetObject, String fieldName) throws NoSuchFieldException, IllegalAccessException {
-        Field remoteServer = targetObject.getClass().getDeclaredField(fieldName);
+        Field remoteServer = findField(targetObject.getClass(), fieldName);
         remoteServer.setAccessible(true);
         Object value = remoteServer.get(targetObject);
         remoteServer.setAccessible(false);
@@ -86,10 +86,22 @@ public class StartSessionInterceptor {
     }
 
     private static void setFieldValue(Object targetObject, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
-        Field remoteServer = targetObject.getClass().getDeclaredField(fieldName);
+        Field remoteServer = findField(targetObject.getClass(), fieldName);
         remoteServer.setAccessible(true);
         remoteServer.set(targetObject, value);
         remoteServer.setAccessible(false);
+    }
+
+    private static Field findField(Class<?> targetClass, String fieldName) throws NoSuchFieldException {
+        try {
+            return targetClass.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            Class<?> superclass = targetClass.getSuperclass();
+            if (superclass != Object.class) {
+                return findField(superclass, fieldName);
+            }
+            throw e;
+        }
     }
 
     private static Capabilities mergeZebrunnerCapabilities(Runnable methodInvocationProxy, Capabilities capabilities) {
