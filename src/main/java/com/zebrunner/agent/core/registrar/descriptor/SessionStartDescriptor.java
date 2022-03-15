@@ -20,6 +20,7 @@ public class SessionStartDescriptor {
     private Instant startedAt;
     private String sessionId;
     private Map<String, Object> capabilities;
+    private String failureReason;
 
     public static SessionStartDescriptor initiatedWith(Map<String, Object> desiredCapabilities) {
         return new SessionStartDescriptor(desiredCapabilities);
@@ -32,8 +33,9 @@ public class SessionStartDescriptor {
         this.capabilities = capabilities;
     }
 
-    public void failedToStart() {
+    public void failedToStart(String failureReason) {
         this.status = TestSessionDTO.Status.FAILED;
+        this.failureReason = failureReason;
     }
 
 }

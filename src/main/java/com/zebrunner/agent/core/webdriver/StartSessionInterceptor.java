@@ -13,6 +13,8 @@ import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.internal.OkHttpClient;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.net.URL;
 
@@ -43,7 +45,9 @@ public class StartSessionInterceptor {
 
             startDescriptor.successfullyStartedWith(sessionId, driver.getCapabilities().asMap());
         } catch (Exception e) {
-            startDescriptor.failedToStart();
+            StringWriter errorMessageStringWriter = new StringWriter();
+            e.printStackTrace(new PrintWriter(errorMessageStringWriter));
+            startDescriptor.failedToStart(errorMessageStringWriter.toString());
             throw e;
         } finally {
             REGISTRAR.registerStart(startDescriptor);
