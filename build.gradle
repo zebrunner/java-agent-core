@@ -18,7 +18,7 @@ dependencies {
 
     implementation("org.slf4j:slf4j-api:1.7.30")
     compileOnly("log4j:log4j:1.2.17")
-    compileOnly("org.apache.logging.log4j:log4j-core:2.13.2")
+    compileOnly("org.apache.logging.log4j:log4j-core:2.17.1")
     compileOnly("ch.qos.logback:logback-classic:1.2.3")
 
     annotationProcessor("org.projectlombok:lombok:1.18.10")
