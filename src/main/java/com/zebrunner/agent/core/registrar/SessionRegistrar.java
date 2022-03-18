@@ -34,6 +34,7 @@ class SessionRegistrar implements TestSessionRegistrar {
                                                    .startedAt(startDescriptor.getStartedAt())
                                                    .status(startDescriptor.getStatus())
                                                    .capabilities(startDescriptor.getCapabilities())
+                                                   .failureReason(startDescriptor.getFailureReason())
                                                    .desiredCapabilities(startDescriptor.getDesiredCapabilities())
                                                    .build();
 

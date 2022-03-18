@@ -25,6 +25,7 @@ public class TestSessionDTO {
     private Object capabilities;
     @Builder.Default
     private Set<Long> testIds = new HashSet<>();
+    private String failureReason;
 
     public enum Status {
 
