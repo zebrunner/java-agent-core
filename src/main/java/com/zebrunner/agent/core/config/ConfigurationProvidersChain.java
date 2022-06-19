@@ -122,6 +122,29 @@ class ConfigurationProvidersChain {
             if (context != null && context.trim().isEmpty()) {
                 runConfig.setContext(null);
             }
+
+            normalizeRunTestCaseStatus(runConfig);
+        }
+    }
+
+    private static void normalizeRunTestCaseStatus(ReportingConfiguration.RunConfiguration runConfiguration) {
+        ReportingConfiguration.RunConfiguration.TestCaseStatus testCaseStatus = runConfiguration.getTestCaseStatus();
+        if (testCaseStatus == null) {
+            runConfiguration.setTestCaseStatus(new ReportingConfiguration.RunConfiguration.TestCaseStatus());
+        } else {
+            String onPass = testCaseStatus.getOnPass();
+            String onFail = testCaseStatus.getOnFail();
+            String onSkip = testCaseStatus.getOnSkip();
+
+            if (onPass != null && onPass.trim().isEmpty()) {
+                testCaseStatus.setOnPass(null);
+            }
+            if (onFail != null && onFail.trim().isEmpty()) {
+                testCaseStatus.setOnFail(null);
+            }
+            if (onSkip != null && onSkip.trim().isEmpty()) {
+                testCaseStatus.setOnSkip(null);
+            }
         }
     }
 
@@ -204,6 +227,17 @@ class ConfigurationProvidersChain {
             run.setSubstituteRemoteWebDrivers(providedConfig.getRun().getSubstituteRemoteWebDrivers());
         }
 
+        ReportingConfiguration.RunConfiguration.TestCaseStatus testCaseStatus = run.getTestCaseStatus();
+        if (testCaseStatus.getOnPass() == null) {
+            testCaseStatus.setOnPass(providedConfig.getRun().getTestCaseStatus().getOnPass());
+        }
+        if (testCaseStatus.getOnFail() == null) {
+            testCaseStatus.setOnFail(providedConfig.getRun().getTestCaseStatus().getOnFail());
+        }
+        if (testCaseStatus.getOnSkip() == null) {
+            testCaseStatus.setOnSkip(providedConfig.getRun().getTestCaseStatus().getOnSkip());
+        }
+
         ReportingConfiguration.NotificationConfiguration notification = config.getNotification();
         if (notification.getNotifyOnEachFailure() == null) {
             notification.setNotifyOnEachFailure(providedConfig.getNotification().getNotifyOnEachFailure());
@@ -250,6 +284,10 @@ class ConfigurationProvidersChain {
         Boolean retryKnownIssues = config.getRun().getRetryKnownIssues();
         Boolean substituteRemoteWebDrivers = config.getRun().getSubstituteRemoteWebDrivers();
 
+        String testCaseStatusOnPass = config.getRun().getTestCaseStatus().getOnPass();
+        String testCaseStatusOnFail = config.getRun().getTestCaseStatus().getOnFail();
+        String testCaseStatusOnSkip = config.getRun().getTestCaseStatus().getOnSkip();
+
         Boolean notifyOnEachFailure = config.getNotification().getNotifyOnEachFailure();
         String slackChannels = config.getNotification().getSlackChannels();
         String msTeamsChannels = config.getNotification().getMsTeamsChannels();
@@ -260,6 +298,7 @@ class ConfigurationProvidersChain {
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null && context != null
                 && retryKnownIssues != null && substituteRemoteWebDrivers != null
+                && testCaseStatusOnPass != null && testCaseStatusOnFail != null && testCaseStatusOnSkip != null
                 && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null;
     }
 

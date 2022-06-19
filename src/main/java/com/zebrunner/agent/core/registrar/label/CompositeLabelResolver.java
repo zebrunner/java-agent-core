@@ -17,9 +17,6 @@ public final class CompositeLabelResolver implements LabelResolver {
     static {
         addResolver(new TestLabelResolver());
         addResolver(new PriorityLabelResolver());
-        addResolver(new XrayTestKeyLabelResolver());
-        addResolver(new TestRailCaseIdLabelResolver());
-        addResolver(new ZephyrTestCaseKeyLabelResolver());
     }
 
     public static void addResolver(LabelResolver labelResolver) {

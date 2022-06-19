@@ -40,6 +40,7 @@ class ReportingRegistrar implements TestRunRegistrar {
     private final ChainedMaintainerResolver maintainerResolver = new ChainedMaintainerResolver();
     private final CiContextResolver ciContextResolver = CompositeCiContextResolver.getInstance();
     private final TestSessionRegistrar testSessionRegistrar = TestSessionRegistrar.getInstance();
+    private final RegistrationListenerRegistry registrationListenerRegistry = RegistrationListenerRegistry.getInstance();
 
     @Override
     public void registerStart(TestRunStartDescriptor tr) {
@@ -49,24 +50,24 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        .framework(tr.getFramework())
                                        .startedAt(tr.getStartedAt())
                                        .config(new TestRunDTO.Config(
-                                               ConfigurationHolder.getRunEnvironment(),
-                                               ConfigurationHolder.getRunBuild()
-                                       ))
+                                         ConfigurationHolder.getRunEnvironment(),
+                                         ConfigurationHolder.getRunBuild()
+                                 ))
                                        .jenkinsContext(new TestRunDTO.JenkinsContext(
-                                               System.getProperty("ci_url"),
-                                               getIntegerSystemProperty("ci_build"),
-                                               System.getProperty("ci_parent_url"),
-                                               getIntegerSystemProperty("ci_parent_build")
-                                       ))
+                                         System.getProperty("ci_url"),
+                                         getIntegerSystemProperty("ci_build"),
+                                         System.getProperty("ci_parent_url"),
+                                         getIntegerSystemProperty("ci_parent_build")
+                                 ))
                                        .ciContext(ciContextResolver.resolve())
                                        .milestone(new TestRunDTO.Milestone(
-                                               ConfigurationHolder.getMilestoneId(),
-                                               ConfigurationHolder.getMilestoneName()
-                                       ))
+                                         ConfigurationHolder.getMilestoneId(),
+                                         ConfigurationHolder.getMilestoneName()
+                                 ))
                                        .notifications(new TestRunDTO.Notifications(
-                                               collectNotificationTargets(),
-                                               ConfigurationHolder.shouldNotifyOnEachFailure()
-                                       ))
+                                         collectNotificationTargets(),
+                                         ConfigurationHolder.shouldNotifyOnEachFailure()
+                                 ))
                                        .build();
         testRun = apiClient.registerTestRunStart(testRun);
 
@@ -166,6 +167,8 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerTestStart(String id, TestStartDescriptor ts) {
+        registrationListenerRegistry.forEach(listener -> listener.onBeforeTestStart(ts));
+
         TestDTO test = TestDTO.builder()
                               .correlationData(ts.getCorrelationData())
                               .name(ts.getName())
@@ -194,6 +197,7 @@ class ReportingRegistrar implements TestRunRegistrar {
             TestDescriptor testDescriptor = TestDescriptor.create(test.getId(), ts);
             RunContext.addCurrentTest(id, testDescriptor);
             testSessionRegistrar.linkAllCurrentToTest(test.getId());
+            registrationListenerRegistry.forEach(listener -> listener.onAfterTestStart(ts));
         }
     }
 
@@ -211,6 +215,8 @@ class ReportingRegistrar implements TestRunRegistrar {
     public void registerTestFinish(String id, TestFinishDescriptor tf) {
         TestDescriptor test = RunContext.getTest(id);
         if (test != null) {
+            registrationListenerRegistry.forEach(listener -> listener.onBeforeTestFinish(tf));
+
             TestDTO result = TestDTO.builder()
                                     .id(test.getZebrunnerId())
                                     .result(tf.getStatus().name())
@@ -220,6 +226,7 @@ class ReportingRegistrar implements TestRunRegistrar {
 
             apiClient.registerTestFinish(RunContext.getZebrunnerRunId(), result);
 
+            registrationListenerRegistry.forEach(listener -> listener.onAfterTestFinish(tf));
             RunContext.completeTest(id, tf);
         }
     }

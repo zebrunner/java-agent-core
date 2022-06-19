@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AuthDataDTO {
+public class AutenticationData {
 
     private Integer userId;
 

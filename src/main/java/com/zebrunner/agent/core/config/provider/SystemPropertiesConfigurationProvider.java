@@ -5,8 +5,6 @@ import com.zebrunner.agent.core.config.ConfigurationUtils;
 import com.zebrunner.agent.core.config.ReportingConfiguration;
 import com.zebrunner.agent.core.exception.TestAgentException;
 
-import static com.zebrunner.agent.core.config.ConfigurationUtils.parseBoolean;
-
 public class SystemPropertiesConfigurationProvider implements ConfigurationProvider {
 
     private final static String ENABLED_PROPERTY = "reporting.enabled";
@@ -21,6 +19,9 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
     private final static String RUN_CONTEXT_PROPERTY = "reporting.run.context";
     private final static String RUN_RETRY_KNOWN_ISSUES_PROPERTY = "reporting.run.retryKnownIssues";
     private final static String RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY = "reporting.run.substituteRemoteWebDrivers";
+    private final static String RUN_TEST_CASE_STATUS_ON_PASS_PROPERTY = "reporting.run.test-case-status.on-pass";
+    private final static String RUN_TEST_CASE_STATUS_ON_FAIL_PROPERTY = "reporting.run.test-case-status.on-fail";
+    private final static String RUN_TEST_CASE_STATUS_ON_SKIP_PROPERTY = "reporting.run.test-case-status.on-skip";
 
     private static final String NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE = "reporting.notification.notify-on-each-failure";
     private final static String SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
@@ -42,15 +43,18 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         String build = System.getProperty(RUN_BUILD_PROPERTY);
         String environment = System.getProperty(RUN_ENVIRONMENT_PROPERTY);
         String runContext = System.getProperty(RUN_CONTEXT_PROPERTY);
-        Boolean runRetryKnownIssues = parseBoolean(System.getenv(RUN_RETRY_KNOWN_ISSUES_PROPERTY));
-        Boolean substituteRemoteWebDrivers = parseBoolean(System.getenv(RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY));
+        Boolean runRetryKnownIssues = ConfigurationUtils.parseBoolean(System.getProperty(RUN_RETRY_KNOWN_ISSUES_PROPERTY));
+        Boolean substituteRemoteWebDrivers = ConfigurationUtils.parseBoolean(System.getProperty(RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY));
+        String testCaseStatusOnPass = System.getProperty(RUN_TEST_CASE_STATUS_ON_PASS_PROPERTY);
+        String testCaseStatusOnFail = System.getProperty(RUN_TEST_CASE_STATUS_ON_FAIL_PROPERTY);
+        String testCaseStatusOnSkip = System.getProperty(RUN_TEST_CASE_STATUS_ON_SKIP_PROPERTY);
 
-        Boolean notifyOnEachFailure = parseBoolean(System.getenv(NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE));
+        Boolean notifyOnEachFailure = ConfigurationUtils.parseBoolean(System.getProperty(NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE));
         String slackChannels = System.getProperty(SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = System.getProperty(MS_TEAMS_CHANNELS_PROPERTY);
         String emails = System.getProperty(EMAILS_PROPERTY);
 
-        Long milestoneId = ConfigurationUtils.parseLong(System.getenv(MILESTONE_ID_PROPERTY));
+        Long milestoneId = ConfigurationUtils.parseLong(System.getProperty(MILESTONE_ID_PROPERTY));
         String milestoneName = System.getProperty(MILESTONE_NAME_PROPERTY);
 
         if (enabled != null && !"true".equalsIgnoreCase(enabled) && !"false".equalsIgnoreCase(enabled)) {
@@ -64,7 +68,10 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
                                              hostname, accessToken
                                      ))
                                      .run(new ReportingConfiguration.RunConfiguration(
-                                             displayName, build, environment, runContext, runRetryKnownIssues, substituteRemoteWebDrivers
+                                             displayName, build, environment, runContext, runRetryKnownIssues, substituteRemoteWebDrivers,
+                                             new ReportingConfiguration.RunConfiguration.TestCaseStatus(
+                                                     testCaseStatusOnPass, testCaseStatusOnFail, testCaseStatusOnSkip
+                                             )
                                      ))
                                      .milestone(new ReportingConfiguration.MilestoneConfiguration(
                                              milestoneId, milestoneName

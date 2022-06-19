@@ -80,6 +80,18 @@ public class ConfigurationHolder {
         return substituteRemoteWebDrivers != null && substituteRemoteWebDrivers;
     }
 
+    public static String getTestCaseStatusOnPass() {
+        return configuration.getRun().getTestCaseStatus().getOnPass();
+    }
+
+    public static String getTestCaseStatusOnFail() {
+        return configuration.getRun().getTestCaseStatus().getOnFail();
+    }
+
+    public static String getTestCaseStatusOnSkip() {
+        return configuration.getRun().getTestCaseStatus().getOnSkip();
+    }
+
     private static String toSerializedRunContext(String ciRunId) {
         Map<String, Object> runContext = new HashMap<>();
         runContext.put("id", ciRunId);
