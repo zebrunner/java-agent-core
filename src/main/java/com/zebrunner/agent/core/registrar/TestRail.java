@@ -1,10 +1,13 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.exception.TestAgentException;
+import com.zebrunner.agent.core.registrar.domain.TcmType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TestRail {
@@ -23,7 +26,7 @@ public final class TestRail {
     public static final String MILESTONE = "com.zebrunner.app/tcm.testrail.milestone";
     public static final String ASSIGNEE = "com.zebrunner.app/tcm.testrail.assignee";
 
-    public static final String CASE_ID = "com.zebrunner.app/tcm.testrail.case-id";
+    private static final TestCasesRegistry TEST_CASES_REGISTRY = TestCasesRegistry.getInstance();
 
     public static void disableSync() {
         verifyTestsStart();
@@ -67,14 +70,50 @@ public final class TestRail {
         Label.attachToTestRun(ASSIGNEE, assignee);
     }
 
-    public static void setCaseId(String testCaseId) {
-        Label.attachToTest(CASE_ID, testCaseId);
-    }
-
     private static void verifyTestsStart() {
         if (RunContext.hasTests()) {
             throw new TestAgentException("The TestRail configuration must be provided before start of tests. Hint: move the configuration to the code block which is executed before all tests.");
         }
+    }
+
+    /**
+     * Use {@link #setTestCaseId(String)} method instead of this on.
+     * <p>
+     * Will be removed in 1.8.0 version of the agent.
+     */
+    @Deprecated
+    public static void setCaseId(String testCaseId) {
+        setTestCaseId(testCaseId);
+    }
+
+    public static void setTestCaseId(String testCaseId) {
+        TEST_CASES_REGISTRY.addTestCasesToCurrentTest(TcmType.TEST_RAIL, Collections.singleton(testCaseId));
+    }
+
+    /**
+     * Sets the given status for the given test case in TestRail run.
+     * <p>
+     * If you need to use a custom status, contact your TestRail administrator to get the correct system name for your desired status.
+     *
+     * @param testCaseId   TestRail id of the test case. Can be either a regular number or a number with the letter 'C' at the begging.
+     * @param resultStatus system name (not labels!) of the status to be set for the test case
+     * @see SystemTestCaseStatus
+     */
+    public static void setTestCaseStatus(String testCaseId, String resultStatus) {
+        TEST_CASES_REGISTRY.setCurrentTestTestCaseStatus(TcmType.TEST_RAIL, testCaseId, resultStatus);
+    }
+
+    /**
+     * This class contains names (not labels!) of the TestRail system test case result statuses.
+     */
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    public static class SystemTestCaseStatus {
+
+        public static final String PASSED = "passed";
+        public static final String BLOCKED = "blocked";
+        public static final String RETEST = "retest";
+        public static final String FAILED = "failed";
+
     }
 
 }

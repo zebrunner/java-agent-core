@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.zebrunner.agent.core.config.ConfigurationUtils.parseBoolean;
 import static com.zebrunner.agent.core.config.ConfigurationUtils.parseLong;
 
 public class YamlConfigurationProvider implements ConfigurationProvider {
@@ -29,6 +28,9 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String RUN_CONTEXT_PROPERTY = "reporting.run.context";
     private final static String RUN_RETRY_KNOWN_ISSUES_PROPERTY = "reporting.run.retry-known-issues";
     private final static String RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY = "reporting.run.substitute-remote-web-drivers";
+    private final static String RUN_TEST_CASE_STATUS_ON_PASS_PROPERTY = "reporting.run.test-case-status.on-pass";
+    private final static String RUN_TEST_CASE_STATUS_ON_FAIL_PROPERTY = "reporting.run.test-case-status.on-fail";
+    private final static String RUN_TEST_CASE_STATUS_ON_SKIP_PROPERTY = "reporting.run.test-case-status.on-skip";
 
     private static final String NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE = "reporting.notification.notify-on-each-failure";
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
@@ -55,10 +57,13 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String build = getProperty(yamlProperties, RUN_BUILD_PROPERTY);
         String environment = getProperty(yamlProperties, RUN_ENVIRONMENT_PROPERTY);
         String runContext = getProperty(yamlProperties, RUN_CONTEXT_PROPERTY);
-        Boolean runRetryKnownIssues = parseBoolean(getProperty(yamlProperties, RUN_RETRY_KNOWN_ISSUES_PROPERTY));
-        Boolean substituteRemoteWebDrivers = parseBoolean(getProperty(yamlProperties, RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY));
+        Boolean runRetryKnownIssues = ConfigurationUtils.parseBoolean(getProperty(yamlProperties, RUN_RETRY_KNOWN_ISSUES_PROPERTY));
+        Boolean substituteRemoteWebDrivers = ConfigurationUtils.parseBoolean(getProperty(yamlProperties, RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_PROPERTY));
+        String testCaseStatusOnPass = getProperty(yamlProperties, RUN_TEST_CASE_STATUS_ON_PASS_PROPERTY);
+        String testCaseStatusOnFail = getProperty(yamlProperties, RUN_TEST_CASE_STATUS_ON_FAIL_PROPERTY);
+        String testCaseStatusOnSkip = getProperty(yamlProperties, RUN_TEST_CASE_STATUS_ON_SKIP_PROPERTY);
 
-        Boolean notifyOnEachFailure = parseBoolean(System.getenv(NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE));
+        Boolean notifyOnEachFailure = ConfigurationUtils.parseBoolean(System.getenv(NOTIFICATION_NOTIFY_ON_EACH_FAILURE_VARIABLE));
         String slackChannels = getProperty(yamlProperties, NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = getProperty(yamlProperties, NOTIFICATION_MS_TEAMS_CHANNELS_PROPERTY);
         String emails = getProperty(yamlProperties, NOTIFICATION_EMAILS_PROPERTY);
@@ -77,7 +82,10 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
                                              hostname, accessToken
                                      ))
                                      .run(new ReportingConfiguration.RunConfiguration(
-                                             displayName, build, environment, runContext, runRetryKnownIssues, substituteRemoteWebDrivers
+                                             displayName, build, environment, runContext, runRetryKnownIssues, substituteRemoteWebDrivers,
+                                             new ReportingConfiguration.RunConfiguration.TestCaseStatus(
+                                                     testCaseStatusOnPass, testCaseStatusOnFail, testCaseStatusOnSkip
+                                             )
                                      ))
                                      .milestone(new ReportingConfiguration.MilestoneConfiguration(
                                              milestoneId, milestoneName

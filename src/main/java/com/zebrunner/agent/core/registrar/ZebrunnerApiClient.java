@@ -4,11 +4,13 @@ import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.exception.ServerException;
 import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.domain.ArtifactReferenceDTO;
-import com.zebrunner.agent.core.registrar.domain.AuthDataDTO;
+import com.zebrunner.agent.core.registrar.domain.AutenticationData;
 import com.zebrunner.agent.core.registrar.domain.ExchangeRunContextResponse;
+import com.zebrunner.agent.core.registrar.domain.KnownIssueConfirmation;
 import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
+import com.zebrunner.agent.core.registrar.domain.TestCaseResult;
 import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.registrar.domain.TestRunPlatform;
 import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
@@ -16,40 +18,34 @@ import kong.unirest.Config;
 import kong.unirest.ContentType;
 import kong.unirest.HeaderNames;
 import kong.unirest.HttpResponse;
-import kong.unirest.ObjectMapper;
+import kong.unirest.MimeTypes;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestInstance;
-import kong.unirest.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 class ZebrunnerApiClient {
-
-    private static final String SERVER_ERROR_MSG_FORMAT = "%s\nResponse status code: %d.\nRaw response body: \n%s";
-
-    private final static String REPORTING_ENDPOINT_FORMAT = "%s/api/reporting/v1/%s";
-    private final static String IAM_ENDPOINT_FORMAT = "%s/api/iam/%s";
 
     private static ZebrunnerApiClient INSTANCE;
 
     private String apiHost;
     private String authToken;
-    private ObjectMapper objectMapper;
     private volatile UnirestInstance client;
 
     private ZebrunnerApiClient() {
         if (ConfigurationHolder.isReportingEnabled()) {
             this.apiHost = ConfigurationHolder.getHost();
-            this.objectMapper = new ObjectMapperImpl();
-            this.client = initClient();
+            this.client = this.initClient();
 
-            AuthDataDTO authData = authenticateClient();
-            authToken = authData.getAuthTokenType() + " " + authData.getAuthToken();
+            this.authToken = this.authenticateClient();
 
             Config config = client.config();
             config.addDefaultHeader(HeaderNames.AUTHORIZATION, authToken);
@@ -63,367 +59,339 @@ class ZebrunnerApiClient {
         return INSTANCE;
     }
 
-    private AuthDataDTO authenticateClient() {
-        String refreshToken = ConfigurationHolder.getToken();
-        HttpResponse<String> response = client.post(iam("v1/auth/refresh"))
-                                              .body(Collections.singletonMap("refreshToken", refreshToken))
-                                              .asString();
-
-        if (!response.isSuccess()) {
-            // null out the api client since it we cannot use it anymore
-            client = null;
-
-            throw new ServerException(formatErrorMessage("Not able to refresh access token.", response));
-        }
-        return objectMapper.readValue(response.getBody(), AuthDataDTO.class);
-    }
-
-    private String formatErrorMessage(String message, HttpResponse<String> response) {
-        return String.format(SERVER_ERROR_MSG_FORMAT, message, response.getStatus(), response.getBody());
-    }
-
-    private String reporting(String endpointPath) {
-        return String.format(REPORTING_ENDPOINT_FORMAT, apiHost, endpointPath);
-    }
-
-    private String iam(String endpointPath) {
-        return String.format(IAM_ENDPOINT_FORMAT, apiHost, endpointPath);
-    }
-
     private UnirestInstance initClient() {
         Config config = new Config();
-        config.addDefaultHeader("Connection", "close");
-        config.addDefaultHeader("Content-Type", "application/json");
-        config.addDefaultHeader("Accept", "application/json");
+        config.addDefaultHeader(HeaderNames.CONNECTION, "close");
+        config.addDefaultHeader(HeaderNames.CONTENT_TYPE, MimeTypes.JSON);
+        config.addDefaultHeader(HeaderNames.ACCEPT, MimeTypes.JSON);
         config.setObjectMapper(new ObjectMapperImpl());
         return new UnirestInstance(config);
     }
 
-    TestRunDTO registerTestRunStart(TestRunDTO testRun) {
-        if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs"))
-                                                  .body(testRun)
-                                                  .queryString("projectKey", ConfigurationHolder.getProjectKey())
-                                                  .asString();
+    private String authenticateClient() {
+        String refreshToken = ConfigurationHolder.getToken();
+        HttpResponse<String> response = client.post(apiHost + "/api/iam/v1/auth/refresh")
+                                              .body(Collections.singletonMap("refreshToken", refreshToken))
+                                              .asObject(AutenticationData.class)
+                                              .map(authData -> authData.getAuthTokenType() + " " + authData.getAuthToken());
 
-            if (!response.isSuccess()) {
-                // null out the api client since it we cannot use it anymore
-                client = null;
-
-                throw new ServerException(formatErrorMessage("Could not register start of the test run.", response));
-            }
-            return objectMapper.readValue(response.getBody(), TestRunDTO.class);
-        } else {
-            return null;
+        if (!response.isSuccess()) {
+            // null out the api client since we cannot use it anymore
+            client = null;
+            this.throwServerException("Not able to obtain api token.", response);
         }
+        return response.getBody();
+    }
+
+    private String reportingAPI(String endpointPath) {
+        return String.format("%s/api/reporting%s", apiHost, endpointPath);
+    }
+
+    private String formatError(String message, HttpResponse<?> response) {
+        return String.format(
+                "%s\nResponse status code: %s.\nRaw response body: \n%s",
+                message, response.getStatus(), response.mapError(String.class)
+        );
+    }
+
+    private void throwServerException(String message, HttpResponse<?> response) {
+        throw new ServerException(this.formatError(message, response));
+    }
+
+    private <T> T sendRequest(Function<UnirestInstance, HttpResponse<T>> requestExecutor) {
+        if (client != null) {
+            try {
+                return requestExecutor.apply(client).getBody();
+            } catch (RuntimeException e) {
+                if (this.isConnectionResetException(e)) {
+                    return requestExecutor.apply(client).getBody();
+                }
+                throw e;
+            }
+        }
+        return null;
+    }
+
+    private void sendVoidRequest(Consumer<UnirestInstance> requestExecutor) {
+        if (client != null) {
+            try {
+                requestExecutor.accept(client);
+            } catch (RuntimeException e) {
+                if (this.isConnectionResetException(e)) {
+                    requestExecutor.accept(client);
+                }
+                throw e;
+            }
+        }
+    }
+
+    private boolean isConnectionResetException(Throwable e) {
+        do {
+            String message = e.getMessage();
+            if (message != null && message.toLowerCase().contains("connection reset")) {
+                return true;
+            }
+            e = e.getCause();
+        } while (e != null && e != e.getCause());
+
+        return false;
+    }
+
+    TestRunDTO registerTestRunStart(TestRunDTO testRun) {
+        return this.sendRequest(client ->
+                client.post(reportingAPI("/v1/test-runs"))
+                      .body(testRun)
+                      .queryString("projectKey", ConfigurationHolder.getProjectKey())
+                      .asObject(TestRunDTO.class)
+                      .ifFailure(response -> {
+                          // null out the api client since we cannot use it anymore
+                          this.client = null;
+                          this.throwServerException("Could not register start of the test run.", response);
+                      })
+        );
     }
 
     void patchTestRunBuild(Long testRunId, String build) {
-        if (client != null) {
-            HttpResponse<String> response = client.jsonPatch(reporting("test-runs/{testRunId}"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .replace("/config/build", build)
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not patch build of the test run.", response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.jsonPatch(reportingAPI("/v1/test-runs/{testRunId}"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .replace("/config/build", build)
+                      .asString()
+                      .ifFailure(response -> this.throwServerException("Could not patch build of the test run.", response))
+        );
     }
 
     void setTestRunPlatform(Long testRunId, String platformName, String platformVersion) {
-        if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/platform"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .body(new TestRunPlatform(platformName, platformVersion))
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not set platform of the test run.", response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.put(reportingAPI("/v1/test-runs/{testRunId}/platform"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .body(new TestRunPlatform(platformName, platformVersion))
+                      .asString()
+                      .ifFailure(response -> this.throwServerException("Could not set platform of the test run.", response))
+        );
     }
 
     void registerTestRunFinish(TestRunDTO testRun) {
-        if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}"))
-                                                  .body(testRun)
-                                                  .routeParam("testRunId", testRun.getId().toString())
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not register finish of the test run.", response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.put(reportingAPI("/v1/test-runs/{testRunId}"))
+                      .body(testRun)
+                      .routeParam("testRunId", testRun.getId().toString())
+                      .asString()
+                      .ifFailure(response -> this.throwServerException("Could not register finish of the test run.", response))
+        );
     }
 
     TestDTO registerTestStart(Long testRunId, TestDTO test, boolean headless) {
-        if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests"))
-                                                  .body(test)
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .queryString("headless", headless)
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not register start of the test.", response));
-            }
-            return objectMapper.readValue(response.getBody(), TestDTO.class);
-        } else {
-            return null;
-        }
+        return this.sendRequest(client ->
+                client.post(reportingAPI("/v1/test-runs/{testRunId}/tests"))
+                      .body(test)
+                      .routeParam("testRunId", testRunId.toString())
+                      .queryString("headless", headless)
+                      .asObject(TestDTO.class)
+                      .ifFailure(response -> this.throwServerException("Could not register start of the test.", response))
+        );
     }
 
     TestDTO registerTestRerunStart(Long testRunId, Long testId, TestDTO test, boolean headless) {
-        if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}"))
-                                                  .body(test)
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testId", testId.toString())
-                                                  .queryString("headless", headless)
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not register start of rerun of the test.", response));
-            }
-            return objectMapper.readValue(response.getBody(), TestDTO.class);
-        } else {
-            return null;
-        }
+        return this.sendRequest(client ->
+                client.post(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}"))
+                      .body(test)
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testId", testId.toString())
+                      .queryString("headless", headless)
+                      .asObject(TestDTO.class)
+                      .ifFailure(response -> this.throwServerException("Could not register start of rerun of the test.", response))
+        );
     }
 
     TestDTO registerHeadlessTestUpdate(Long testRunId, TestDTO test) {
-        if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testId", test.getId().toString())
-                                                  .queryString("headless", true)
-                                                  .body(test)
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not register start of the test.", response));
-            }
-            return objectMapper.readValue(response.getBody(), TestDTO.class);
-        } else {
-            return null;
-        }
+        return this.sendRequest(client ->
+                client.put(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testId", test.getId().toString())
+                      .queryString("headless", true)
+                      .body(test)
+                      .asObject(TestDTO.class)
+                      .ifFailure(response -> this.throwServerException("Could not register start of the test.", response))
+        );
     }
 
     void revertTestRegistration(Long testRunId, Long testId) {
-        if (client != null) {
-            HttpResponse<String> response = client.delete(reporting("test-runs/{testRunId}/tests/{testId}"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testId", testId.toString())
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not revert test registration.", response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.delete(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testId", testId.toString())
+                      .asString()
+                      .ifFailure(response -> this.throwServerException("Could not revert test registration.", response))
+        );
     }
 
     void registerTestFinish(Long testRunId, TestDTO test) {
-        if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/tests/{testId}"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testId", test.getId().toString())
-                                                  .queryString("headless", false)
-                                                  .body(test)
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not register finish of the test.", response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.put(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testId", test.getId().toString())
+                      .queryString("headless", false)
+                      .body(test)
+                      .asString()
+                      .ifFailure(response -> this.throwServerException("Could not register finish of the test.", response))
+        );
     }
 
     void sendLogs(Collection<Log> logs, Long testRunId) {
-        if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/logs"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .body(logs)
-                                                  .asString();
+        this.sendVoidRequest(client ->
+                client.post(reportingAPI("/v1/test-runs/{testRunId}/logs"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .body(logs)
+                      .asString()
+                      .ifFailure(response -> log.error(this.formatError("Could not send a batch of test logs.", response)))
+        );
+    }
 
-            if (!response.isSuccess()) {
-                log.error(formatErrorMessage("Could not send a batch of test logs.", response));
-            }
-        }
+    void upsertTestCaseResults(Long testRunId, Long testId, Collection<TestCaseResult> testCaseResults) {
+        this.sendVoidRequest(client ->
+                client.post(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}/test-cases:upsert"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testId", testId.toString())
+                      .body(Collections.singletonMap("testCases", testCaseResults))
+                      .asString()
+                      .ifFailure(response -> {
+                          if (response.getStatus() == 404) {
+                              log.warn("This functionality is not available for your Zebrunner distribution");
+                          } else {
+                              log.error(this.formatError("Could not send test case results.", response));
+                          }
+                      })
+        );
     }
 
     void uploadScreenshot(byte[] screenshot, Long testRunId, Long testId, Long capturedAt) {
-        if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/tests/{testId}/screenshots"))
-                                                  .headerReplace("Content-Type", ContentType.IMAGE_PNG.getMimeType())
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testId", testId.toString())
-                                                  .header("x-zbr-screenshot-captured-at", capturedAt.toString())
-                                                  .body(screenshot)
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                log.error(formatErrorMessage("Could not upload a screenshot.", response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.post(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}/screenshots"))
+                      .headerReplace("Content-Type", ContentType.IMAGE_PNG.getMimeType())
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testId", testId.toString())
+                      .header("x-zbr-screenshot-captured-at", capturedAt.toString())
+                      .body(screenshot)
+                      .asString()
+                      .ifFailure(response -> log.error(this.formatError("Could not upload a screenshot.", response)))
+        );
     }
 
     void uploadTestRunArtifact(InputStream artifact, String name, Long testRunId) {
-        if (client != null) {
-            HttpResponse<String> response = Unirest.post(reporting("test-runs/{testRunId}/artifacts"))
-                                                   .header(HeaderNames.AUTHORIZATION, authToken)
-                                                   .routeParam("testRunId", testRunId.toString())
-                                                   .field("file", artifact, name)
-                                                   .asString();
-
-            if (!response.isSuccess()) {
-                log.error(formatErrorMessage("Could not attach test run artifact with name " + name, response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                Unirest.post(reportingAPI("/v1/test-runs/{testRunId}/artifacts"))
+                       .header(HeaderNames.AUTHORIZATION, authToken)
+                       .routeParam("testRunId", testRunId.toString())
+                       .field("file", artifact, name)
+                       .asString()
+                       .ifFailure(response -> log.error(this.formatError("Could not attach test run artifact with name " + name, response)))
+        );
     }
 
     void uploadTestArtifact(InputStream artifact, String name, Long testRunId, Long testId) {
-        if (client != null) {
-            HttpResponse<String> response = Unirest.post(reporting("test-runs/{testRunId}/tests/{testId}/artifacts"))
-                                                   .header(HeaderNames.AUTHORIZATION, authToken)
-                                                   .routeParam("testRunId", testRunId.toString())
-                                                   .routeParam("testId", testId.toString())
-                                                   .field("file", artifact, name)
-                                                   .asString();
-
-            if (!response.isSuccess()) {
-                log.error(formatErrorMessage("Could not attach test artifact with name " + name, response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                Unirest.post(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}/artifacts"))
+                       .header(HeaderNames.AUTHORIZATION, authToken)
+                       .routeParam("testRunId", testRunId.toString())
+                       .routeParam("testId", testId.toString())
+                       .field("file", artifact, name)
+                       .asString()
+                       .ifFailure(response -> log.error(this.formatError("Could not attach test artifact with name " + name, response)))
+        );
     }
 
     void attachArtifactReferenceToTestRun(Long testRunId, ArtifactReferenceDTO artifactReference) {
-        if (client != null) {
-            List<ArtifactReferenceDTO> artifactReferences = Collections.singletonList(artifactReference);
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/artifact-references"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .body(Collections.singletonMap("items", artifactReferences))
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                log.error(formatErrorMessage(
-                        "Could not attach the following test run artifact reference: " + artifactReference,
-                        response
-                ));
-            }
-        }
+        Map<String, List<ArtifactReferenceDTO>> requestBody = Collections.singletonMap(
+                "items", Collections.singletonList(artifactReference)
+        );
+        this.sendVoidRequest(client ->
+                client.put(reportingAPI("/v1/test-runs/{testRunId}/artifact-references"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .body(Collections.singletonMap("items", requestBody))
+                      .asString()
+                      .ifFailure(response -> log.error(this.formatError(
+                              "Could not attach the following test run artifact reference: " + artifactReference,
+                              response
+                      )))
+        );
     }
 
     void attachArtifactReferenceToTest(Long testRunId, Long testId, ArtifactReferenceDTO artifactReference) {
-        if (client != null) {
-            List<ArtifactReferenceDTO> artifactReferences = Collections.singletonList(artifactReference);
-            HttpResponse<String> response = client
-                    .put(reporting("test-runs/{testRunId}/tests/{testId}/artifact-references"))
-                    .routeParam("testRunId", testRunId.toString())
-                    .routeParam("testId", testId.toString())
-                    .body(Collections.singletonMap("items", artifactReferences))
-                    .asString();
-
-            if (!response.isSuccess()) {
-                log.error(formatErrorMessage(
-                        "Could not attach the following test artifact reference: " + artifactReference,
-                        response
-                ));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.put(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}/artifact-references"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testId", testId.toString())
+                      .body(Collections.singletonMap("items", Collections.singletonList(artifactReference)))
+                      .asString()
+                      .ifFailure(response -> log.error(this.formatError(
+                              "Could not attach the following test artifact reference: " + artifactReference,
+                              response
+                      )))
+        );
     }
 
     void attachLabelsToTestRun(Long testRunId, Collection<LabelDTO> labels) {
-        if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/labels"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .body(Collections.singletonMap("items", labels))
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                log.error(formatErrorMessage("Could not attach the following labels to test run: " + labels, response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.put(reportingAPI("/v1/test-runs/{testRunId}/labels"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .body(Collections.singletonMap("items", labels))
+                      .asString()
+                      .ifFailure(response -> log.error(this.formatError("Could not attach the following labels to test run: " + labels, response)))
+        );
     }
 
     void attachLabelsToTest(Long testRunId, Long testId, Collection<LabelDTO> labels) {
-        if (client != null) {
-            HttpResponse<String> response = client
-                    .put(reporting("test-runs/{testRunId}/tests/{testId}/labels"))
-                    .routeParam("testRunId", testRunId.toString())
-                    .routeParam("testId", testId.toString())
-                    .body(Collections.singletonMap("items", labels))
-                    .asString();
-
-            if (!response.isSuccess()) {
-                log.error(formatErrorMessage("Could not attach the following labels to test: " + labels, response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.put(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}/labels"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testId", testId.toString())
+                      .body(Collections.singletonMap("items", labels))
+                      .asString()
+                      .ifFailure(response -> log.error(this.formatError("Could not attach the following labels to test: " + labels, response)))
+        );
     }
 
     ExchangeRunContextResponse exchangeRerunCondition(String rerunCondition) {
-        if (client != null) {
-            HttpResponse<String> response = client.post(reporting("run-context-exchanges"))
-                                                  .body(rerunCondition)
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not get tests by ci run id.", response));
-            }
-
-            return objectMapper.readValue(response.getBody(), ExchangeRunContextResponse.class);
-        } else {
-            return null;
-        }
+        return this.sendRequest(client ->
+                client.post(reportingAPI("/v1/run-context-exchanges"))
+                      .body(rerunCondition)
+                      .asObject(ExchangeRunContextResponse.class)
+                      .ifFailure(response -> this.throwServerException("Could not get tests by ci run id.", response))
+        );
     }
 
     TestSessionDTO startSession(Long testRunId, TestSessionDTO testSession) {
-        if (client != null) {
-            HttpResponse<String> response = client.post(reporting("test-runs/{testRunId}/test-sessions"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .body(testSession)
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not register start of the test session.", response));
-            }
-
-            return objectMapper.readValue(response.getBody(), TestSessionDTO.class);
-        } else {
-            return null;
-        }
+        return this.sendRequest(client ->
+                client.post(reportingAPI("/v1/test-runs/{testRunId}/test-sessions"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .body(testSession)
+                      .asObject(TestSessionDTO.class)
+                      .ifFailure(response -> this.throwServerException("Could not register start of the test session.", response))
+        );
     }
 
     void updateSession(Long testRunId, TestSessionDTO testSession) {
-        if (client != null) {
-            HttpResponse<String> response = client.put(reporting("test-runs/{testRunId}/test-sessions/{testSessionId}"))
-                                                  .routeParam("testRunId", testRunId.toString())
-                                                  .routeParam("testSessionId", testSession.getId().toString())
-                                                  .body(testSession)
-                                                  .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not update test session.", response));
-            }
-        }
+        this.sendVoidRequest(client ->
+                client.put(reportingAPI("/v1/test-runs/{testRunId}/test-sessions/{testSessionId}"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testSessionId", testSession.getId().toString())
+                      .body(testSession)
+                      .asString()
+                      .ifFailure(response -> this.throwServerException("Could not update test session.", response))
+        );
     }
 
     boolean isKnownIssueAttachedToTest(Long testRunId, Long testId, String failureStacktrace) {
-        if (client != null) {
-            HttpResponse<String> response = client
-                    .post(reporting("test-runs/{testRunId}/tests/{testId}/known-issue-confirmations"))
-                    .routeParam("testRunId", testRunId.toString())
-                    .routeParam("testId", testId.toString())
-                    .body(Collections.singletonMap("failureReason", failureStacktrace))
-                    .asString();
-
-            if (!response.isSuccess()) {
-                throw new ServerException(formatErrorMessage("Could not retrieve status of attached known issues.", response));
-            }
-
-            return new JSONObject(response.getBody()).getBoolean("knownIssue");
-        } else {
-            return false;
-        }
+        KnownIssueConfirmation confirmation = this.sendRequest(client ->
+                client.post(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}/known-issue-confirmations"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .routeParam("testId", testId.toString())
+                      .body(Collections.singletonMap("failureReason", failureStacktrace))
+                      .asObject(KnownIssueConfirmation.class)
+                      .ifFailure(response -> this.throwServerException("Could not retrieve status of attached known issues.", response))
+        );
+        return confirmation != null && confirmation.isKnownIssue();
     }
 
 }

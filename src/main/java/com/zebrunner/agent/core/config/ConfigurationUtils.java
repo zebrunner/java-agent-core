@@ -15,7 +15,7 @@ public class ConfigurationUtils {
     }
 
     public static Boolean parseBoolean(String property) {
-        if (property == null) {
+        if (property == null || !(property.equalsIgnoreCase("true") || property.equalsIgnoreCase("false"))) {
             return null;
         }
         return Boolean.valueOf(property);
