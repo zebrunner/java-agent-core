@@ -13,6 +13,8 @@ import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.internal.OkHttpClient;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.net.URL;
 
@@ -43,7 +45,9 @@ public class StartSessionInterceptor {
 
             startDescriptor.successfullyStartedWith(sessionId, driver.getCapabilities().asMap());
         } catch (Exception e) {
-            startDescriptor.failedToStart();
+            StringWriter errorMessageStringWriter = new StringWriter();
+            e.printStackTrace(new PrintWriter(errorMessageStringWriter));
+            startDescriptor.failedToStart(errorMessageStringWriter.toString());
             throw e;
         } finally {
             REGISTRAR.registerStart(startDescriptor);
@@ -78,7 +82,7 @@ public class StartSessionInterceptor {
     }
 
     private static Object getFieldValue(Object targetObject, String fieldName) throws NoSuchFieldException, IllegalAccessException {
-        Field remoteServer = targetObject.getClass().getDeclaredField(fieldName);
+        Field remoteServer = findField(targetObject.getClass(), fieldName);
         remoteServer.setAccessible(true);
         Object value = remoteServer.get(targetObject);
         remoteServer.setAccessible(false);
@@ -86,10 +90,22 @@ public class StartSessionInterceptor {
     }
 
     private static void setFieldValue(Object targetObject, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
-        Field remoteServer = targetObject.getClass().getDeclaredField(fieldName);
+        Field remoteServer = findField(targetObject.getClass(), fieldName);
         remoteServer.setAccessible(true);
         remoteServer.set(targetObject, value);
         remoteServer.setAccessible(false);
+    }
+
+    private static Field findField(Class<?> targetClass, String fieldName) throws NoSuchFieldException {
+        try {
+            return targetClass.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            Class<?> superclass = targetClass.getSuperclass();
+            if (superclass != Object.class) {
+                return findField(superclass, fieldName);
+            }
+            throw e;
+        }
     }
 
     private static Capabilities mergeZebrunnerCapabilities(Runnable methodInvocationProxy, Capabilities capabilities) {
