@@ -9,8 +9,8 @@ import com.zebrunner.agent.core.registrar.domain.ExchangeRunContextResponse;
 import com.zebrunner.agent.core.registrar.domain.KnownIssueConfirmation;
 import com.zebrunner.agent.core.registrar.domain.LabelDTO;
 import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
-import com.zebrunner.agent.core.registrar.domain.TestDTO;
 import com.zebrunner.agent.core.registrar.domain.TestCaseResult;
+import com.zebrunner.agent.core.registrar.domain.TestDTO;
 import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.registrar.domain.TestRunPlatform;
 import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
@@ -100,35 +100,32 @@ class ZebrunnerApiClient {
 
     private <T> T sendRequest(Function<UnirestInstance, HttpResponse<T>> requestExecutor) {
         if (client != null) {
-            try {
-                return requestExecutor.apply(client).getBody();
-            } catch (RuntimeException e) {
-                if (this.isConnectionResetException(e)) {
-                    return requestExecutor.apply(client).getBody();
-                }
-                throw e;
-            }
+            return RetryUtils.tryInvoke(
+                    () -> requestExecutor.apply(client).getBody(),
+                    this::isVolatileRecoverableException,
+                    3
+            );
         }
         return null;
     }
 
     private void sendVoidRequest(Consumer<UnirestInstance> requestExecutor) {
         if (client != null) {
-            try {
-                requestExecutor.accept(client);
-            } catch (RuntimeException e) {
-                if (this.isConnectionResetException(e)) {
-                    requestExecutor.accept(client);
-                }
-                throw e;
-            }
+            RetryUtils.tryInvoke(
+                    () -> requestExecutor.accept(client),
+                    this::isVolatileRecoverableException,
+                    3
+            );
         }
     }
 
-    private boolean isConnectionResetException(Throwable e) {
+    private boolean isVolatileRecoverableException(Throwable e) {
         do {
             String message = e.getMessage();
-            if (message != null && message.toLowerCase().contains("connection reset")) {
+            message = message != null
+                    ? message.toLowerCase()
+                    : "";
+            if (message.contains("connection reset") || message.contains("unable to find valid certification path")) {
                 return true;
             }
             e = e.getCause();
