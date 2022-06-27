@@ -305,7 +305,7 @@ class ZebrunnerApiClient {
         this.sendVoidRequest(client ->
                 client.put(reportingAPI("/v1/test-runs/{testRunId}/artifact-references"))
                       .routeParam("testRunId", testRunId.toString())
-                      .body(Collections.singletonMap("items", requestBody))
+                      .body(requestBody)
                       .asString()
                       .ifFailure(response -> log.error(this.formatError(
                               "Could not attach the following test run artifact reference: " + artifactReference,
