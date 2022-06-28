@@ -80,6 +80,11 @@ public class ConfigurationHolder {
         return substituteRemoteWebDrivers != null && substituteRemoteWebDrivers;
     }
 
+    public static boolean shouldTreatSkipsAsFailures() {
+        Boolean treatSkipsAsFailures = configuration.getRun().getTreatSkipsAsFailures();
+        return treatSkipsAsFailures == null || treatSkipsAsFailures;
+    }
+
     public static String getTestCaseStatusOnPass() {
         return configuration.getRun().getTestCaseStatus().getOnPass();
     }

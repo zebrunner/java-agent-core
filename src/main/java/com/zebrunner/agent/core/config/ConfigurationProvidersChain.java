@@ -226,6 +226,9 @@ class ConfigurationProvidersChain {
         if (run.getSubstituteRemoteWebDrivers() == null) {
             run.setSubstituteRemoteWebDrivers(providedConfig.getRun().getSubstituteRemoteWebDrivers());
         }
+        if (run.getTreatSkipsAsFailures() == null) {
+            run.setTreatSkipsAsFailures(providedConfig.getRun().getTreatSkipsAsFailures());
+        }
 
         ReportingConfiguration.RunConfiguration.TestCaseStatus testCaseStatus = run.getTestCaseStatus();
         if (testCaseStatus.getOnPass() == null) {
@@ -283,6 +286,7 @@ class ConfigurationProvidersChain {
         String context = config.getRun().getContext();
         Boolean retryKnownIssues = config.getRun().getRetryKnownIssues();
         Boolean substituteRemoteWebDrivers = config.getRun().getSubstituteRemoteWebDrivers();
+        Boolean treatSkipsAsFailures = config.getRun().getTreatSkipsAsFailures();
 
         String testCaseStatusOnPass = config.getRun().getTestCaseStatus().getOnPass();
         String testCaseStatusOnFail = config.getRun().getTestCaseStatus().getOnFail();
@@ -297,7 +301,7 @@ class ConfigurationProvidersChain {
                 && projectKey != null
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null && context != null
-                && retryKnownIssues != null && substituteRemoteWebDrivers != null
+                && retryKnownIssues != null && substituteRemoteWebDrivers != null && treatSkipsAsFailures != null
                 && testCaseStatusOnPass != null && testCaseStatusOnFail != null && testCaseStatusOnSkip != null
                 && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null;
     }
