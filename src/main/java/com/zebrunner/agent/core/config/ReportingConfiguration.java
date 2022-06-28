@@ -56,6 +56,7 @@ public class ReportingConfiguration {
         private String context;
         private Boolean retryKnownIssues;
         private Boolean substituteRemoteWebDrivers;
+        private Boolean treatSkipsAsFailures;
         private TestCaseStatus testCaseStatus = new TestCaseStatus();
 
         @Getter
