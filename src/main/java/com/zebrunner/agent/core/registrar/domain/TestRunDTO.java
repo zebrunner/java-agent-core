@@ -51,6 +51,7 @@ public class TestRunDTO {
 
         String environment;
         String build;
+        boolean treatSkipsAsFailures;
 
     }
 

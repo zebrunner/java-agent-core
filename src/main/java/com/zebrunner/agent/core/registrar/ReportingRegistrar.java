@@ -51,7 +51,8 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        .startedAt(tr.getStartedAt())
                                        .config(new TestRunDTO.Config(
                                          ConfigurationHolder.getRunEnvironment(),
-                                         ConfigurationHolder.getRunBuild()
+                                         ConfigurationHolder.getRunBuild(),
+                                         ConfigurationHolder.shouldTreatSkipsAsFailures()
                                  ))
                                        .jenkinsContext(new TestRunDTO.JenkinsContext(
                                          System.getProperty("ci_url"),

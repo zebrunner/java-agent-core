@@ -21,6 +21,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
     private static final String RUN_CONTEXT_VARIABLE = "REPORTING_RUN_CONTEXT";
     private static final String RUN_RETRY_KNOWN_ISSUES_VARIABLE = "REPORTING_RUN_RETRY_KNOWN_ISSUES";
     private static final String RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_VARIABLE = "REPORTING_RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS";
+    private static final String RUN_TREAT_SKIPS_AS_FAILURES_VARIABLE = "REPORTING_RUN_TREAT_SKIPS_AS_FAILURES";
     private static final String RUN_TEST_CASE_STATUS_ON_PASS_VARIABLE = "REPORTING_RUN_TEST_CASE_STATUS_ON_PASS";
     private static final String RUN_TEST_CASE_STATUS_ON_FAIL_VARIABLE = "REPORTING_RUN_TEST_CASE_STATUS_ON_FAIL";
     private static final String RUN_TEST_CASE_STATUS_ON_SKIP_VARIABLE = "REPORTING_RUN_TEST_CASE_STATUS_ON_SKIP";
@@ -47,6 +48,7 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
         String runContext = System.getenv(RUN_CONTEXT_VARIABLE);
         Boolean runRetryKnownIssues = parseBoolean(System.getenv(RUN_RETRY_KNOWN_ISSUES_VARIABLE));
         Boolean substituteRemoteWebDrivers = parseBoolean(System.getenv(RUN_SUBSTITUTE_REMOTE_WEB_DRIVERS_VARIABLE));
+        Boolean treatSkipsAsFailures = parseBoolean(System.getenv(RUN_TREAT_SKIPS_AS_FAILURES_VARIABLE));
         String testCaseStatusOnPass = System.getenv(RUN_TEST_CASE_STATUS_ON_PASS_VARIABLE);
         String testCaseStatusOnFail = System.getenv(RUN_TEST_CASE_STATUS_ON_FAIL_VARIABLE);
         String testCaseStatusOnSkip = System.getenv(RUN_TEST_CASE_STATUS_ON_SKIP_VARIABLE);
@@ -70,7 +72,8 @@ public class EnvironmentConfigurationProvider implements ConfigurationProvider {
                                              hostname, accessToken
                                      ))
                                      .run(new ReportingConfiguration.RunConfiguration(
-                                             displayName, build, environment, runContext, runRetryKnownIssues, substituteRemoteWebDrivers,
+                                             displayName, build, environment, runContext, runRetryKnownIssues,
+                                             substituteRemoteWebDrivers, treatSkipsAsFailures,
                                              new ReportingConfiguration.RunConfiguration.TestCaseStatus(
                                                      testCaseStatusOnPass, testCaseStatusOnFail, testCaseStatusOnSkip
                                              )
