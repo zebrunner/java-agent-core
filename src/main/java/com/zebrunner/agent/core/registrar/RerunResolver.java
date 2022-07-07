@@ -11,7 +11,6 @@ import java.util.List;
 
 final class RerunResolver {
 
-    private static String ciRunId;
     private static Boolean isRerun;
 
     synchronized static void resolve() {
@@ -21,10 +20,6 @@ final class RerunResolver {
         } else {
             isRerun = Boolean.FALSE;
         }
-    }
-
-    static String getCiRunId() {
-        return ciRunId;
     }
 
     static boolean isRerun() {
@@ -48,10 +43,11 @@ final class RerunResolver {
                 throw new TestAgentException("You cannot rerun failed tests because there is no test run with given ci run id in Zebrunner");
             }
 
-            ciRunId = response.getId();
+            RunContextHolder.setTestRunUuid(response.getId());
             if (response.isRunExists()) {
                 List<TestDTO> tests = response.getTests();
-                RerunContextHolder.setTests(tests);
+                RunContextHolder.setTests(tests);
+                RunContextHolder.setFullExecutionPlanContext(response.getFullExecutionPlanContext());
 
                 for (RerunListener listener : AgentListenerHolder.getRerunListeners()) {
                     listener.onRerun(tests);
