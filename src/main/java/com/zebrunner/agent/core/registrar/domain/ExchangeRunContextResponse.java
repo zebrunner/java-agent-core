@@ -13,6 +13,7 @@ public class ExchangeRunContextResponse {
     private boolean runExists;
     private boolean rerunOnlyFailedTests;
     private List<TestDTO> tests;
+    private String fullExecutionPlanContext;
 
 //    Before reverting
 //    private String testRunUuid;
