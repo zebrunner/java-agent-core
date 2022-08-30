@@ -10,6 +10,10 @@ public class CurrentTestRun {
 
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
 
+    /**
+     * This method returns Zebrunner Test Run id.
+     * @return if test run has not been reported yet - empty {@link Optional}, otherwise - {@link Optional} containing Zebrunner Test Run id.
+     */
     public static Optional<Long> getId() {
         return Optional.ofNullable(RunContext.getZebrunnerRunId());
     }
