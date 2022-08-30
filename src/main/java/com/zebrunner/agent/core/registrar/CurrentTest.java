@@ -4,10 +4,17 @@ import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.Optional;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CurrentTest {
 
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
+
+    public static Optional<Long> getId() {
+        return RunContext.getCurrentTest()
+                         .map(TestDescriptor::getZebrunnerId);
+    }
 
     public static void revertRegistration() {
         Long runId = RunContext.getZebrunnerRunId();

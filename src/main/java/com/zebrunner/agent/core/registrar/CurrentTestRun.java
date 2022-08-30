@@ -3,10 +3,16 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
+
 @Slf4j
 public class CurrentTestRun {
 
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
+
+    public static Optional<Long> getId() {
+        return Optional.ofNullable(RunContext.getZebrunnerRunId());
+    }
 
     public static void setBuild(String build) {
         if (build == null || build.trim().isEmpty()) {
