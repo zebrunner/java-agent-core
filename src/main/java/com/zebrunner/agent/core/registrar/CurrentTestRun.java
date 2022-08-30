@@ -3,10 +3,20 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.exception.TestAgentException;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Optional;
+
 @Slf4j
 public class CurrentTestRun {
 
     private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
+
+    /**
+     * This method returns Zebrunner Test Run id.
+     * @return if test run has not been reported yet - empty {@link Optional}, otherwise - {@link Optional} containing Zebrunner Test Run id.
+     */
+    public static Optional<Long> getId() {
+        return Optional.ofNullable(RunContext.getZebrunnerRunId());
+    }
 
     public static void setBuild(String build) {
         if (build == null || build.trim().isEmpty()) {
