@@ -9,13 +9,16 @@ import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.implementation.bind.annotation.This;
 import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.UsernameAndPassword;
 import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.remote.internal.OkHttpClient;
+import org.openqa.selenium.remote.http.ClientConfig;
+import org.openqa.selenium.remote.http.netty.NettyClient;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 @Slf4j
@@ -54,7 +57,7 @@ public class StartSessionInterceptor {
         }
     }
 
-    private static void substituteSeleniumHub(RemoteWebDriver driver) throws NoSuchFieldException, IllegalAccessException {
+    private static void substituteSeleniumHub(RemoteWebDriver driver) throws NoSuchFieldException, IllegalAccessException, URISyntaxException {
         URL seleniumHubUrl = RemoteWebDriverFactory.getSeleniumHubUrl();
         if (driver.getCommandExecutor() instanceof HttpCommandExecutor && seleniumHubUrl != null) {
             log.debug("Selenium Hub URL will be substituted by the value provided from Zebrunner.");
@@ -63,17 +66,17 @@ public class StartSessionInterceptor {
             setFieldValue(commandExecutor, "remoteServer", seleniumHubUrl);
 
             Object clientObject = getFieldValue(commandExecutor, "client");
-            if (clientObject instanceof OkHttpClient) {
-                setFieldValue(clientObject, "baseUrl", seleniumHubUrl);
-
+            if (clientObject instanceof NettyClient) {
                 String userInfo = seleniumHubUrl.getUserInfo();
                 if (userInfo != null && !userInfo.isEmpty()) {
                     String[] credentials = userInfo.split(":", 2);
                     String username = credentials[0];
-                    String password = credentials.length > 1 ? credentials[1] : null;
+                    String password = credentials.length > 1 ? credentials[1] : "";
 
-                    Object internalClientObject = getFieldValue(clientObject, "client");
-                    setFieldValue(internalClientObject, "authenticator", new BasicAuthenticator(username, password));
+                    ClientConfig clientConfig = ((ClientConfig) getFieldValue(clientObject, "config"))
+                            .baseUri(seleniumHubUrl.toURI())
+                            .authenticateAs(new UsernameAndPassword(username, password));
+                    setFieldValue(clientObject, "config", clientConfig);
                 }
             } else {
                 log.debug("Could not substitute address of remote selenium hub because of unknown http client.");
