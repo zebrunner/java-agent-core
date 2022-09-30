@@ -13,7 +13,7 @@ dependencies {
     implementation('com.konghq:unirest-java:3.13.10')
     implementation('org.yaml:snakeyaml:1.30')
 
-    implementation("net.bytebuddy:byte-buddy:1.10.18")
+    implementation("net.bytebuddy:byte-buddy:1.12.10")
     compileOnly('org.seleniumhq.selenium:selenium-remote-driver:4.4.0')
 
     implementation('org.slf4j:slf4j-api:1.7.36')
