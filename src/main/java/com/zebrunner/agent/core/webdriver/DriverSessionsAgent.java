@@ -24,6 +24,7 @@ import static net.bytebuddy.matcher.ElementMatchers.not;
 public class DriverSessionsAgent {
 
     private static final String REMOTE_WEB_DRIVER_CLASS_MAME = "org.openqa.selenium.remote.RemoteWebDriver";
+    private static final String APPIUM_WEB_DRIVER_CLASS_MAME = "io.appium.java_client.AppiumDriver";
 
     private static final String START_SESSION_METHOD_MAME = "startSession";
     private static final String QUIT_METHOD_MAME = "quit";
@@ -48,6 +49,11 @@ public class DriverSessionsAgent {
                     .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
                     .type(named(REMOTE_WEB_DRIVER_CLASS_MAME))
                     .transform((builder, type, classloader, module) -> addInterceptors(builder))
+                    // if ** <- AppiumDriver is created, then the startSession method in RemoteWebDriver is not called
+                    .type(named(APPIUM_WEB_DRIVER_CLASS_MAME))
+                    .transform((builder, type, classloader, module) ->
+                            builder.method(named(START_SESSION_METHOD_MAME))
+                                    .intercept(to(startSessionInterceptor())))
                     .installOn(instrumentation);
         } catch (Exception e) {
             log.error("Could not add interceptors for RemoteWebDriver", e);
