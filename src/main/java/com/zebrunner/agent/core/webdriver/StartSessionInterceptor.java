@@ -46,7 +46,7 @@ public class StartSessionInterceptor {
                 sessionId = sessionId.substring(32);
             }
 
-            startDescriptor.successfullyStartedWith(sessionId, driver.getCapabilities().asMap());
+            startDescriptor.successfullyStartedWith(sessionId, ((RemoteWebDriver)driver).getCapabilities().asMap());
         } catch (Exception e) {
             StringWriter errorMessageStringWriter = new StringWriter();
             e.printStackTrace(new PrintWriter(errorMessageStringWriter));
