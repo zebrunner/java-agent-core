@@ -22,6 +22,7 @@ public class RegistrationListenerRegistry {
         listeners.add(new TestRailCasesCollectingRegistrationListener());
         listeners.add(new XrayCasesCollectingRegistrationListener());
         listeners.add(new ZephyrCasesCollectingRegistrationListener());
+        listeners.add(new TestCasesCollectingRegistrationListener());
         listeners.add(new TestCaseStatusSubmittingRegistrationListener());
     }
 

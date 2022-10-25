@@ -18,7 +18,9 @@ public @interface TestLabel {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.TYPE})
     @interface List {
+
         TestLabel[] value();
+
     }
 
 }
