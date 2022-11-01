@@ -8,8 +8,8 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(ZephyrTestCaseKey.List.class)
-public @interface ZephyrTestCaseKey {
+@Repeatable(TestCaseKey.List.class)
+public @interface TestCaseKey {
 
     String[] value();
 
@@ -17,7 +17,7 @@ public @interface ZephyrTestCaseKey {
     @Retention(RetentionPolicy.RUNTIME)
     @interface List {
 
-        ZephyrTestCaseKey[] value();
+        TestCaseKey[] value();
 
     }
 

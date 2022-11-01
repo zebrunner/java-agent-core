@@ -4,6 +4,7 @@ public enum TcmType {
 
     TEST_RAIL,
     XRAY,
-    ZEPHYR
+    ZEPHYR,
+    ZEBRUNNER
 
 }
