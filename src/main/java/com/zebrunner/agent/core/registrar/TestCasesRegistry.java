@@ -41,6 +41,7 @@ class TestCasesRegistry {
         TCM_TYPE_TO_LABEL_KEY.put(TcmType.TEST_RAIL, "com.zebrunner.app/tcm.testrail.case-id");
         TCM_TYPE_TO_LABEL_KEY.put(TcmType.XRAY, "com.zebrunner.app/tcm.xray.test-key");
         TCM_TYPE_TO_LABEL_KEY.put(TcmType.ZEPHYR, "com.zebrunner.app/tcm.zephyr.test-case-key");
+        TCM_TYPE_TO_LABEL_KEY.put(TcmType.ZEBRUNNER, "com.zebrunner.app/tcm.zebrunner.test-case-key");
     }
 
     private final ZebrunnerApiClient zebrunnerApiClient = ZebrunnerApiClient.getInstance();

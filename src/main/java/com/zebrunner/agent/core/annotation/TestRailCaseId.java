@@ -16,7 +16,9 @@ public @interface TestRailCaseId {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @interface List {
+
         TestRailCaseId[] value();
+
     }
 
 }

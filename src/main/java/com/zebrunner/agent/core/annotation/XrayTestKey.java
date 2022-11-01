@@ -16,7 +16,9 @@ public @interface XrayTestKey {
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     @interface List {
+
         XrayTestKey[] value();
+
     }
 
 }
