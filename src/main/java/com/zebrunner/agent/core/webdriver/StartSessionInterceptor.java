@@ -20,6 +20,8 @@ import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class StartSessionInterceptor {
@@ -46,7 +48,21 @@ public class StartSessionInterceptor {
                 sessionId = sessionId.substring(32);
             }
 
-            startDescriptor.successfullyStartedWith(sessionId, driver.getCapabilities().asMap());
+            Capabilities driverCapabilities = driver.getCapabilities();
+            // ChromeDriver, ChromiumDriver, FirefoxDriver has its own capabilities, but at the current stage they are null,
+            // so we try to get capabilities from RemoteWebDriver forcibly
+            if (driverCapabilities == null) {
+                Field remoteWebDriverCapabilitiesField = getAllFieldsList(driver.getClass())
+                        .stream()
+                        .filter(field -> Capabilities.class.equals(field.getType()) &&
+                                RemoteWebDriver.class.equals(field.getDeclaringClass()))
+                        .findFirst()
+                        .orElseThrow(() -> new NoSuchFieldException("Cannot find RemoteWebDriver capabilities field"));
+                remoteWebDriverCapabilitiesField.setAccessible(true);
+                driverCapabilities = (Capabilities) remoteWebDriverCapabilitiesField.get(driver);
+            }
+
+            startDescriptor.successfullyStartedWith(sessionId, driverCapabilities.asMap());
         } catch (Exception e) {
             StringWriter errorMessageStringWriter = new StringWriter();
             e.printStackTrace(new PrintWriter(errorMessageStringWriter));
@@ -82,6 +98,22 @@ public class StartSessionInterceptor {
                 log.debug("Could not substitute address of remote selenium hub because of unknown http client.");
             }
         }
+    }
+
+    /**
+     * Get all fields from the given class and it's superclasses
+     */
+    private static List<Field> getAllFieldsList(final Class<?> cls) {
+        final List<Field> allFields = new ArrayList<>();
+        Class<?> currentClass = cls;
+        while (currentClass != null) {
+            final Field[] declaredFields = currentClass.getDeclaredFields();
+            for (final Field field : declaredFields) {
+                allFields.add(field);
+            }
+            currentClass = currentClass.getSuperclass();
+        }
+        return allFields;
     }
 
     private static Object getFieldValue(Object targetObject, String fieldName) throws NoSuchFieldException, IllegalAccessException {
