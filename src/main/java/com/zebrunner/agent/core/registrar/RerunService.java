@@ -23,7 +23,7 @@ public final class RerunService {
             return Collections.emptyList();
         }
 
-        ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
+        ZebrunnerApiClient apiClient = ClientRegistrar.getClient();
         ExchangeRunContextResponse response = apiClient.exchangeRerunCondition(fullExecutionPlanContext);
 
         List<TestDTO> tests = response.getTests();

@@ -8,7 +8,7 @@ import java.util.Optional;
 @Slf4j
 public class CurrentTestRun {
 
-    private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
+    private static final ZebrunnerApiClient API_CLIENT = ClientRegistrar.getClient();
 
     /**
      * This method returns Zebrunner Test Run id.

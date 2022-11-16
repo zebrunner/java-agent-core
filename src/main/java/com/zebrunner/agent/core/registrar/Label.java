@@ -15,7 +15,7 @@ public class Label {
 
     public static final String LOCALE = "com.zebrunner.app/sut.locale";
 
-    private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
+    private static final ZebrunnerApiClient API_CLIENT = ClientRegistrar.getClient();
 
     public static void attachToTestRun(String name, String... values) {
         Set<LabelDTO> labels = validateAndConvert(name, values);

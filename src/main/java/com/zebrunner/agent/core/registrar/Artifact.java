@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 public final class Artifact {
 
     private static final ExecutorService UPLOAD_EXECUTOR = Executors.newFixedThreadPool(8);
-    private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
+    private static final ZebrunnerApiClient API_CLIENT = ClientRegistrar.getClient();
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(Artifact::shutdown));
