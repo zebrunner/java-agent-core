@@ -1,24 +1,16 @@
 plugins {
     id "java-library"
-    id 'maven-publish'
 }
 
 group = 'com.zebrunner'
-version = "${version != 'unspecified' ? version : '1.7.0-SNAPSHOT'}"
+version = "${version != 'unspecified' ? version : '1.7.0'}"
 
 repositories {
     mavenCentral()
-    mavenLocal()
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
 }
 
 dependencies {
     implementation('com.konghq:unirest-java:3.13.10')
-    implementation('org.reflections:reflections:0.10.2')
     implementation('org.yaml:snakeyaml:1.30')
 
     implementation("net.bytebuddy:byte-buddy:1.12.10")
@@ -36,10 +28,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
-test {
-    useJUnitPlatform()
-}
-
 jar {
     manifest {
         attributes(
@@ -51,34 +39,4 @@ jar {
     }
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = 'agent-core'
-            from components.java
-            versionMapping {
-                usage('java-api') {
-                    fromResolutionOf('runtimeClasspath')
-                }
-                usage('java-runtime') {
-                    fromResolutionResult()
-                }
-            }
-        }
-    }
-    repositories {
-        maven {
-            // change URLs to point to your repos, e.g. http://my.org/repo
-            def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
-            def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-        }
-    }
-}
-
-javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
-    }
-}
-//apply from: 'publish-maven.gradle'
+apply from: 'publish-maven.gradle'
