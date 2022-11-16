@@ -39,6 +39,11 @@ public class ConfigurationHolder {
         return configuration.isReportingEnabled();
     }
 
+    // TODO 2022-11-15
+    public static String getClientClass() {
+        return configuration.getClientClass();
+    }
+
     public static String getProjectKey() {
         return configuration.getProjectKey();
     }

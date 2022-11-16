@@ -198,6 +198,10 @@ class ConfigurationProvidersChain {
         if (config.getProjectKey() == null) {
             config.setProjectKey(providedConfig.getProjectKey());
         }
+        //new
+        if (config.getClientClass() == null) {
+            config.setClientClass(providedConfig.getClientClass());
+        }
 
         ReportingConfiguration.ServerConfiguration server = config.getServer();
         if (server.getHostname() == null) {
