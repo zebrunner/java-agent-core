@@ -20,6 +20,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 
 @Slf4j
 public class StartSessionInterceptor {
@@ -46,7 +47,20 @@ public class StartSessionInterceptor {
                 sessionId = sessionId.substring(32);
             }
 
-            startDescriptor.successfullyStartedWith(sessionId, driver.getCapabilities().asMap());
+            Capabilities driverCapabilities = driver.getCapabilities();
+            // ChromeDriver, ChromiumDriver, FirefoxDriver has its own capabilities field, but at the current stage they are null,
+            // so we try to get capabilities from RemoteWebDriver forcibly
+            if (driverCapabilities == null) {
+                Field capabilitiesField = Arrays.stream(RemoteWebDriver.class.getDeclaredFields())
+                        .filter(field -> Capabilities.class.equals(field.getType()))
+                        .peek(field -> field.setAccessible(true))
+                        .findFirst()
+                        .orElseThrow(() -> new NoSuchFieldException("Cannot find RemoteWebDriver capabilities field"));
+
+                driverCapabilities = (Capabilities) capabilitiesField.get(driver);
+            }
+
+            startDescriptor.successfullyStartedWith(sessionId, driverCapabilities.asMap());
         } catch (Exception e) {
             StringWriter errorMessageStringWriter = new StringWriter();
             e.printStackTrace(new PrintWriter(errorMessageStringWriter));
