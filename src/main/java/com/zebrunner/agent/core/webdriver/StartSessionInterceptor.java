@@ -103,12 +103,12 @@ public class StartSessionInterceptor {
     /**
      * Get all fields from the given class and it's superclasses
      */
-    private static List<Field> getAllFieldsList(final Class<?> cls) {
-        final List<Field> allFields = new ArrayList<>();
+    private static List<Field> getAllFieldsList(Class<?> cls) {
+        List<Field> allFields = new ArrayList<>();
         Class<?> currentClass = cls;
         while (currentClass != null) {
-            final Field[] declaredFields = currentClass.getDeclaredFields();
-            for (final Field field : declaredFields) {
+            Field[] declaredFields = currentClass.getDeclaredFields();
+            for (Field field : declaredFields) {
                 allFields.add(field);
             }
             currentClass = currentClass.getSuperclass();
