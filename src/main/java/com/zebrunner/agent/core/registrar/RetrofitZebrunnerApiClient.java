@@ -6,7 +6,6 @@ import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.domain.*;
 
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.io.IOException;
@@ -27,16 +26,6 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
     private RetrofitZebrunnerApiClient() {
         if (ConfigurationHolder.isReportingEnabled()) {
             client = initClient();
-            Thread tokenThread = new Thread(this::setAuthData);
-            tokenThread.start();
-            try {
-                tokenThread.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            //setAutenticationData();
-            //setAuthData();
-            client = authenticateClient();
         }
     }
 
@@ -102,26 +91,6 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
         throw new ServerException(this.formatError(message, response));
     }
 
-    private void setAutenticationData() {
-        String refreshToken = ConfigurationHolder.getToken();
-        Call<AutenticationData> call = client.getAuthData(Collections.singletonMap("refreshToken", refreshToken));
-        call.enqueue(new Callback<AutenticationData>() {
-            @Override
-            public void onResponse(Call<AutenticationData> call, Response<AutenticationData> response) {
-                if (!response.isSuccessful()) {
-                    // null out the api client since we cannot use it anymore
-                    client = null;
-                    throw new ServerException("Not able to obtain api token");
-                }
-                token = response.body().getAuthToken();
-            }
-            @Override
-            public void onFailure(Call<AutenticationData> call, Throwable t) {
-                throw new RuntimeException(t);
-            }
-        });
-    }
-
     private void setAuthData() {
         String refreshToken = ConfigurationHolder.getToken();
         Call<AutenticationData> call = client.getAuthData(Collections.singletonMap("refreshToken", refreshToken));
@@ -140,9 +109,7 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     @Override
     public TestRunDTO registerTestRunStart(TestRunDTO testRun) {
-//        if(authData != null) {
-//            client = authenticateClient();
-//        }
+        addTokenToRequestIfEmpty();
         return this.sendRequest(client -> {
             Call<TestRunDTO> call = client.getTestRunDTO(testRun, ConfigurationHolder.getProjectKey());
             try {
@@ -171,6 +138,7 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     @Override
     public void registerTestRunFinish(TestRunDTO testRun) {
+        addTokenToRequestIfEmpty();
         this.sendVoidRequest(client -> {
             Call<String> call = client.callTestRunFinish(testRun, testRun.getId().toString());
             try {
@@ -186,6 +154,7 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     @Override
     public TestDTO registerTestStart(Long testRunId, TestDTO test, boolean headless) {
+        addTokenToRequestIfEmpty();
         return this.sendRequest(client -> {
             Call<TestDTO> call = client.getTestDTO(testRunId.toString(), headless, test);
             try {
@@ -219,6 +188,7 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     @Override
     public void registerTestFinish(Long testRunId, TestDTO test) {
+        addTokenToRequestIfEmpty();
         this.sendVoidRequest(client -> {
             Call<String> call = client.callTestFinish(testRunId.toString(), test.getId()
                                                                                 .toString(), false, test);
@@ -299,5 +269,11 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
     public boolean isKnownIssueAttachedToTest(Long testRunId, Long testId, String failureStacktrace) {
         System.out.println("isKnownIssueAttachedToTest");
         return false;
+    }
+    private void addTokenToRequestIfEmpty() {
+        if(token == null) {
+            setAuthData();
+            client = authenticateClient();
+        }
     }
 }
