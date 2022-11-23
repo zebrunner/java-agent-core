@@ -5,6 +5,8 @@ import com.zebrunner.agent.core.exception.ServerException;
 import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.domain.*;
 
+import kong.unirest.ContentType;
+import lombok.extern.slf4j.Slf4j;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -16,11 +18,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 
+@Slf4j
 public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     private static RetrofitZebrunnerApiClient INSTANCE;
     private volatile ApiClientService client;
-
     private volatile String token;
 
     private RetrofitZebrunnerApiClient() {
@@ -38,10 +40,6 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     private ApiClientService initClient() {
         return RetrofitServiceGenerator.createService(ApiClientService.class);
-    }
-
-    private ApiClientService authenticateClient() {
-        return RetrofitServiceGenerator.createService(ApiClientService.class,"Bearer " + token);
     }
 
     private String formatError(String message, Response<?> response) {
@@ -91,27 +89,11 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
         throw new ServerException(this.formatError(message, response));
     }
 
-    private void setAuthData() {
-        String refreshToken = ConfigurationHolder.getToken();
-        Call<AutenticationData> call = client.getAuthData(Collections.singletonMap("refreshToken", refreshToken));
-        try {
-            Response<AutenticationData> response = call.execute();
-            if (!response.isSuccessful()) {
-                // null out the api client since we cannot use it anymore
-                client = null;
-                this.throwServerException("Not able to obtain api token", response);
-            }
-            this.token = response.body().getAuthToken();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Override
     public TestRunDTO registerTestRunStart(TestRunDTO testRun) {
-        addTokenToRequestIfEmpty();
+        String token = this.obtainToken();
         return this.sendRequest(client -> {
-            Call<TestRunDTO> call = client.getTestRunDTO(testRun, ConfigurationHolder.getProjectKey());
+            Call<TestRunDTO> call = client.getTestRunDTO(token, testRun, ConfigurationHolder.getProjectKey());
             try {
                 Response<TestRunDTO> response = call.execute();
                 if (!response.isSuccessful()) {
@@ -126,21 +108,45 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
         });
     }
 
+    //TODO 2022-11-22
     @Override
     public void patchTestRunBuild(Long testRunId, String build) {
-        System.out.println("patchTestRunBuild");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.patchTestRunBuildCall(token, testRunId.toString(), Collections.singletonMap("/config/build", build));
+            try {
+                Response<String> response = call.execute();
+                if(!response.isSuccessful()) {
+                    this.throwServerException("Could not patch build of the test run.", response);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
+    //TODO 2022-11-22
     @Override
     public void setTestRunPlatform(Long testRunId, String platformName, String platformVersion) {
-        System.out.println("setTestRunPlatform");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.setTestRunPlatformCall(token, testRunId.toString(), new TestRunPlatform(platformName, platformVersion));
+            try {
+                Response<String> response = call.execute();
+                if(!response.isSuccessful()) {
+                    this.throwServerException("Could not set platform of the test run.", response);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public void registerTestRunFinish(TestRunDTO testRun) {
-        addTokenToRequestIfEmpty();
+        String token = obtainToken();
         this.sendVoidRequest(client -> {
-            Call<String> call = client.callTestRunFinish(testRun, testRun.getId().toString());
+            Call<String> call = client.testRunFinishCall(token, testRun, testRun.getId().toString());
             try {
                 Response<String> response = call.execute();
                 if (!response.isSuccessful()) {
@@ -154,9 +160,9 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     @Override
     public TestDTO registerTestStart(Long testRunId, TestDTO test, boolean headless) {
-        addTokenToRequestIfEmpty();
+        String token = obtainToken();
         return this.sendRequest(client -> {
-            Call<TestDTO> call = client.getTestDTO(testRunId.toString(), headless, test);
+            Call<TestDTO> call = client.getTestDTO(token, testRunId.toString(), headless, test);
             try {
                 Response<TestDTO> response = call.execute();
                 if (!response.isSuccessful()) {
@@ -171,27 +177,58 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     @Override
     public TestDTO registerTestRerunStart(Long testRunId, Long testId, TestDTO test, boolean headless) {
-        System.out.println("registerTestRerunStart");
-        return null;
+        return this.sendRequest(client -> {
+            Call<TestDTO> call = client.registerTestRerunStartCall(token, test, testRunId.toString(), testId.toString(), headless);
+            try {
+                Response<TestDTO> response = call.execute();
+                if(!response.isSuccessful()) {
+                    this.throwServerException("Could not register start of rerun of the test.", response);
+                }
+                return response;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public TestDTO registerHeadlessTestUpdate(Long testRunId, TestDTO test) {
-        System.out.println("registerHeadlessTestUpdate");
-        return null;
+        String token = obtainToken();
+        return this.sendRequest(client -> {
+            Call<TestDTO> call = client.headlessTestUpdateCall(token, testRunId.toString(), test.getId().toString(), true, test);
+            try {
+                Response<TestDTO> response = call.execute();
+                if(!response.isSuccessful()) {
+                    this.throwServerException("Could not register start of the test.", response);
+                }
+                return response;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public void revertTestRegistration(Long testRunId, Long testId) {
-        System.out.println("revertTestRegistration");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.revertTestRegistrationCall(token, testRunId.toString(), testId.toString());
+            try {
+                Response<String> response = call.execute();
+                if(!response.isSuccessful()) {
+                    this.throwServerException("Could not revert test registration.", response);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public void registerTestFinish(Long testRunId, TestDTO test) {
-        addTokenToRequestIfEmpty();
+        String token = obtainToken();
         this.sendVoidRequest(client -> {
-            Call<String> call = client.callTestFinish(testRunId.toString(), test.getId()
-                                                                                .toString(), false, test);
+            Call<String> call = client.testFinishCall(token, testRunId.toString(), test.getId().toString(), false, test);
             try {
                 Response<String> response = call.execute();
                 if (!response.isSuccessful()) {
@@ -205,17 +242,52 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     @Override
     public void sendLogs(Collection<Log> logs, Long testRunId) {
-        System.out.println("sendLogs");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.postLogs(token, testRunId.toString(), logs);
+            try {
+                Response<String> response = call.execute();
+                if(!response.isSuccessful()) {
+                    log.error(this.formatError("Could not send a batch of test logs.", response));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public void upsertTestCaseResults(Long testRunId, Long testId, Collection<TestCaseResult> testCaseResults) {
-        System.out.println("upsertTestCaseResults");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.upsertTestCaseResultsCall(token, testRunId.toString(), testId.toString(),
+                    Collections.singletonMap("testCases", testCaseResults));
+            try {
+                Response<String> response = call.execute();
+                if(response.code() == 404) {
+                    log.warn("This functionality is not available for your Zebrunner distribution");
+                } else {
+                    log.error(this.formatError("Could not send test case results.", response));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public void uploadScreenshot(byte[] screenshot, Long testRunId, Long testId, Long capturedAt) {
-        System.out.println("uploadScreenshot");
+        String token = obtainToken();
+        this.sendVoidRequest(client ->
+//                client.post(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}/screenshots"))
+//                        .headerReplace("Content-Type", ContentType.IMAGE_PNG.getMimeType())
+//                        .routeParam("testRunId", testRunId.toString())
+//                        .routeParam("testId", testId.toString())
+//                        .header("x-zbr-screenshot-captured-at", capturedAt.toString())
+//                        .body(screenshot)
+//                        .asString()
+//                        .ifFailure(response -> log.error(this.formatError("Could not upload a screenshot.", response)))
+        );
     }
 
     @Override
@@ -240,12 +312,37 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
 
     @Override
     public void attachLabelsToTestRun(Long testRunId, Collection<LabelDTO> labels) {
-        System.out.println("attachLabelsToTestRun");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.attachLabelsToTestRunCall(token, testRunId.toString(), Collections.singletonMap("items", labels));
+                    try {
+                        Response<String> response = call.execute();
+                        if(!response.isSuccessful()) {
+                            log.error(this.formatError("Could not attach the following labels to test run: " + labels, response));
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
     }
 
     @Override
     public void attachLabelsToTest(Long testRunId, Long testId, Collection<LabelDTO> labels) {
-        System.out.println("attachLabelsToTest");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.attachLabelsToTestCall(token, testRunId.toString(), testId.toString(),
+                    Collections.singletonMap("items", labels));
+                    try {
+                        Response<String> response = call.execute();
+                        if(!response.isSuccessful()) {
+                            log.error(this.formatError("Could not attach the following labels to test: " + labels, response));
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
     }
 
     @Override
@@ -270,10 +367,32 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
         System.out.println("isKnownIssueAttachedToTest");
         return false;
     }
-    private void addTokenToRequestIfEmpty() {
-        if(token == null) {
-            setAuthData();
-            client = authenticateClient();
+
+    private String obtainToken() {
+        if (token == null) {
+            AutenticationData autenticationData = this.login();
+            this.token = "Bearer " + autenticationData.getAuthToken();
+        }
+        return token;
+    }
+
+    private AutenticationData login() {
+        return getAuthData();
+    }
+
+    private AutenticationData getAuthData() {
+        String refreshToken = ConfigurationHolder.getToken();
+        Call<AutenticationData> call = client.getAuthData(Collections.singletonMap("refreshToken", refreshToken));
+        try {
+            Response<AutenticationData> response = call.execute();
+            if (!response.isSuccessful()) {
+                // null out the api client since we cannot use it anymore
+                client = null;
+                this.throwServerException("Not able to obtain api token", response);
+            }
+            return response.body();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

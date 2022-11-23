@@ -23,28 +23,21 @@ public final class RetrofitServiceGenerator {
     private static OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
 
     public static <T> T createService(Class<T> serviceClass) {
-        return retrofit.create(serviceClass);
-    }
-
-    public static <T> T createService(Class<T> serviceClass, final String token) {
-        if(token != null) {
-            httpClient.interceptors()
-                      .clear();
-            httpClient.addInterceptor(chain -> {
-                Request original = chain.request();
-                Request request = original.newBuilder()
-                                          .header("Authorization", token)
-                                          .addHeader("Connection", "close")
-                                          .addHeader("Content-Type", "application/json")
-                                          .addHeader("Accept", "application/json")
-                                          .build();
-                return chain.proceed(request);
-            });
-            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-            httpClient.addInterceptor(logging);
-            builder.client(httpClient.build());
-            retrofit = builder.build();
-        }
+        httpClient.interceptors()
+                  .clear();
+        httpClient.addInterceptor(chain -> {
+            Request original = chain.request();
+            Request request = original.newBuilder()
+                                      .addHeader("Connection", "close")
+                                      .addHeader("Content-Type", "application/json")
+                                      .addHeader("Accept", "application/json")
+                                      .build();
+            return chain.proceed(request);
+        });
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+        httpClient.addInterceptor(logging);
+        builder.client(httpClient.build());
+        retrofit = builder.build();
         return retrofit.create(serviceClass);
     }
 }
