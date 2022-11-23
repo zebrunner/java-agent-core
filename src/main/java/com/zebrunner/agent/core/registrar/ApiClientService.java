@@ -2,10 +2,12 @@ package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.domain.*;
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.*;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface ApiClientService {
@@ -61,4 +63,32 @@ public interface ApiClientService {
     @POST("/api/reporting/v1/test-runs/{testRunId}/tests/{testId}/screenshots")
     Call<String> uploadScreenshotCall(@Header("Authorization") String token, @Header("x-zbr-screenshot-captured-at") String capturedAt,
                                       @Path("testRunId") String testRunId, @Path("testId") String testId, @Body byte[] screenshot);
+    @Multipart
+    @POST("/api/reporting/v1/test-runs/{testRunId}/artifacts")
+    Call<String> uploadTestRunArtifactCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
+                                           @Part("file") MultipartBody.Part filePart);
+    @Multipart
+    @POST("/api/reporting/v1/test-runs/{testRunId}/tests/{testId}/artifacts")
+    Call<String> uploadTestArtifactCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
+                                        @Path("testId") String testId, @Part("file") MultipartBody.Part filePart);
+    @PUT("/api/reporting/v1/test-runs/{testRunId}/artifact-references")
+    Call<String> attachArtifactReferenceToTestRunCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
+                                                      @Body Map<String, List<ArtifactReferenceDTO>> requestBody);
+
+    @PUT("/api/reporting/v1/test-runs/{testRunId}/tests/{testId}/artifact-references")
+    Call<String> attachArtifactReferenceToTestCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
+                                                   @Path("testId") String testId, @Body Map<String, List<ArtifactReferenceDTO>> requestBody);
+    @POST("/api/reporting/v1/run-context-exchanges")
+    Call<ExchangeRunContextResponse> exchangeRerunConditionCall(@Header("Authorization") String token, @Body String rerunCondition);
+
+    @POST("/api/reporting/v1/test-runs/{testRunId}/test-sessions")
+    Call<TestSessionDTO> startSessionCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
+                                          @Body TestSessionDTO testSession);
+    @PUT("/api/reporting/v1/test-runs/{testRunId}/test-sessions/{testSessionId}")
+    Call<String> updateSessionCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
+                                   @Path("testSessionId") String testSessionId, @Body TestSessionDTO testSession);
+
+    @POST("/api/reporting/v1/test-runs/{testRunId}/tests/{testId}/known-issue-confirmations")
+    Call<KnownIssueConfirmation> isKnownIssueAttachedToTestCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
+                                                                @Path("testId") String testId, @Body Map<String, String> failureRequest);
 }

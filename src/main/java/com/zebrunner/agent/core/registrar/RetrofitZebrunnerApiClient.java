@@ -5,8 +5,9 @@ import com.zebrunner.agent.core.exception.ServerException;
 import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.domain.*;
 
-import kong.unirest.ContentType;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -14,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -278,36 +281,94 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
     @Override
     public void uploadScreenshot(byte[] screenshot, Long testRunId, Long testId, Long capturedAt) {
         String token = obtainToken();
-        this.sendVoidRequest(client ->
-//                client.post(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}/screenshots"))
-//                        .headerReplace("Content-Type", ContentType.IMAGE_PNG.getMimeType())
-//                        .routeParam("testRunId", testRunId.toString())
-//                        .routeParam("testId", testId.toString())
-//                        .header("x-zbr-screenshot-captured-at", capturedAt.toString())
-//                        .body(screenshot)
-//                        .asString()
-//                        .ifFailure(response -> log.error(this.formatError("Could not upload a screenshot.", response)))
-        );
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.uploadScreenshotCall(token, capturedAt.toString(), testRunId.toString(),
+                    testId.toString(), screenshot);
+            try {
+                Response<String> response = call.execute();
+                if(!response.isSuccessful()) {
+                    log.error(this.formatError("Could not upload a screenshot.", response));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public void uploadTestRunArtifact(InputStream artifact, String name, Long testRunId) {
-        System.out.println("uploadTestRunArtifact");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            try {
+                MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", name, RequestBody.create(artifact.readAllBytes()));
+                Call<String> call = client.uploadTestRunArtifactCall(token, testRunId.toString(), filePart);
+                Response<String> response = call.execute();
+                if (!response.isSuccessful()) {
+                    log.error(this.formatError("Could not attach test run artifact with name " + name, response));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not read artifact bytes or execute response", e);
+            }
+        });
     }
 
     @Override
     public void uploadTestArtifact(InputStream artifact, String name, Long testRunId, Long testId) {
-        System.out.println("uploadTestArtifact");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            try {
+                MultipartBody.Part filePart = MultipartBody.Part.createFormData("file", name, RequestBody.create(artifact.readAllBytes()));
+                Call<String> call = client.uploadTestArtifactCall(token, testRunId.toString(), testId.toString(), filePart);
+                Response<String> response = call.execute();
+                if (!response.isSuccessful()) {
+                    log.error(this.formatError("Could not attach test artifact with name " + name, response));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not read artifact bytes or execute response", e);
+            }
+        });
     }
 
     @Override
     public void attachArtifactReferenceToTestRun(Long testRunId, ArtifactReferenceDTO artifactReference) {
-        System.out.println("attachArtifactReferenceToTestRun");
+        String token = obtainToken();
+        Map<String, List<ArtifactReferenceDTO>> requestBody = Collections.singletonMap(
+                "items", Collections.singletonList(artifactReference)
+        );
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.attachArtifactReferenceToTestRunCall(token, testRunId.toString(), requestBody);
+            try {
+                Response<String> response = call.execute();
+                if (!response.isSuccessful()) {
+                    log.error(this.formatError(
+                                "Could not attach the following test run artifact reference: " + artifactReference,
+                                response
+                        ));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public void attachArtifactReferenceToTest(Long testRunId, Long testId, ArtifactReferenceDTO artifactReference) {
-        System.out.println("attachArtifactReferenceToTest");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.attachArtifactReferenceToTestCall(token, testRunId.toString(), testId.toString(),
+                    Collections.singletonMap("items", Collections.singletonList(artifactReference)));
+            try {
+                Response<String> response = call.execute();
+                if (!response.isSuccessful()) {
+                    log.error(this.formatError(
+                                "Could not attach the following test artifact reference: " + artifactReference,
+                                response
+                        ));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
@@ -315,16 +376,15 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
         String token = obtainToken();
         this.sendVoidRequest(client -> {
             Call<String> call = client.attachLabelsToTestRunCall(token, testRunId.toString(), Collections.singletonMap("items", labels));
-                    try {
-                        Response<String> response = call.execute();
-                        if(!response.isSuccessful()) {
-                            log.error(this.formatError("Could not attach the following labels to test run: " + labels, response));
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+            try {
+                Response<String> response = call.execute();
+                if(!response.isSuccessful()) {
+                    log.error(this.formatError("Could not attach the following labels to test run: " + labels, response));
                 }
-        );
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
@@ -333,39 +393,84 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
         this.sendVoidRequest(client -> {
             Call<String> call = client.attachLabelsToTestCall(token, testRunId.toString(), testId.toString(),
                     Collections.singletonMap("items", labels));
-                    try {
-                        Response<String> response = call.execute();
-                        if(!response.isSuccessful()) {
-                            log.error(this.formatError("Could not attach the following labels to test: " + labels, response));
-                        }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+            try {
+                Response<String> response = call.execute();
+                if(!response.isSuccessful()) {
+                    log.error(this.formatError("Could not attach the following labels to test: " + labels, response));
                 }
-        );
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public ExchangeRunContextResponse exchangeRerunCondition(String rerunCondition) {
-        System.out.println("exchangeRerunCondition");
-        return null;
+        String token = obtainToken();
+        return this.sendRequest(client -> {
+            Call<ExchangeRunContextResponse> call = client.exchangeRerunConditionCall(token, rerunCondition);
+            try {
+                Response<ExchangeRunContextResponse> response = call.execute();
+                if (!response.isSuccessful()) {
+                    this.throwServerException("Could not get tests by ci run id.", response);
+                }
+                return response;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public TestSessionDTO startSession(Long testRunId, TestSessionDTO testSession) {
-        System.out.println("startSession");
-        return null;
+        String token = obtainToken();
+        return this.sendRequest(client -> {
+            Call<TestSessionDTO> call = client.startSessionCall(token, testRunId.toString(), testSession);
+            try {
+                Response<TestSessionDTO> response = call.execute();
+                if (!response.isSuccessful()) {
+                    this.throwServerException("Could not register start of the test session.", response);
+                }
+                return response;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public void updateSession(Long testRunId, TestSessionDTO testSession) {
-        System.out.println("updateSession");
+        String token = obtainToken();
+        this.sendVoidRequest(client -> {
+            Call<String> call = client.updateSessionCall(token, testRunId.toString(), testSession.getId().toString(), testSession);
+            try {
+                Response<String> response = call.execute();
+                if (!response.isSuccessful()) {
+                    this.throwServerException("Could not update test session.", response);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
     public boolean isKnownIssueAttachedToTest(Long testRunId, Long testId, String failureStacktrace) {
-        System.out.println("isKnownIssueAttachedToTest");
-        return false;
+        String token = obtainToken();
+        KnownIssueConfirmation confirmation = this.sendRequest(client -> {
+            Call<KnownIssueConfirmation> call = client.isKnownIssueAttachedToTestCall(token, testRunId.toString(), testId.toString(),
+                    Collections.singletonMap("failureReason", failureStacktrace));
+            try {
+                Response<KnownIssueConfirmation> response = call.execute();
+                if (!response.isSuccessful()) {
+                    this.throwServerException("Could not retrieve status of attached known issues.", response);
+                }
+                return response;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        return confirmation != null && confirmation.isKnownIssue();
     }
 
     private String obtainToken() {
