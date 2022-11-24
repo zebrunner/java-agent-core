@@ -6,6 +6,7 @@ import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.domain.*;
 
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
@@ -111,12 +112,11 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
         });
     }
 
-    //TODO 2022-11-22
     @Override
     public void patchTestRunBuild(Long testRunId, String build) {
         String token = obtainToken();
         this.sendVoidRequest(client -> {
-            Call<String> call = client.patchTestRunBuildCall(token, testRunId.toString(), Collections.singletonMap("/config/build", build));
+            Call<String> call = client.patchTestRunBuildCall(token, testRunId.toString(), build);
             try {
                 Response<String> response = call.execute();
                 if(!response.isSuccessful()) {
@@ -128,7 +128,6 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
         });
     }
 
-    //TODO 2022-11-22
     @Override
     public void setTestRunPlatform(Long testRunId, String platformName, String platformVersion) {
         String token = obtainToken();
@@ -282,8 +281,9 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
     public void uploadScreenshot(byte[] screenshot, Long testRunId, Long testId, Long capturedAt) {
         String token = obtainToken();
         this.sendVoidRequest(client -> {
+            RequestBody body = RequestBody.create( screenshot, MediaType.parse("image/png"));
             Call<String> call = client.uploadScreenshotCall(token, capturedAt.toString(), testRunId.toString(),
-                    testId.toString(), screenshot);
+                    testId.toString(), body);
             try {
                 Response<String> response = call.execute();
                 if(!response.isSuccessful()) {

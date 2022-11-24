@@ -3,6 +3,7 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.domain.*;
 import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.*;
 
@@ -37,8 +38,9 @@ public interface ApiClientService {
     Call<String> revertTestRegistrationCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
                                             @Path("testId") String testId);
 
+    @Headers({"Content-Type: application/json"})
     @PATCH("/api/reporting/v1/test-runs/{testRunId}")
-    Call<String> patchTestRunBuildCall(@Header("Authorization") String token, @Path("testRunId") String testRunId, @Body Map<String, String> build);
+    Call<String> patchTestRunBuildCall(@Header("Authorization") String token, @Path("testRunId") String testRunId, @Body String build);
 
     @PUT("/api/reporting/v1/test-runs/{testRunId}/platform")
     Call<String> setTestRunPlatformCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
@@ -60,17 +62,18 @@ public interface ApiClientService {
     Call<String> upsertTestCaseResultsCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
                                            @Path("testId") String testId, @Body Map<String, Collection<TestCaseResult>> testCaseMap);
 
+    @Headers({"Content-Type: image/png"})
     @POST("/api/reporting/v1/test-runs/{testRunId}/tests/{testId}/screenshots")
     Call<String> uploadScreenshotCall(@Header("Authorization") String token, @Header("x-zbr-screenshot-captured-at") String capturedAt,
-                                      @Path("testRunId") String testRunId, @Path("testId") String testId, @Body byte[] screenshot);
+                                      @Path("testRunId") String testRunId, @Path("testId") String testId, @Body RequestBody screenshot);
     @Multipart
     @POST("/api/reporting/v1/test-runs/{testRunId}/artifacts")
     Call<String> uploadTestRunArtifactCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
-                                           @Part("file") MultipartBody.Part filePart);
+                                           @Part MultipartBody.Part filePart);
     @Multipart
     @POST("/api/reporting/v1/test-runs/{testRunId}/tests/{testId}/artifacts")
     Call<String> uploadTestArtifactCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
-                                        @Path("testId") String testId, @Part("file") MultipartBody.Part filePart);
+                                        @Path("testId") String testId, @Part MultipartBody.Part filePart);
     @PUT("/api/reporting/v1/test-runs/{testRunId}/artifact-references")
     Call<String> attachArtifactReferenceToTestRunCall(@Header("Authorization") String token, @Path("testRunId") String testRunId,
                                                       @Body Map<String, List<ArtifactReferenceDTO>> requestBody);
