@@ -4,14 +4,15 @@ public class ClientRegistrar {
 
     private static ZebrunnerApiClient client;
 
-    public static ZebrunnerApiClient getClient() {
-        if (client == null) {
+    public static ZebrunnerApiClient get() {
+        if(client == null) {
             return DefaultZebrunnerApiClient.getInstance();
         }
         return client;
     }
 
-    public static void setClient(ZebrunnerApiClient newClient) {
+    public static void registry(ZebrunnerApiClient newClient) {
         client = newClient;
     }
+
 }

@@ -1,6 +1,5 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.logging.Log;
 import com.zebrunner.agent.core.registrar.domain.ArtifactReferenceDTO;
 import com.zebrunner.agent.core.registrar.domain.ExchangeRunContextResponse;
@@ -9,18 +8,15 @@ import com.zebrunner.agent.core.registrar.domain.TestCaseResult;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
 import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 
 
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collection;
 
 public interface ZebrunnerApiClient {
 
     static  ZebrunnerApiClient getInstance() {
-        return ClientRegistrar.getClient();
+        return ClientRegistrar.get();
     }
 
     TestRunDTO registerTestRunStart(TestRunDTO testRun);

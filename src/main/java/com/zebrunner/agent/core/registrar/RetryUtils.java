@@ -6,9 +6,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Slf4j
-class RetryUtils {
+public class RetryUtils {
 
-    static <T> T tryInvoke(Supplier<T> action, Function<RuntimeException, Boolean> recoverableExceptionChecker, int maxTries) {
+    public static <T> T tryInvoke(Supplier<T> action, Function<RuntimeException, Boolean> recoverableExceptionChecker, int maxTries) {
         int tries = 0;
         while (true) {
             try {
@@ -24,7 +24,7 @@ class RetryUtils {
         }
     }
 
-    static void tryInvoke(Runnable action, Function<RuntimeException, Boolean> recoverableExceptionChecker, int maxTries) {
+    public static void tryInvoke(Runnable action, Function<RuntimeException, Boolean> recoverableExceptionChecker, int maxTries) {
         int tries = 0;
         while (true) {
             try {
