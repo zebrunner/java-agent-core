@@ -9,6 +9,7 @@ import com.zebrunner.agent.core.registrar.domain.TestCaseResult;
 import com.zebrunner.agent.core.registrar.domain.TestDTO;
 import com.zebrunner.agent.core.registrar.domain.TestRunDTO;
 import com.zebrunner.agent.core.registrar.domain.TestSessionDTO;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 
 
 import java.io.InputStream;
@@ -19,26 +20,7 @@ import java.util.Collection;
 public interface ZebrunnerApiClient {
 
     static  ZebrunnerApiClient getInstance() {
-        String clientClassName = ConfigurationHolder.getClientClass();
-        if (clientClassName == null) {
-            return DefaultZebrunnerApiClient.getInstance();
-        }
-        try {
-            Class<?> clientClass = Class.forName(clientClassName);
-            return (ZebrunnerApiClient) getMethod(clientClass).invoke(null);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Invalid client class name", e);
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException("Exception during method invocation", e);
-        }
-    }
-
-    private static Method getMethod(Class<?> clientClass) {
-        try {
-            return clientClass.getDeclaredMethod("getInstance");
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Exception in a ZebrunnerApiClient subclasses", e);
-        }
+        return ClientRegistrar.getClient();
     }
 
     TestRunDTO registerTestRunStart(TestRunDTO testRun);

@@ -35,7 +35,7 @@ public class RetrofitZebrunnerApiClient implements ZebrunnerApiClient {
         }
     }
 
-    static synchronized RetrofitZebrunnerApiClient getInstance() {
+    public static synchronized RetrofitZebrunnerApiClient getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new RetrofitZebrunnerApiClient();
         }

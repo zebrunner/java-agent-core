@@ -39,12 +39,9 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
     private final static String MILESTONE_ID_PROPERTY = "reporting.milestone.id";
     private final static String MILESTONE_NAME_PROPERTY = "reporting.milestone.name";
 
-    //TODO 2022-11-15
-    private final static String CLIENT_CLASS_PROPERTY = "reporting.client-class";
     private static final String[] DEFAULT_FILE_NAMES = {"agent.yaml", "agent.yml"};
     private static final Yaml YAML_MAPPER = new Yaml();
 
-    //TODO 2022-11-15
     @Override
     public ReportingConfiguration getConfiguration() {
         Map<String, Object> yamlProperties = loadYaml();
@@ -52,9 +49,6 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         String enabled = getProperty(yamlProperties, ENABLED_PROPERTY);
 
         String projectKey = getProperty(yamlProperties, PROJECT_KEY_PROPERTY);
-
-        // new
-        String clientClass = getProperty(yamlProperties, CLIENT_CLASS_PROPERTY);
 
         String hostname = getProperty(yamlProperties, HOSTNAME_PROPERTY);
         String accessToken = getProperty(yamlProperties, ACCESS_TOKEN_PROPERTY);
@@ -85,7 +79,6 @@ public class YamlConfigurationProvider implements ConfigurationProvider {
         return ReportingConfiguration.builder()
                                      .reportingEnabled(ConfigurationUtils.parseBoolean(enabled))
                                      .projectKey(projectKey)
-                                     .clientClass(clientClass)
                                      .server(new ReportingConfiguration.ServerConfiguration(
                                              hostname, accessToken
                                      ))
