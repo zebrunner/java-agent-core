@@ -1,14 +1,17 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.exception.TestAgentException;
 import com.zebrunner.agent.core.registrar.domain.TcmType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Xray {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Xray.class);
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.xray.sync.enabled";
     public static final String SYNC_REAL_TIME = "com.zebrunner.app/tcm.xray.sync.real-time";
@@ -17,24 +20,30 @@ public final class Xray {
 
     private static final TestCasesRegistry TEST_CASES_REGISTRY = TestCasesRegistry.getInstance();
 
+    private static volatile boolean isRealTimeSyncEnabled = false;
+
     public static void disableSync() {
-        verifyTestsStart();
-        Label.attachToTestRun(SYNC_ENABLED, "false");
+        attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
-    public static void enableRealTimeSync() {
-        verifyTestsStart();
-        Label.attachToTestRun(SYNC_REAL_TIME, "true");
+    public static synchronized void enableRealTimeSync() {
+        if (!isRealTimeSyncEnabled) {
+            attachLabelToTestRun(SYNC_REAL_TIME, "true");
+            isRealTimeSyncEnabled = true;
+        } else {
+            LOGGER.warn("Realtime sync for Xray already enabled.");
+        }
     }
 
     public static void setExecutionKey(String executionKey) {
-        verifyTestsStart();
-        Label.attachToTestRun(EXECUTION_KEY, executionKey);
+        attachLabelToTestRun(EXECUTION_KEY, executionKey);
     }
 
-    private static void verifyTestsStart() {
-        if (RunContext.hasTests()) {
-            throw new TestAgentException("The Xray configuration must be provided before start of tests. Hint: move the configuration to the code block which is executed before all tests.");
+    private static void attachLabelToTestRun(String name, String... values) {
+        if (isRealTimeSyncEnabled) {
+            LOGGER.warn("Realtime sync for Xray has been enabled, so you cannot overwrite Xray configuration");
+        } else {
+            Label.attachToTestRun(name, values);
         }
     }
 
