@@ -3,15 +3,13 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.registrar.domain.TcmType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TestRail {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestRunRegistrar.class);
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.testrail.sync.enabled";
     public static final String SYNC_REAL_TIME = "com.zebrunner.app/tcm.testrail.sync.real-time";
@@ -38,9 +36,9 @@ public final class TestRail {
             attachLabelToTestRun(SYNC_REAL_TIME, "true");
             attachLabelToTestRun(INCLUDE_ALL, "true");
             isRealTimeSyncEnabled = true;
-            LOGGER.warn("Runtime upload is enabled, all cases will be included in new run by default");
+            log.warn("Runtime upload is enabled, all cases will be included in new run by default");
         } else {
-            LOGGER.warn("Realtime sync for TestRail already enabled.");
+            log.warn("Realtime sync for TestRail already enabled.");
         }
     }
 
@@ -70,7 +68,7 @@ public final class TestRail {
 
     private static void attachLabelToTestRun(String name, String... values) {
         if (isRealTimeSyncEnabled) {
-            LOGGER.warn("Realtime sync for TestRail has been enabled, so you cannot overwrite TestRail configuration");
+            log.warn("Realtime sync for TestRail has been enabled, so you cannot overwrite TestRail configuration");
         } else {
             Label.attachToTestRun(name, values);
         }

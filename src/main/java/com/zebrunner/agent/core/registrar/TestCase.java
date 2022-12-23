@@ -3,15 +3,13 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.registrar.domain.TcmType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class TestCase {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestCase.class);
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.zebrunner.sync.enabled";
     public static final String SYNC_REAL_TIME = "com.zebrunner.app/tcm.zebrunner.sync.real-time";
@@ -31,7 +29,7 @@ public final class TestCase {
             attachLabelToTestRun(SYNC_REAL_TIME, "true");
             isRealTimeSyncEnabled = true;
         } else {
-            LOGGER.warn("Realtime sync for Zebrunner TCM already enabled.");
+            log.warn("Realtime sync for Zebrunner TCM already enabled.");
         }
     }
 
@@ -41,7 +39,7 @@ public final class TestCase {
 
     private static void attachLabelToTestRun(String name, String... values) {
         if (isRealTimeSyncEnabled) {
-            LOGGER.warn("Realtime sync for Zebrunner TCM has been enabled, so you cannot overwrite TCM configuration");
+            log.warn("Realtime sync for Zebrunner TCM has been enabled, so you cannot overwrite TCM configuration");
         } else {
             Label.attachToTestRun(name, values);
         }
