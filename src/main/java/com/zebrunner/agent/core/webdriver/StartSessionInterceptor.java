@@ -26,6 +26,7 @@ import java.util.Arrays;
 public class StartSessionInterceptor {
 
     private static final TestSessionRegistrar REGISTRAR = TestSessionRegistrar.getInstance();
+    private static final CapabilitiesCustomizerChain CAPABILITIES_CUSTOMIZER_CHAIN = CapabilitiesCustomizerChain.getInstance();
 
     @RuntimeType
     public static void onSessionStart(@This RemoteWebDriver driver,
@@ -33,7 +34,7 @@ public class StartSessionInterceptor {
                                       @Argument(0) Capabilities capabilities) throws Exception {
         if (ConfigurationHolder.shouldSubstituteRemoteWebDrivers()) {
             substituteSeleniumHub(driver);
-            capabilities = mergeZebrunnerCapabilities(methodInvocationProxy, capabilities);
+            capabilities = customizeCapabilities(methodInvocationProxy, capabilities);
         }
 
         SessionStartDescriptor startDescriptor = SessionStartDescriptor.initiatedWith(capabilities.asMap());
@@ -125,7 +126,7 @@ public class StartSessionInterceptor {
         }
     }
 
-    private static Capabilities mergeZebrunnerCapabilities(Runnable methodInvocationProxy, Capabilities capabilities) {
+    private static Capabilities customizeCapabilities(Runnable methodInvocationProxy, Capabilities capabilities) {
         Class<? extends Runnable> methodInvocationProxyClass = methodInvocationProxy.getClass();
         log.debug("Class of the #startSession() invocation proxy is {}", methodInvocationProxyClass.getName());
 
@@ -137,15 +138,9 @@ public class StartSessionInterceptor {
             Object methodArgument = argument1Field.get(methodInvocationProxy);
             if (methodArgument instanceof Capabilities) {
                 capabilities = (Capabilities) methodArgument;
-                Capabilities zebrunnerCapabilities = RemoteWebDriverFactory.getCapabilities();
+                capabilities = CAPABILITIES_CUSTOMIZER_CHAIN.customize(capabilities);
 
-                if (!zebrunnerCapabilities.asMap().isEmpty()) {
-                    log.debug("Capabilities will be modified with the values provided from Zebrunner.");
-
-                    capabilities = capabilities.merge(zebrunnerCapabilities);
-                    argument1Field.set(methodInvocationProxy, capabilities);
-                }
-
+                argument1Field.set(methodInvocationProxy, capabilities);
                 argument1Field.setAccessible(false);
             } else {
                 log.debug("#startSession() argument has unexpected type, thus it will not be modified. " +
