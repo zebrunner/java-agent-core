@@ -1,14 +1,17 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.exception.TestAgentException;
 import com.zebrunner.agent.core.registrar.domain.TcmType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Zephyr {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Zephyr.class);
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.zephyr.sync.enabled";
     public static final String SYNC_REAL_TIME = "com.zebrunner.app/tcm.zephyr.sync.real-time";
@@ -18,29 +21,34 @@ public final class Zephyr {
 
     private static final TestCasesRegistry TEST_CASES_REGISTRY = TestCasesRegistry.getInstance();
 
+    private static volatile boolean isRealTimeSyncEnabled = false;
+
     public static void disableSync() {
-        verifyTestsStart();
-        Label.attachToTestRun(SYNC_ENABLED, "false");
+        attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
-    public static void enableRealTimeSync() {
-        verifyTestsStart();
-        Label.attachToTestRun(SYNC_REAL_TIME, "true");
+    public static synchronized void enableRealTimeSync() {
+        if (!isRealTimeSyncEnabled) {
+            attachLabelToTestRun(SYNC_REAL_TIME, "true");
+            isRealTimeSyncEnabled = true;
+        } else {
+            LOGGER.warn("Realtime sync for Zephyr already enabled.");
+        }
     }
 
     public static void setTestCycleKey(String testCycleKey) {
-        verifyTestsStart();
-        Label.attachToTestRun(TEST_CYCLE_KEY, testCycleKey);
+        attachLabelToTestRun(TEST_CYCLE_KEY, testCycleKey);
     }
 
     public static void setJiraProjectKey(String jiraProjectKey) {
-        verifyTestsStart();
-        Label.attachToTestRun(JIRA_PROJECT_KEY, jiraProjectKey);
+        attachLabelToTestRun(JIRA_PROJECT_KEY, jiraProjectKey);
     }
 
-    private static void verifyTestsStart() {
-        if (RunContext.hasTests()) {
-            throw new TestAgentException("The Zephyr configuration must be provided before start of tests. Hint: move the configuration to the code block which is executed before all tests.");
+    private static void attachLabelToTestRun(String name, String... values) {
+        if (isRealTimeSyncEnabled) {
+            LOGGER.warn("Realtime sync for Zephyr has been enabled, so you cannot overwrite Zephyr configuration");
+        } else {
+            Label.attachToTestRun(name, values);
         }
     }
 

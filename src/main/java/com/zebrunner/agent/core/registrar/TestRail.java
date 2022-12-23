@@ -1,6 +1,5 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.exception.TestAgentException;
 import com.zebrunner.agent.core.registrar.domain.TcmType;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -28,51 +27,52 @@ public final class TestRail {
 
     private static final TestCasesRegistry TEST_CASES_REGISTRY = TestCasesRegistry.getInstance();
 
+    private static volatile boolean isRealTimeSyncEnabled = false;
+
     public static void disableSync() {
-        verifyTestsStart();
-        Label.attachToTestRun(SYNC_ENABLED, "false");
+        attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
-    public static void enableRealTimeSync() {
-        verifyTestsStart();
-        Label.attachToTestRun(SYNC_REAL_TIME, "true");
-        Label.attachToTestRun(INCLUDE_ALL, "true");
-        LOGGER.warn("Runtime upload is enabled, all cases will be included in new run by default");
+    public static synchronized void enableRealTimeSync() {
+        if (!isRealTimeSyncEnabled) {
+            attachLabelToTestRun(SYNC_REAL_TIME, "true");
+            attachLabelToTestRun(INCLUDE_ALL, "true");
+            isRealTimeSyncEnabled = true;
+            LOGGER.warn("Runtime upload is enabled, all cases will be included in new run by default");
+        } else {
+            LOGGER.warn("Realtime sync for TestRail already enabled.");
+        }
     }
 
     public static void includeAllTestCasesInNewRun() {
-        verifyTestsStart();
-        Label.attachToTestRun(INCLUDE_ALL, "true");
+        attachLabelToTestRun(INCLUDE_ALL, "true");
     }
 
     public static void setSuiteId(String suiteId) {
-        verifyTestsStart();
-        Label.attachToTestRun(SUITE_ID, suiteId);
+        attachLabelToTestRun(SUITE_ID, suiteId);
     }
 
     public static void setRunId(String runId) {
-        verifyTestsStart();
-        Label.attachToTestRun(RUN_ID, runId);
+        attachLabelToTestRun(RUN_ID, runId);
     }
 
     public static void setRunName(String runName) {
-        verifyTestsStart();
-        Label.attachToTestRun(RUN_NAME, runName);
+        attachLabelToTestRun(RUN_NAME, runName);
     }
 
     public static void setMilestone(String milestone) {
-        verifyTestsStart();
-        Label.attachToTestRun(MILESTONE, milestone);
+        attachLabelToTestRun(MILESTONE, milestone);
     }
 
     public static void setAssignee(String assignee) {
-        verifyTestsStart();
-        Label.attachToTestRun(ASSIGNEE, assignee);
+        attachLabelToTestRun(ASSIGNEE, assignee);
     }
 
-    private static void verifyTestsStart() {
-        if (RunContext.hasTests()) {
-            throw new TestAgentException("The TestRail configuration must be provided before start of tests. Hint: move the configuration to the code block which is executed before all tests.");
+    private static void attachLabelToTestRun(String name, String... values) {
+        if (isRealTimeSyncEnabled) {
+            LOGGER.warn("Realtime sync for TestRail has been enabled, so you cannot overwrite TestRail configuration");
+        } else {
+            Label.attachToTestRun(name, values);
         }
     }
 
