@@ -18,6 +18,7 @@ public class ReportingConfiguration {
     private RunConfiguration run;
     private MilestoneConfiguration milestone;
     private NotificationConfiguration notification;
+    private TcmConfiguration tcm;
 
     public boolean isReportingEnabled() {
         return reportingEnabled != null && reportingEnabled;
@@ -57,7 +58,32 @@ public class ReportingConfiguration {
         private Boolean retryKnownIssues;
         private Boolean substituteRemoteWebDrivers;
         private Boolean treatSkipsAsFailures;
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NotificationConfiguration {
+
+        private Boolean notifyOnEachFailure;
+        private String slackChannels;
+        private String msTeamsChannels;
+        private String emails;
+
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TcmConfiguration {
+
         private TestCaseStatus testCaseStatus = new TestCaseStatus();
+        private Zebrunner zebrunner = new Zebrunner();
+        private TestRail testRail = new TestRail();
+        private Xray xray = new Xray();
+        private Zephyr zephyr = new Zephyr();
 
         @Getter
         @Setter
@@ -71,17 +97,60 @@ public class ReportingConfiguration {
 
         }
 
-    }
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class Zebrunner {
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class NotificationConfiguration {
+            private Boolean pushResults;
+            private Boolean pushInRealTime;
+            private String testRunId;
 
-        private Boolean notifyOnEachFailure;
-        private String slackChannels;
-        private String msTeamsChannels;
-        private String emails;
+        }
+
+        @Getter
+        @Setter
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class TestRail {
+
+            private Boolean pushResults;
+            private Boolean pushInRealTime;
+            private String suiteId;
+            private String runId;
+            private Boolean includeAllTestCasesInNewRun;
+            private String runName;
+            private String milestoneName;
+            private String assignee;
+
+        }
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class Xray {
+
+            private Boolean pushResults;
+            private Boolean pushInRealTime;
+            private String executionKey;
+
+        }
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class Zephyr {
+
+            private Boolean pushResults;
+            private Boolean pushInRealTime;
+            private String jiraProjectKey;
+            private String testCycleKey;
+
+        }
 
     }
 
