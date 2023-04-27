@@ -19,6 +19,7 @@ public class RegistrationListenerRegistry {
     private final List<RegistrationListener> listeners = new ArrayList<>();
 
     private RegistrationListenerRegistry() {
+        listeners.add(new TestRunTcmConfigurationRegistrationListener());
         listeners.add(new TestRailCasesCollectingRegistrationListener());
         listeners.add(new XrayCasesCollectingRegistrationListener());
         listeners.add(new ZephyrCasesCollectingRegistrationListener());

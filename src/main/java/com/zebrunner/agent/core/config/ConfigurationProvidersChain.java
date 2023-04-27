@@ -40,6 +40,7 @@ class ConfigurationProvidersChain {
                                                               .server(new ReportingConfiguration.ServerConfiguration())
                                                               .milestone(new ReportingConfiguration.MilestoneConfiguration())
                                                               .notification(new ReportingConfiguration.NotificationConfiguration())
+                                                              .tcm(new ReportingConfiguration.TcmConfiguration())
                                                               .build();
         assembleConfiguration(config);
         if (areMandatoryArgsSet(config)) {
@@ -79,6 +80,7 @@ class ConfigurationProvidersChain {
         normalizeRunConfiguration(config);
         normalizeMilestoneConfiguration(config);
         normalizeNotificationConfiguration(config);
+        normalizeTcmConfiguration(config);
     }
 
     private static void normalizeServerConfiguration(ReportingConfiguration config) {
@@ -122,29 +124,6 @@ class ConfigurationProvidersChain {
             if (context != null && context.trim().isEmpty()) {
                 runConfig.setContext(null);
             }
-
-            normalizeRunTestCaseStatus(runConfig);
-        }
-    }
-
-    private static void normalizeRunTestCaseStatus(ReportingConfiguration.RunConfiguration runConfiguration) {
-        ReportingConfiguration.RunConfiguration.TestCaseStatus testCaseStatus = runConfiguration.getTestCaseStatus();
-        if (testCaseStatus == null) {
-            runConfiguration.setTestCaseStatus(new ReportingConfiguration.RunConfiguration.TestCaseStatus());
-        } else {
-            String onPass = testCaseStatus.getOnPass();
-            String onFail = testCaseStatus.getOnFail();
-            String onSkip = testCaseStatus.getOnSkip();
-
-            if (onPass != null && onPass.trim().isEmpty()) {
-                testCaseStatus.setOnPass(null);
-            }
-            if (onFail != null && onFail.trim().isEmpty()) {
-                testCaseStatus.setOnFail(null);
-            }
-            if (onSkip != null && onSkip.trim().isEmpty()) {
-                testCaseStatus.setOnSkip(null);
-            }
         }
     }
 
@@ -180,6 +159,117 @@ class ConfigurationProvidersChain {
             String emails = notificationConfig.getEmails();
             if (emails != null && emails.isEmpty()) {
                 notificationConfig.setEmails(null);
+            }
+        }
+    }
+
+    private static void normalizeTcmConfiguration(ReportingConfiguration config) {
+        ReportingConfiguration.TcmConfiguration tcmConfig = config.getTcm();
+
+        if (tcmConfig == null) {
+            config.setTcm(new ReportingConfiguration.TcmConfiguration());
+        } else {
+            normalizeTcmTestCaseStatus(tcmConfig);
+            normalizeZebrunnerTcmConfiguration(tcmConfig);
+            normalizeTestRailConfiguration(tcmConfig);
+            normalizeXrayConfiguration(tcmConfig);
+            normalizeZephyrConfiguration(tcmConfig);
+        }
+    }
+
+    private static void normalizeTcmTestCaseStatus(ReportingConfiguration.TcmConfiguration tcmConfiguration) {
+        ReportingConfiguration.TcmConfiguration.TestCaseStatus testCaseStatus = tcmConfiguration.getTestCaseStatus();
+        if (testCaseStatus == null) {
+            tcmConfiguration.setTestCaseStatus(new ReportingConfiguration.TcmConfiguration.TestCaseStatus());
+        } else {
+            String onPass = testCaseStatus.getOnPass();
+            String onFail = testCaseStatus.getOnFail();
+            String onSkip = testCaseStatus.getOnSkip();
+
+            if (onPass != null && onPass.trim().isEmpty()) {
+                testCaseStatus.setOnPass(null);
+            }
+            if (onFail != null && onFail.trim().isEmpty()) {
+                testCaseStatus.setOnFail(null);
+            }
+            if (onSkip != null && onSkip.trim().isEmpty()) {
+                testCaseStatus.setOnSkip(null);
+            }
+        }
+    }
+
+    private static void normalizeZebrunnerTcmConfiguration(ReportingConfiguration.TcmConfiguration tcmConfig) {
+        ReportingConfiguration.TcmConfiguration.Zebrunner zebrunnerConfig = tcmConfig.getZebrunner();
+
+        if (zebrunnerConfig == null) {
+            tcmConfig.setZebrunner(new ReportingConfiguration.TcmConfiguration.Zebrunner());
+        } else {
+            String testRunId = zebrunnerConfig.getTestRunId();
+
+            if (testRunId != null && testRunId.trim().isEmpty()) {
+                zebrunnerConfig.setTestRunId(null);
+            }
+        }
+    }
+
+    private static void normalizeTestRailConfiguration(ReportingConfiguration.TcmConfiguration tcmConfig) {
+        ReportingConfiguration.TcmConfiguration.TestRail testRailConfig = tcmConfig.getTestRail();
+
+        if (testRailConfig == null) {
+            tcmConfig.setTestRail(new ReportingConfiguration.TcmConfiguration.TestRail());
+        } else {
+            String testRailSuiteId = testRailConfig.getSuiteId();
+            String testRailRunId = testRailConfig.getRunId();
+            String testRailRunName = testRailConfig.getRunName();
+            String testRailMilestoneName = testRailConfig.getMilestoneName();
+            String assignee = testRailConfig.getAssignee();
+
+            if (testRailSuiteId != null && testRailSuiteId.trim().isEmpty()) {
+                testRailConfig.setSuiteId(null);
+            }
+            if (testRailRunId != null && testRailRunId.trim().isEmpty()) {
+                testRailConfig.setRunId(null);
+            }
+            if (testRailRunName != null && testRailRunName.trim().isEmpty()) {
+                testRailConfig.setRunName(null);
+            }
+            if (testRailMilestoneName != null && testRailMilestoneName.trim().isEmpty()) {
+                testRailConfig.setMilestoneName(null);
+            }
+            if (assignee != null && assignee.trim().isEmpty()) {
+                testRailConfig.setAssignee(null);
+            }
+        }
+    }
+
+    private static void normalizeXrayConfiguration(ReportingConfiguration.TcmConfiguration tcmConfig) {
+        ReportingConfiguration.TcmConfiguration.Xray xrayConfig = tcmConfig.getXray();
+
+        if (xrayConfig == null) {
+            tcmConfig.setXray(new ReportingConfiguration.TcmConfiguration.Xray());
+        } else {
+            String executionKey = xrayConfig.getExecutionKey();
+
+            if (executionKey != null && executionKey.trim().isEmpty()) {
+                xrayConfig.setExecutionKey(null);
+            }
+        }
+    }
+
+    private static void normalizeZephyrConfiguration(ReportingConfiguration.TcmConfiguration tcmConfig) {
+        ReportingConfiguration.TcmConfiguration.Zephyr zephyrConfig = tcmConfig.getZephyr();
+
+        if (zephyrConfig == null) {
+            tcmConfig.setZephyr(new ReportingConfiguration.TcmConfiguration.Zephyr());
+        } else {
+            String testCycleKey = zephyrConfig.getTestCycleKey();
+            String jiraProjectKey = zephyrConfig.getJiraProjectKey();
+
+            if (testCycleKey != null && testCycleKey.trim().isEmpty()) {
+                zephyrConfig.setTestCycleKey(null);
+            }
+            if (jiraProjectKey != null && jiraProjectKey.trim().isEmpty()) {
+                zephyrConfig.setJiraProjectKey(null);
             }
         }
     }
@@ -230,17 +320,6 @@ class ConfigurationProvidersChain {
             run.setTreatSkipsAsFailures(providedConfig.getRun().getTreatSkipsAsFailures());
         }
 
-        ReportingConfiguration.RunConfiguration.TestCaseStatus testCaseStatus = run.getTestCaseStatus();
-        if (testCaseStatus.getOnPass() == null) {
-            testCaseStatus.setOnPass(providedConfig.getRun().getTestCaseStatus().getOnPass());
-        }
-        if (testCaseStatus.getOnFail() == null) {
-            testCaseStatus.setOnFail(providedConfig.getRun().getTestCaseStatus().getOnFail());
-        }
-        if (testCaseStatus.getOnSkip() == null) {
-            testCaseStatus.setOnSkip(providedConfig.getRun().getTestCaseStatus().getOnSkip());
-        }
-
         ReportingConfiguration.NotificationConfiguration notification = config.getNotification();
         if (notification.getNotifyOnEachFailure() == null) {
             notification.setNotifyOnEachFailure(providedConfig.getNotification().getNotifyOnEachFailure());
@@ -263,6 +342,84 @@ class ConfigurationProvidersChain {
             milestone.setName(providedConfig.getMilestone().getName());
         }
 
+        ReportingConfiguration.TcmConfiguration tcm = config.getTcm();
+        if (tcm == null) {
+            tcm = providedConfig.getTcm();
+            config.setTcm(tcm);
+        }
+
+        ReportingConfiguration.TcmConfiguration.TestCaseStatus testCaseStatus = tcm.getTestCaseStatus();
+        if (testCaseStatus.getOnPass() == null) {
+            testCaseStatus.setOnPass(providedConfig.getTcm().getTestCaseStatus().getOnPass());
+        }
+        if (testCaseStatus.getOnFail() == null) {
+            testCaseStatus.setOnFail(providedConfig.getTcm().getTestCaseStatus().getOnFail());
+        }
+        if (testCaseStatus.getOnSkip() == null) {
+            testCaseStatus.setOnSkip(providedConfig.getTcm().getTestCaseStatus().getOnSkip());
+        }
+
+        ReportingConfiguration.TcmConfiguration.Zebrunner zebrunner = tcm.getZebrunner();
+        if (zebrunner.getPushResults() == null) {
+            zebrunner.setPushResults(providedConfig.getTcm().getZebrunner().getPushResults());
+        }
+        if (zebrunner.getPushInRealTime() == null) {
+            zebrunner.setPushInRealTime(providedConfig.getTcm().getZebrunner().getPushInRealTime());
+        }
+        if (zebrunner.getTestRunId() == null) {
+            zebrunner.setTestRunId(providedConfig.getTcm().getZebrunner().getTestRunId());
+        }
+
+        ReportingConfiguration.TcmConfiguration.TestRail testRail = tcm.getTestRail();
+        if (testRail.getPushResults() == null) {
+            testRail.setPushResults(providedConfig.getTcm().getTestRail().getPushResults());
+        }
+        if (testRail.getPushInRealTime() == null) {
+            testRail.setPushInRealTime(providedConfig.getTcm().getTestRail().getPushInRealTime());
+        }
+        if (testRail.getIncludeAllTestCasesInNewRun() == null) {
+            testRail.setIncludeAllTestCasesInNewRun(providedConfig.getTcm().getTestRail().getIncludeAllTestCasesInNewRun());
+        }
+        if (testRail.getSuiteId() == null) {
+            testRail.setSuiteId(providedConfig.getTcm().getTestRail().getSuiteId());
+        }
+        if (testRail.getRunId() == null) {
+            testRail.setRunId(providedConfig.getTcm().getTestRail().getRunId());
+        }
+        if (testRail.getRunName() == null) {
+            testRail.setRunName(providedConfig.getTcm().getTestRail().getRunName());
+        }
+        if (testRail.getMilestoneName() == null) {
+            testRail.setMilestoneName(providedConfig.getTcm().getTestRail().getMilestoneName());
+        }
+        if (testRail.getAssignee() == null) {
+            testRail.setAssignee(providedConfig.getTcm().getTestRail().getAssignee());
+        }
+
+        ReportingConfiguration.TcmConfiguration.Xray xray = tcm.getXray();
+        if (xray.getPushResults() == null) {
+            xray.setPushResults(providedConfig.getTcm().getXray().getPushResults());
+        }
+        if (xray.getPushInRealTime() == null) {
+            xray.setPushInRealTime(providedConfig.getTcm().getXray().getPushInRealTime());
+        }
+        if (xray.getExecutionKey() == null) {
+            xray.setExecutionKey(providedConfig.getTcm().getXray().getExecutionKey());
+        }
+
+        ReportingConfiguration.TcmConfiguration.Zephyr zephyr = tcm.getZephyr();
+        if (zephyr.getPushResults() == null) {
+            zephyr.setPushResults(providedConfig.getTcm().getZephyr().getPushResults());
+        }
+        if (zephyr.getPushInRealTime() == null) {
+            zephyr.setPushInRealTime(providedConfig.getTcm().getZephyr().getPushInRealTime());
+        }
+        if (zephyr.getJiraProjectKey() == null) {
+            zephyr.setJiraProjectKey(providedConfig.getTcm().getZephyr().getJiraProjectKey());
+        }
+        if (zephyr.getTestCycleKey() == null) {
+            zephyr.setTestCycleKey(providedConfig.getTcm().getZephyr().getTestCycleKey());
+        }
     }
 
     // project-key is not considered as a mandatory property
@@ -288,14 +445,36 @@ class ConfigurationProvidersChain {
         Boolean substituteRemoteWebDrivers = config.getRun().getSubstituteRemoteWebDrivers();
         Boolean treatSkipsAsFailures = config.getRun().getTreatSkipsAsFailures();
 
-        String testCaseStatusOnPass = config.getRun().getTestCaseStatus().getOnPass();
-        String testCaseStatusOnFail = config.getRun().getTestCaseStatus().getOnFail();
-        String testCaseStatusOnSkip = config.getRun().getTestCaseStatus().getOnSkip();
+        String testCaseStatusOnPass = config.getTcm().getTestCaseStatus().getOnPass();
+        String testCaseStatusOnFail = config.getTcm().getTestCaseStatus().getOnFail();
+        String testCaseStatusOnSkip = config.getTcm().getTestCaseStatus().getOnSkip();
 
         Boolean notifyOnEachFailure = config.getNotification().getNotifyOnEachFailure();
         String slackChannels = config.getNotification().getSlackChannels();
         String msTeamsChannels = config.getNotification().getMsTeamsChannels();
         String emails = config.getNotification().getEmails();
+
+        Boolean tcmPushResults = config.getTcm().getZebrunner().getPushResults();
+        Boolean tcmPushInRealTime = config.getTcm().getZebrunner().getPushInRealTime();
+        String tcmRunId = config.getTcm().getZebrunner().getTestRunId();
+
+        Boolean testRailPushResults = config.getTcm().getTestRail().getPushResults();
+        Boolean testRailPushInRealTime = config.getTcm().getTestRail().getPushInRealTime();
+        String testRailSuiteId = config.getTcm().getTestRail().getSuiteId();
+        String testRailRunId = config.getTcm().getTestRail().getRunId();
+        Boolean testRailIncludeAllTestCasesInNewRun = config.getTcm().getTestRail().getIncludeAllTestCasesInNewRun();
+        String testRailRunName = config.getTcm().getTestRail().getRunName();
+        String testRailMilestoneName = config.getTcm().getTestRail().getMilestoneName();
+        String testRailAssignee = config.getTcm().getTestRail().getAssignee();
+
+        Boolean xrayPushResults = config.getTcm().getXray().getPushResults();
+        Boolean xrayPushInRealTime = config.getTcm().getXray().getPushInRealTime();
+        String xrayExecutionKey = config.getTcm().getXray().getExecutionKey();
+
+        Boolean zephyrPushResults = config.getTcm().getZephyr().getPushResults();
+        Boolean zephyrPushInRealTime = config.getTcm().getZephyr().getPushInRealTime();
+        String zephyrJiraProjectKey = config.getTcm().getZephyr().getJiraProjectKey();
+        String zephyrTestCycleKey = config.getTcm().getZephyr().getTestCycleKey();
 
         return enabled != null
                 && projectKey != null
@@ -303,7 +482,13 @@ class ConfigurationProvidersChain {
                 && displayName != null && build != null && environment != null && context != null
                 && retryKnownIssues != null && substituteRemoteWebDrivers != null && treatSkipsAsFailures != null
                 && testCaseStatusOnPass != null && testCaseStatusOnFail != null && testCaseStatusOnSkip != null
-                && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null;
+                && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null
+                && tcmPushResults != null && tcmPushInRealTime != null && tcmRunId != null
+                && testRailPushResults != null && testRailPushInRealTime != null && testRailSuiteId != null
+                && testRailRunId != null && testRailIncludeAllTestCasesInNewRun != null && testRailRunName != null
+                && testRailMilestoneName != null && testRailAssignee != null
+                && xrayPushResults != null && xrayPushInRealTime != null && xrayExecutionKey != null
+                && zephyrPushResults != null && zephyrPushInRealTime != null && zephyrJiraProjectKey != null && zephyrTestCycleKey != null;
     }
 
 }

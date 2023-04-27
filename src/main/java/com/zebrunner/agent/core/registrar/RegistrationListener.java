@@ -2,9 +2,16 @@ package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.registrar.descriptor.Status;
 import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
 
 interface RegistrationListener {
+
+    default void onBeforeTestRunStart(TestRunStartDescriptor startDescriptor) {
+    }
+
+    default void onAfterTestRunStart(TestRunStartDescriptor startDescriptor) {
+    }
 
     default void onBeforeTestStart(TestStartDescriptor startDescriptor) {
     }
