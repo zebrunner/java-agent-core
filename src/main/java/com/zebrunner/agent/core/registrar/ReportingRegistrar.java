@@ -44,6 +44,8 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerStart(TestRunStartDescriptor tr) {
+        registrationListenerRegistry.forEach(listener -> listener.onBeforeTestRunStart(tr));
+
         TestRunDTO testRun = TestRunDTO.builder()
                                        .uuid(RunContextHolder.getTestRunUuid())
                                        .name(ConfigurationHolder.getRunDisplayNameOr(tr.getName()))
@@ -78,6 +80,7 @@ class ReportingRegistrar implements TestRunRegistrar {
             RunContext.setRun(testRunDescriptor);
             logTestRunWarnings(testRun);
             saveRunLocaleFromProgramArguments();
+            registrationListenerRegistry.forEach(listener -> listener.onAfterTestRunStart(tr));
         }
     }
 

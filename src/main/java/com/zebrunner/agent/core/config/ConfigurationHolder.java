@@ -86,15 +86,15 @@ public class ConfigurationHolder {
     }
 
     public static String getTestCaseStatusOnPass() {
-        return configuration.getRun().getTestCaseStatus().getOnPass();
+        return configuration.getTcm().getTestCaseStatus().getOnPass();
     }
 
     public static String getTestCaseStatusOnFail() {
-        return configuration.getRun().getTestCaseStatus().getOnFail();
+        return configuration.getTcm().getTestCaseStatus().getOnFail();
     }
 
     public static String getTestCaseStatusOnSkip() {
-        return configuration.getRun().getTestCaseStatus().getOnSkip();
+        return configuration.getTcm().getTestCaseStatus().getOnSkip();
     }
 
     private static String toSerializedRunContext(String ciRunId) {
@@ -145,6 +145,87 @@ public class ConfigurationHolder {
 
     public static String getMilestoneName() {
         return configuration.getMilestone().getName();
+    }
+
+    public static boolean isTcmSyncEnabled() {
+        Boolean pushResults = configuration.getTcm().getZebrunner().getPushResults();
+        return pushResults != null && pushResults;
+    }
+
+    public static boolean isTcmRealTimeSyncEnabled() {
+        Boolean pushInRealTime = configuration.getTcm().getZebrunner().getPushInRealTime();
+        return pushInRealTime != null && pushInRealTime;
+    }
+
+    public static String getTcmTestRunId() {
+        return configuration.getTcm().getZebrunner().getTestRunId();
+    }
+
+    public static boolean isTestRailSyncEnabled() {
+        Boolean pushResults = configuration.getTcm().getTestRail().getPushResults();
+        return pushResults != null && pushResults;
+    }
+
+    public static boolean isTestRailRealTimeSyncEnabled() {
+        Boolean pushInRealTime = configuration.getTcm().getTestRail().getPushInRealTime();
+        return pushInRealTime != null && pushInRealTime;
+    }
+
+    public static boolean shouldTestRailIncludeAllTestCasesInNewRun() {
+        Boolean includeAllTestCasesInNewRun = configuration.getTcm().getTestRail().getIncludeAllTestCasesInNewRun();
+        return includeAllTestCasesInNewRun != null && includeAllTestCasesInNewRun;
+    }
+
+    public static String getTestRailSuiteId() {
+        return configuration.getTcm().getTestRail().getSuiteId();
+    }
+
+    public static String getTestRailRunId() {
+        return configuration.getTcm().getTestRail().getRunId();
+    }
+
+    public static String getTestRailRunName() {
+        return configuration.getTcm().getTestRail().getRunName();
+    }
+
+    public static String getTestRailMilestoneName() {
+        return configuration.getTcm().getTestRail().getMilestoneName();
+    }
+
+    public static String getTestRailAssignee() {
+        return configuration.getTcm().getTestRail().getAssignee();
+    }
+
+    public static boolean isXraySyncEnabled() {
+        Boolean pushResults = configuration.getTcm().getXray().getPushResults();
+        return pushResults != null && pushResults;
+    }
+
+    public static boolean isXrayRealTimeSyncEnabled() {
+        Boolean pushInRealTime = configuration.getTcm().getXray().getPushInRealTime();
+        return pushInRealTime != null && pushInRealTime;
+    }
+
+    public static String getXrayExecutionKey() {
+        return configuration.getTcm().getXray().getExecutionKey();
+    }
+
+    public static boolean isZephyrSyncEnabled() {
+        Boolean pushResults = configuration.getTcm().getZephyr().getPushResults();
+        return pushResults != null && pushResults;
+    }
+
+    public static boolean isZephyrSyncRealTimeEnabled() {
+        Boolean pushInRealTime = configuration.getTcm().getZephyr().getPushInRealTime();
+        return pushInRealTime != null && pushInRealTime;
+    }
+
+    public static String getZephyrJiraProjectKey() {
+        return configuration.getTcm().getZephyr().getJiraProjectKey();
+    }
+
+    public static String getZephyrTestCycleKey() {
+        return configuration.getTcm().getZephyr().getTestCycleKey();
     }
 
 }
