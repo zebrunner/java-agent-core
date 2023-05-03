@@ -6,7 +6,7 @@ public class ClientRegistrar {
 
     public static synchronized ZebrunnerApiClient getClient() {
         if (client == null) {
-            return DefaultZebrunnerApiClient.getInstance();
+            return UnirestZebrunnerApiClient.getInstance();
         }
         return client;
     }

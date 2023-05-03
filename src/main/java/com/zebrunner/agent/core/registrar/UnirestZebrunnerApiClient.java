@@ -32,15 +32,15 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Slf4j
-class DefaultZebrunnerApiClient implements ZebrunnerApiClient {
+class UnirestZebrunnerApiClient implements ZebrunnerApiClient {
 
-    private static DefaultZebrunnerApiClient INSTANCE;
+    private static UnirestZebrunnerApiClient INSTANCE;
 
     private String apiHost;
     private String authToken;
     private volatile UnirestInstance client;
 
-    private DefaultZebrunnerApiClient() {
+    private UnirestZebrunnerApiClient() {
         if (ConfigurationHolder.isReportingEnabled()) {
             this.apiHost = ConfigurationHolder.getHost();
             this.client = this.initClient();
@@ -52,9 +52,9 @@ class DefaultZebrunnerApiClient implements ZebrunnerApiClient {
         }
     }
 
-    static synchronized DefaultZebrunnerApiClient getInstance() {
+    static synchronized UnirestZebrunnerApiClient getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new DefaultZebrunnerApiClient();
+            INSTANCE = new UnirestZebrunnerApiClient();
         }
         return INSTANCE;
     }
