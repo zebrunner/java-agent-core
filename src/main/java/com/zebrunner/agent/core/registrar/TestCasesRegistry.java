@@ -44,7 +44,7 @@ class TestCasesRegistry {
         TCM_TYPE_TO_LABEL_KEY.put(TcmType.ZEBRUNNER, "com.zebrunner.app/tcm.zebrunner.test-case-key");
     }
 
-    private final ZebrunnerApiClient zebrunnerApiClient = ZebrunnerApiClient.getInstance();
+    private final ZebrunnerApiClient zebrunnerApiClient = ClientRegistrar.getClient();
     private final Map<Long, Map<TcmType, Map<String, String>>> testIdToTcmTypeToTestCaseIdToStatus = new HashMap<>();
 
     void addTestCasesToCurrentTest(TcmType tcmType, Collection<String> testCaseIds) {

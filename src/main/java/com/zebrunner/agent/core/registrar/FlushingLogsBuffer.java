@@ -24,7 +24,7 @@ import java.util.function.Function;
 final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
 
     private static final ScheduledExecutorService FLUSH_EXECUTOR = Executors.newScheduledThreadPool(4);
-    private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
+    private static final ZebrunnerApiClient API_CLIENT = ClientRegistrar.getClient();
     private static final AtomicBoolean EXECUTOR_ENABLED = new AtomicBoolean();
 
     private static volatile Queue<Log> QUEUE = new ConcurrentLinkedQueue<>();

@@ -20,7 +20,7 @@ class SessionRegistrar implements TestSessionRegistrar {
         return INSTANCE;
     }
 
-    private final ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
+    private final ZebrunnerApiClient apiClient = ClientRegistrar.getClient();
 
     private final Map<String, TestSessionDTO> sessionIdToSession = new ConcurrentHashMap<>();
     private final ThreadLocal<Set<String>> threadSessionIds = InheritableThreadLocal.withInitial(HashSet::new);

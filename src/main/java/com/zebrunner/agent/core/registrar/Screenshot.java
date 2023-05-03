@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class Screenshot {
 
-    private static final ZebrunnerApiClient API_CLIENT = ZebrunnerApiClient.getInstance();
+    private static final ZebrunnerApiClient API_CLIENT = ClientRegistrar.getClient();
 
     /**
      * Sends screenshot captured in scope of current test execution to Zebrunner. Captured at timestamp accuracy
