@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly('com.konghq:unirest-java:3.13.10')
+    implementation('com.konghq:unirest-java:3.13.10')
     implementation('org.yaml:snakeyaml:1.30')
 
     implementation("net.bytebuddy:byte-buddy:1.12.18")
