@@ -14,7 +14,7 @@ dependencies {
     implementation('org.yaml:snakeyaml:1.30')
 
     implementation("net.bytebuddy:byte-buddy:1.12.10")
-    compileOnly('io.appium:java-client:8.2.0')
+    compileOnly('io.appium:java-client:8.3.0')
 
     implementation('org.slf4j:slf4j-api:1.7.36')
     compileOnly("log4j:log4j:1.2.17")
