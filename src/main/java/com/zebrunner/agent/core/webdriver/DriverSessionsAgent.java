@@ -48,10 +48,10 @@ public class DriverSessionsAgent {
             new AgentBuilder.Default()
                     .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
                     .type(named(REMOTE_WEB_DRIVER_CLASS_MAME))
-                    .transform((builder, type, classloader, module) -> addInterceptors(builder))
+                    .transform((builder, type, classloader, module, protectionDomain) -> addInterceptors(builder))
                     // if ** <- AppiumDriver is created, then the startSession method in RemoteWebDriver is not called
                     .type(named(APPIUM_WEB_DRIVER_CLASS_MAME))
-                    .transform((builder, type, classloader, module) ->
+                    .transform((builder, type, classloader, module, protectionDomain) ->
                             builder.method(named(START_SESSION_METHOD_MAME))
                                     .intercept(to(startSessionInterceptor())))
                     .installOn(instrumentation);

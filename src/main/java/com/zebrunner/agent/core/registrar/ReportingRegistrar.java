@@ -35,7 +35,7 @@ class ReportingRegistrar implements TestRunRegistrar {
         return instance;
     }
 
-    private final ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
+    private final ZebrunnerApiClient apiClient = ClientRegistrar.getClient();
     private final CompositeLabelResolver labelResolver = new CompositeLabelResolver();
     private final ChainedMaintainerResolver maintainerResolver = new ChainedMaintainerResolver();
     private final CiContextResolver ciContextResolver = CompositeCiContextResolver.getInstance();

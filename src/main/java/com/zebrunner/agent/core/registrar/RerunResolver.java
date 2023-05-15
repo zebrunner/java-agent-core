@@ -35,7 +35,7 @@ final class RerunResolver {
      * @param rerunCondition pattern to be used to build rerun plan
      */
     private static void processRerun(String rerunCondition) {
-        ZebrunnerApiClient apiClient = ZebrunnerApiClient.getInstance();
+        ZebrunnerApiClient apiClient = ClientRegistrar.getClient();
         ExchangeRunContextResponse response = apiClient.exchangeRerunCondition(rerunCondition);
 
         if (response != null) {
