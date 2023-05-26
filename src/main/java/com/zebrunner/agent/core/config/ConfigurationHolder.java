@@ -122,6 +122,11 @@ public class ConfigurationHolder {
 //        return new Gson().toJson(runContext);
 //    }
 
+    public static boolean notificationsEnabled() {
+        Boolean enabled = configuration.getNotification().getEnabled();
+        return enabled == null || enabled;
+    }
+
     public static boolean shouldNotifyOnEachFailure() {
         Boolean notifyOnEachFailure = configuration.getNotification().getNotifyOnEachFailure();
         return notifyOnEachFailure != null && notifyOnEachFailure;
@@ -149,7 +154,7 @@ public class ConfigurationHolder {
 
     public static boolean isTcmSyncEnabled() {
         Boolean pushResults = configuration.getTcm().getZebrunner().getPushResults();
-        return pushResults != null && pushResults;
+        return pushResults == null || pushResults;
     }
 
     public static boolean isTcmRealTimeSyncEnabled() {
@@ -163,7 +168,7 @@ public class ConfigurationHolder {
 
     public static boolean isTestRailSyncEnabled() {
         Boolean pushResults = configuration.getTcm().getTestRail().getPushResults();
-        return pushResults != null && pushResults;
+        return pushResults == null || pushResults;
     }
 
     public static boolean isTestRailRealTimeSyncEnabled() {
@@ -198,7 +203,7 @@ public class ConfigurationHolder {
 
     public static boolean isXraySyncEnabled() {
         Boolean pushResults = configuration.getTcm().getXray().getPushResults();
-        return pushResults != null && pushResults;
+        return pushResults == null || pushResults;
     }
 
     public static boolean isXrayRealTimeSyncEnabled() {
@@ -212,7 +217,7 @@ public class ConfigurationHolder {
 
     public static boolean isZephyrSyncEnabled() {
         Boolean pushResults = configuration.getTcm().getZephyr().getPushResults();
-        return pushResults != null && pushResults;
+        return pushResults == null || pushResults;
     }
 
     public static boolean isZephyrSyncRealTimeEnabled() {

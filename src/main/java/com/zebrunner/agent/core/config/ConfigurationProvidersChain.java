@@ -142,7 +142,7 @@ class ConfigurationProvidersChain {
 
     private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
         if (config.getNotification() == null) {
-            config.setNotification(new ReportingConfiguration.NotificationConfiguration(null, null, null, null));
+            config.setNotification(new ReportingConfiguration.NotificationConfiguration(null, null, null, null, null));
         } else {
             ReportingConfiguration.NotificationConfiguration notificationConfig = config.getNotification();
 
@@ -321,6 +321,9 @@ class ConfigurationProvidersChain {
         }
 
         ReportingConfiguration.NotificationConfiguration notification = config.getNotification();
+        if (notification.getEnabled() == null) {
+            notification.setEnabled(providedConfig.getNotification().getEnabled());
+        }
         if (notification.getNotifyOnEachFailure() == null) {
             notification.setNotifyOnEachFailure(providedConfig.getNotification().getNotifyOnEachFailure());
         }
@@ -449,6 +452,7 @@ class ConfigurationProvidersChain {
         String testCaseStatusOnFail = config.getTcm().getTestCaseStatus().getOnFail();
         String testCaseStatusOnSkip = config.getTcm().getTestCaseStatus().getOnSkip();
 
+        Boolean notificationsEnabled = config.getNotification().getEnabled();
         Boolean notifyOnEachFailure = config.getNotification().getNotifyOnEachFailure();
         String slackChannels = config.getNotification().getSlackChannels();
         String msTeamsChannels = config.getNotification().getMsTeamsChannels();
@@ -482,7 +486,7 @@ class ConfigurationProvidersChain {
                 && displayName != null && build != null && environment != null && context != null
                 && retryKnownIssues != null && substituteRemoteWebDrivers != null && treatSkipsAsFailures != null
                 && testCaseStatusOnPass != null && testCaseStatusOnFail != null && testCaseStatusOnSkip != null
-                && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null
+                && notificationsEnabled != null && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null
                 && tcmPushResults != null && tcmPushInRealTime != null && tcmRunId != null
                 && testRailPushResults != null && testRailPushInRealTime != null && testRailSuiteId != null
                 && testRailRunId != null && testRailIncludeAllTestCasesInNewRun != null && testRailRunName != null

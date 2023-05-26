@@ -47,6 +47,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
     private static final String TCM_ZEPHYR_JIRA_PROJECT_KEY_PROPERTY = "reporting.tcm.zephyr.jira-project-key";
     private static final String TCM_ZEPHYR_TEST_CYCLE_KEY_PROPERTY = "reporting.tcm.zephyr.test-cycle-key";
 
+    private static final String NOTIFICATION_ENABLED = "reporting.notification.enabled";
     private static final String NOTIFICATION_NOTIFY_ON_EACH_FAILURE_PROPERTY = "reporting.notification.notify-on-each-failure";
     private final static String SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String MS_TEAMS_CHANNELS_PROPERTY = "reporting.notification.ms-teams-channels";
@@ -96,6 +97,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
         String zephyrJiraProjectKey = System.getProperty(TCM_ZEPHYR_JIRA_PROJECT_KEY_PROPERTY);
         String zephyrTestCycleKey = System.getProperty(TCM_ZEPHYR_TEST_CYCLE_KEY_PROPERTY);
 
+        Boolean notificationsEnabled = ConfigurationUtils.parseBoolean(System.getProperty(NOTIFICATION_ENABLED));
         Boolean notifyOnEachFailure = ConfigurationUtils.parseBoolean(System.getProperty(NOTIFICATION_NOTIFY_ON_EACH_FAILURE_PROPERTY));
         String slackChannels = System.getProperty(SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = System.getProperty(MS_TEAMS_CHANNELS_PROPERTY);
@@ -122,7 +124,7 @@ public class SystemPropertiesConfigurationProvider implements ConfigurationProvi
                                              milestoneId, milestoneName
                                      ))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(
-                                             notifyOnEachFailure, slackChannels, msTeamsChannels, emails
+                                             notificationsEnabled, notifyOnEachFailure, slackChannels, msTeamsChannels, emails
                                      ))
                                      .tcm(new ReportingConfiguration.TcmConfiguration(
                                              new ReportingConfiguration.TcmConfiguration.TestCaseStatus(
