@@ -51,6 +51,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
     private static final String TCM_ZEPHYR_JIRA_PROJECT_KEY_PROPERTY = "reporting.tcm.zephyr.jira-project-key";
     private static final String TCM_ZEPHYR_TEST_CYCLE_KEY_PROPERTY = "reporting.tcm.zephyr.test-cycle-key";
 
+    private static final String NOTIFICATION_ENABLED = "reporting.notification.enabled";
     private static final String NOTIFICATION_NOTIFY_ON_EACH_FAILURE_PROPERTY = "reporting.notification.notify-on-each-failure";
     private final static String NOTIFICATION_SLACK_CHANNELS_PROPERTY = "reporting.notification.slack-channels";
     private final static String NOTIFICATION_MS_TEAMS_PROPERTY = "reporting.notification.ms-teams-channels";
@@ -104,6 +105,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
         String zephyrJiraProjectKey = agentProperties.getProperty(TCM_ZEPHYR_JIRA_PROJECT_KEY_PROPERTY);
         String zephyrTestCycleKey = agentProperties.getProperty(TCM_ZEPHYR_TEST_CYCLE_KEY_PROPERTY);
 
+        Boolean notificationsEnabled = ConfigurationUtils.parseBoolean(agentProperties.getProperty(NOTIFICATION_ENABLED));
         Boolean notifyOnEachFailure = ConfigurationUtils.parseBoolean(agentProperties.getProperty(NOTIFICATION_NOTIFY_ON_EACH_FAILURE_PROPERTY));
         String slackChannels = agentProperties.getProperty(NOTIFICATION_SLACK_CHANNELS_PROPERTY);
         String msTeamsChannels = agentProperties.getProperty(NOTIFICATION_MS_TEAMS_PROPERTY);
@@ -130,7 +132,7 @@ public class PropertiesConfigurationProvider implements ConfigurationProvider {
                                              milestoneId, milestoneName
                                      ))
                                      .notification(new ReportingConfiguration.NotificationConfiguration(
-                                             notifyOnEachFailure, slackChannels, msTeamsChannels, emails
+                                             notificationsEnabled, notifyOnEachFailure, slackChannels, msTeamsChannels, emails
                                      ))
                                      .tcm(new ReportingConfiguration.TcmConfiguration(
                                              new ReportingConfiguration.TcmConfiguration.TestCaseStatus(

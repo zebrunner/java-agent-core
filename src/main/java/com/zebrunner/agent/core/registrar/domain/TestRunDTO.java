@@ -68,6 +68,7 @@ public class TestRunDTO {
     @Value
     public static class Notifications {
 
+        boolean enabled;
         Set<NotificationTargetDTO> targets;
         boolean notifyOnEachFailure;
 
