@@ -66,6 +66,7 @@ public class ReportingConfiguration {
     @AllArgsConstructor
     public static class NotificationConfiguration {
 
+        private Boolean enabled;
         private Boolean notifyOnEachFailure;
         private String slackChannels;
         private String msTeamsChannels;

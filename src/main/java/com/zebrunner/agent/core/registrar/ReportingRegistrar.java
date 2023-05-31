@@ -68,6 +68,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                                          ConfigurationHolder.getMilestoneName()
                                  ))
                                        .notifications(new TestRunDTO.Notifications(
+                                         ConfigurationHolder.notificationsEnabled(),
                                          collectNotificationTargets(),
                                          ConfigurationHolder.shouldNotifyOnEachFailure()
                                  ))
