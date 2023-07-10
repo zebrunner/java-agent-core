@@ -27,6 +27,7 @@ public class TestDTO {
     private String maintainer;
     private List<LabelDTO> labels;
     private List<ArtifactReferenceDTO> artifactReferences;
+    private List<String> testGroups;
     private String result;
     private String reason;
 
