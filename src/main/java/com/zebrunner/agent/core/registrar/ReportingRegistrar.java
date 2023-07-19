@@ -183,6 +183,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                               .maintainer(maintainerResolver.resolve(ts.getTestClass(), ts.getTestMethod()))
                               .startedAt(ts.getStartedAt())
                               .labels(labelResolver.resolve(ts.getTestClass(), ts.getTestMethod()))
+                              .testGroups(ts.getTestGroups())
                               .build();
 
         Long headlessTestId = RunContext.getCurrentTest()

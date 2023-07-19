@@ -1,5 +1,7 @@
 package com.zebrunner.agent.core.registrar.descriptor;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -7,13 +9,16 @@ import lombok.ToString;
 
 import java.lang.reflect.Method;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Descriptor of test start event. Captures initial test data, such as its name, class and corresponding method,
  * test maintainer and start time
  */
 @Getter
+@Builder
 @ToString
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class TestStartDescriptor {
 
@@ -61,8 +66,23 @@ public class TestStartDescriptor {
      */
     private final Integer argumentsIndex;
 
-    public TestStartDescriptor(String uuid, String name, Class<?> testClass, Method testMethod, Integer argumentsIndex) {
-        this(uuid, name, OffsetDateTime.now(), testClass, testMethod, argumentsIndex);
+    /**
+     * Test groups that test belongs to. Test groups allow you to group tests depending on specific criteria and manage them
+     * more effectively.
+     */
+    private final List<String> testGroups;
+
+    public TestStartDescriptor(String correlationData, String name, Class<?> testClass, Method testMethod, Integer argumentsIndex) {
+        this(correlationData, name, OffsetDateTime.now(), testClass, testMethod, argumentsIndex, List.of());
+    }
+
+    public TestStartDescriptor(String correlationData,
+                               String name,
+                               OffsetDateTime startedAt,
+                               Class<?> testClass,
+                               Method testMethod,
+                               Integer argumentsIndex) {
+        this(correlationData, name, startedAt, testClass, testMethod, argumentsIndex, List.of());
     }
 
 }
