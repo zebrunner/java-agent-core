@@ -3,6 +3,7 @@ package com.zebrunner.agent.core.registrar;
 import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
 import com.zebrunner.agent.core.registrar.descriptor.TestRunDescriptor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * occurring in scope of test run: e.g. to match event describing test finish with event describing test start and
  * keep track on test run itself.
  */
+@Slf4j
 class RunContext {
 
     private static TestRunDescriptor testRun;
@@ -41,8 +43,14 @@ class RunContext {
         return TESTS.get(id);
     }
 
+    static   Map<String, TestDescriptor> getTests() {
+        return TESTS;
+    }
+
     static void addCurrentTest(String id, TestDescriptor testDescriptor) {
+        log.warn("[DEBUG_TEST] ADD CURRENT TEST. Id: '" + id + "', Test Descriptor: '" + testDescriptor + "', TESTS before adding: " + TESTS);
         TESTS.put(id, testDescriptor);
+        log.warn("[DEBUG_TEST] TESTS after adding test with id: '" + id + "': " + TESTS);
         CURRENT_THREAD_LOCAL_TEST.set(testDescriptor);
     }
 

@@ -219,10 +219,13 @@ class ReportingRegistrar implements TestRunRegistrar {
 
     @Override
     public void registerTestFinish(String id, TestFinishDescriptor tf) {
+        log.warn("[DEBUG_TEST] REGISTER TEST FINISH with id: '" + id + "' and finish descriptor: '" + tf + "'");
         TestDescriptor test = RunContext.getTest(id);
+        log.warn("[DEBUG_TEST] Test descriptor of test with id: '" + id + "': " + test);
+        log.warn("For test id: '" + id + "' test map: " + RunContext.getTests());
         if (test != null) {
             registrationListenerRegistry.forEach(listener -> listener.onBeforeTestFinish(tf));
-
+            log.warn("Test id after registrationListenerRegistry: " + id);
             TestDTO result = TestDTO.builder()
                                     .id(test.getZebrunnerId())
                                     .result(tf.getStatus().name())
@@ -230,6 +233,8 @@ class ReportingRegistrar implements TestRunRegistrar {
                                     .endedAt(tf.getEndedAt())
                                     .build();
 
+            log.warn("For test id: '" + id  +"' Test result: " + result );
+            log.warn("For test id: '" + id  +"' Zebrunner run id: " + RunContext.getZebrunnerRunId() );
             apiClient.registerTestFinish(RunContext.getZebrunnerRunId(), result);
 
             registrationListenerRegistry.forEach(listener -> listener.onAfterTestFinish(tf));
