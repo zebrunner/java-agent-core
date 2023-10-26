@@ -3,6 +3,9 @@ package com.zebrunner.agent.core.webdriver;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.registrar.TestSessionRegistrar;
 import com.zebrunner.agent.core.registrar.descriptor.SessionStartDescriptor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -21,12 +24,18 @@ import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 @Slf4j
 public class StartSessionInterceptor {
 
     private static final TestSessionRegistrar REGISTRAR = TestSessionRegistrar.getInstance();
     private static final CapabilitiesCustomizerChain CAPABILITIES_CUSTOMIZER_CHAIN = CapabilitiesCustomizerChain.getInstance();
+    private static final ThreadLocal<Consumer<SessionRegisterDescriptor>> SESSION_REGISTER_DESCRIPTOR_CONSUMER = new ThreadLocal<>();
+
+    public static void setSessionRegisterConsumer(Consumer<SessionRegisterDescriptor> consumer) {
+        SESSION_REGISTER_DESCRIPTOR_CONSUMER.set(consumer);
+    }
 
     @RuntimeType
     public static void onSessionStart(@This RemoteWebDriver driver,
@@ -37,7 +46,9 @@ public class StartSessionInterceptor {
             capabilities = customizeCapabilities(methodInvocationProxy, capabilities);
         }
 
-        SessionStartDescriptor startDescriptor = SessionStartDescriptor.initiatedWith(capabilities.asMap());
+        SessionRegisterDescriptor sessionRegisterDescriptor = new SessionRegisterDescriptor();
+        sessionRegisterDescriptor.setSessionStartDescriptor(SessionStartDescriptor.initiatedWith(capabilities.asMap()));
+
         try {
             methodInvocationProxy.run();
 
@@ -61,14 +72,24 @@ public class StartSessionInterceptor {
                 driverCapabilities = (Capabilities) capabilitiesField.get(driver);
             }
 
-            startDescriptor.successfullyStartedWith(sessionId, driverCapabilities.asMap());
+            sessionRegisterDescriptor.getSessionStartDescriptor()
+                    .successfullyStartedWith(sessionId, driverCapabilities.asMap());
         } catch (Exception e) {
+            sessionRegisterDescriptor.setException(e);
             StringWriter errorMessageStringWriter = new StringWriter();
             e.printStackTrace(new PrintWriter(errorMessageStringWriter));
-            startDescriptor.failedToStart(errorMessageStringWriter.toString());
+            sessionRegisterDescriptor.getSessionStartDescriptor()
+                    .failedToStart(errorMessageStringWriter.toString());
             throw e;
         } finally {
-            REGISTRAR.registerStart(startDescriptor);
+            if (SESSION_REGISTER_DESCRIPTOR_CONSUMER.get() == null) {
+                REGISTRAR.registerStart(sessionRegisterDescriptor.getSessionStartDescriptor());
+            } else {
+                Consumer<SessionRegisterDescriptor> consumer = SESSION_REGISTER_DESCRIPTOR_CONSUMER.get();
+                SESSION_REGISTER_DESCRIPTOR_CONSUMER.remove();
+                sessionRegisterDescriptor.setTestSessionRegistrar(REGISTRAR);
+                consumer.accept(sessionRegisterDescriptor);
+            }
         }
     }
 
@@ -157,4 +178,12 @@ public class StartSessionInterceptor {
         return capabilities;
     }
 
+    @Data
+    @NoArgsConstructor
+    @RequiredArgsConstructor
+    public static class SessionRegisterDescriptor {
+        private TestSessionRegistrar testSessionRegistrar;
+        private SessionStartDescriptor sessionStartDescriptor;
+        private Exception exception;
+    }
 }
