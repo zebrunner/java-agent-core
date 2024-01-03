@@ -85,6 +85,8 @@ public abstract class AnnotationDrivenConfigurationProvider<T extends Annotation
             parsedValue = ConfigurationUtils.parseBoolean(value);
         } else if (field.getType() == Long.class) {
             parsedValue = ConfigurationUtils.parseLong(value);
+        } else if (field.getType().isEnum()) {
+            parsedValue = ConfigurationUtils.parseEnum(value, field.getType().asSubclass(Enum.class));
         }
 
         return parsedValue;

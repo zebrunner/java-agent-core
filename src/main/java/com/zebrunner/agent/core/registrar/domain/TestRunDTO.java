@@ -71,6 +71,7 @@ public class TestRunDTO {
         boolean enabled;
         Set<NotificationTargetDTO> targets;
         boolean notifyOnEachFailure;
+        SummarySendingPolicy summarySendingPolicy;
 
     }
 

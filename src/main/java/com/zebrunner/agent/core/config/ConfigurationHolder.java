@@ -1,6 +1,7 @@
 package com.zebrunner.agent.core.config;
 
 import com.google.gson.Gson;
+import com.zebrunner.agent.core.registrar.domain.SummarySendingPolicy;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -142,6 +143,10 @@ public class ConfigurationHolder {
 
     public static String getEmails() {
         return configuration.getNotification().getEmails();
+    }
+
+    public static SummarySendingPolicy getSummarySendingPolicy() {
+        return configuration.getNotification().getSummarySendingPolicy();
     }
 
     public static Long getMilestoneId() {

@@ -5,6 +5,7 @@ import com.zebrunner.agent.core.config.annotation.EnvironmentVariable;
 import com.zebrunner.agent.core.config.annotation.PropertiesFileProperty;
 import com.zebrunner.agent.core.config.annotation.SystemProperty;
 import com.zebrunner.agent.core.config.annotation.YamlProperty;
+import com.zebrunner.agent.core.registrar.domain.SummarySendingPolicy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -170,6 +171,12 @@ public class ReportingConfiguration {
         @EnvironmentVariable("REPORTING_NOTIFICATION_EMAILS")
         @PropertiesFileProperty("reporting.notification.emails")
         private String emails;
+
+        @YamlProperty("reporting.notification.summary-sending-policy")
+        @SystemProperty("reporting.notification.summary-sending-policy")
+        @EnvironmentVariable("REPORTING_NOTIFICATION_SUMMARY_SENDING_POLICY")
+        @PropertiesFileProperty("reporting.notification.summary-sending-policy")
+        private SummarySendingPolicy summarySendingPolicy;
 
     }
 

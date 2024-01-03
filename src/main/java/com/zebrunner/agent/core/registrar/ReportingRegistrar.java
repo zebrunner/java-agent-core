@@ -70,7 +70,8 @@ class ReportingRegistrar implements TestRunRegistrar {
                                        .notifications(new TestRunDTO.Notifications(
                                          ConfigurationHolder.notificationsEnabled(),
                                          collectNotificationTargets(),
-                                         ConfigurationHolder.shouldNotifyOnEachFailure()
+                                         ConfigurationHolder.shouldNotifyOnEachFailure(),
+                                         ConfigurationHolder.getSummarySendingPolicy()
                                  ))
                                        .build();
         testRun = apiClient.registerTestRunStart(testRun);
