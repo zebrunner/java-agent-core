@@ -9,17 +9,11 @@ import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.implementation.bind.annotation.This;
 import org.openqa.selenium.Capabilities;
-import org.openqa.selenium.UsernameAndPassword;
-import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.remote.http.ClientConfig;
-import org.openqa.selenium.remote.http.jdk.JdkHttpClient;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Arrays;
 
 @Slf4j
@@ -33,7 +27,6 @@ public class StartSessionInterceptor {
                                       @SuperCall Runnable methodInvocationProxy,
                                       @Argument(0) Capabilities capabilities) throws Exception {
         if (ConfigurationHolder.shouldSubstituteRemoteWebDrivers()) {
-            substituteSeleniumHub(driver);
             capabilities = customizeCapabilities(methodInvocationProxy, capabilities);
         }
 
@@ -72,60 +65,6 @@ public class StartSessionInterceptor {
         }
     }
 
-    private static void substituteSeleniumHub(RemoteWebDriver driver) throws NoSuchFieldException, IllegalAccessException, URISyntaxException {
-        URL seleniumHubUrl = RemoteWebDriverFactory.getSeleniumHubUrl();
-        if (driver.getCommandExecutor() instanceof HttpCommandExecutor && seleniumHubUrl != null) {
-            log.debug("Selenium Hub URL will be substituted by the value provided from Zebrunner.");
-
-            HttpCommandExecutor commandExecutor = (HttpCommandExecutor) driver.getCommandExecutor();
-            setFieldValue(commandExecutor, "remoteServer", seleniumHubUrl);
-
-            Object clientObject = getFieldValue(commandExecutor, "client");
-            if (clientObject instanceof JdkHttpClient) {
-                String userInfo = seleniumHubUrl.getUserInfo();
-                if (userInfo != null && !userInfo.isEmpty()) {
-                    String[] credentials = userInfo.split(":", 2);
-                    String username = credentials[0];
-                    String password = credentials.length > 1 ? credentials[1] : "";
-
-                    ClientConfig clientConfig = ((ClientConfig) getFieldValue(clientObject, "config"))
-                            .baseUri(seleniumHubUrl.toURI())
-                            .authenticateAs(new UsernameAndPassword(username, password));
-                    setFieldValue(clientObject, "config", clientConfig);
-                }
-            } else {
-                log.debug("Could not substitute address of remote selenium hub because of unknown http client.");
-            }
-        }
-    }
-
-    private static Object getFieldValue(Object targetObject, String fieldName) throws NoSuchFieldException, IllegalAccessException {
-        Field remoteServer = findField(targetObject.getClass(), fieldName);
-        remoteServer.setAccessible(true);
-        Object value = remoteServer.get(targetObject);
-        remoteServer.setAccessible(false);
-        return value;
-    }
-
-    private static void setFieldValue(Object targetObject, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
-        Field remoteServer = findField(targetObject.getClass(), fieldName);
-        remoteServer.setAccessible(true);
-        remoteServer.set(targetObject, value);
-        remoteServer.setAccessible(false);
-    }
-
-    private static Field findField(Class<?> targetClass, String fieldName) throws NoSuchFieldException {
-        try {
-            return targetClass.getDeclaredField(fieldName);
-        } catch (NoSuchFieldException e) {
-            Class<?> superclass = targetClass.getSuperclass();
-            if (superclass != Object.class) {
-                return findField(superclass, fieldName);
-            }
-            throw e;
-        }
-    }
-
     private static Capabilities customizeCapabilities(Runnable methodInvocationProxy, Capabilities capabilities) {
         Class<? extends Runnable> methodInvocationProxyClass = methodInvocationProxy.getClass();
         log.debug("Class of the #startSession() invocation proxy is {}", methodInvocationProxyClass.getName());
@@ -156,5 +95,4 @@ public class StartSessionInterceptor {
 
         return capabilities;
     }
-
 }

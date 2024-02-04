@@ -2,23 +2,30 @@ package com.zebrunner.agent.core.webdriver;
 
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.NameMatcher;
 import net.bytebuddy.pool.TypePool;
+import org.openqa.selenium.remote.CommandInfo;
+import org.openqa.selenium.remote.http.ClientConfig;
+import org.openqa.selenium.remote.http.HttpClient;
 
 import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static net.bytebuddy.implementation.MethodDelegation.to;
+import static net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.isStatic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.not;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 @Slf4j
 public class DriverSessionsAgent {
@@ -54,6 +61,11 @@ public class DriverSessionsAgent {
                     .transform((builder, type, classloader, module, protectionDomain) ->
                             builder.method(named(START_SESSION_METHOD_MAME))
                                     .intercept(to(startSessionInterceptor())))
+                    .type(named("org.openqa.selenium.remote.HttpCommandExecutor"))
+                    .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder
+                            .visit(Advice
+                                    .to(HttpCommandExecutorInterceptor.class)
+                                    .on(isConstructor().and(takesArguments(Map.class, ClientConfig.class, HttpClient.Factory.class)))))
                     .installOn(instrumentation);
         } catch (Exception e) {
             log.error("Could not add interceptors for RemoteWebDriver", e);
