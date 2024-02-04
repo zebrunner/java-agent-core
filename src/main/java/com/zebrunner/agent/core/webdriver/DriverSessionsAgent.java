@@ -6,10 +6,14 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.bind.annotation.FieldProxy;
+import net.bytebuddy.implementation.bind.annotation.Morph;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.NameMatcher;
 import net.bytebuddy.pool.TypePool;
 import org.openqa.selenium.remote.CommandInfo;
+import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.http.ClientConfig;
 import org.openqa.selenium.remote.http.HttpClient;
 
@@ -65,7 +69,9 @@ public class DriverSessionsAgent {
                     .type(named("org.openqa.selenium.remote.HttpCommandExecutor"))
                     .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder.
                             constructor(takesArguments(Map.class, ClientConfig.class, HttpClient.Factory.class))
-                            .intercept(to(HttpCommandExecutorInterceptor.class)))
+                            .intercept(MethodDelegation.withDefaultConfiguration().withBinders(
+                                    Morph.Binder.install(HttpCommandExecutor.class)
+                            ).to(HttpCommandExecutorInterceptor.class)))
                     .installOn(instrumentation);
         } catch (Exception e) {
             log.error("Could not add interceptors for RemoteWebDriver", e);

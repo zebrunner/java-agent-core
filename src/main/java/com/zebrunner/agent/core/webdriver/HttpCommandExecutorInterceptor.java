@@ -18,7 +18,7 @@ import java.util.concurrent.Callable;
 public class HttpCommandExecutorInterceptor {
 
     @RuntimeType
-    public static Object constructor(@This Object inst, @Origin Constructor constructor, @Morph(defaultMethod = true) Callable<?> callable,
+    public static Object constructor(@Morph Callable<?> callable,
             @AllArguments Object[] allArguments) throws Exception {
         if (ConfigurationHolder.shouldSubstituteRemoteWebDrivers()) {
             log.debug("Selenium Hub URL will be substituted by the value provided from Zebrunner.");
