@@ -13,7 +13,7 @@ import org.openqa.selenium.UsernameAndPassword;
 import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.http.ClientConfig;
-import org.openqa.selenium.remote.http.netty.NettyClient;
+import org.openqa.selenium.remote.http.jdk.JdkHttpClient;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -81,7 +81,7 @@ public class StartSessionInterceptor {
             setFieldValue(commandExecutor, "remoteServer", seleniumHubUrl);
 
             Object clientObject = getFieldValue(commandExecutor, "client");
-            if (clientObject instanceof NettyClient) {
+            if (clientObject instanceof JdkHttpClient) {
                 String userInfo = seleniumHubUrl.getUserInfo();
                 if (userInfo != null && !userInfo.isEmpty()) {
                     String[] credentials = userInfo.split(":", 2);
