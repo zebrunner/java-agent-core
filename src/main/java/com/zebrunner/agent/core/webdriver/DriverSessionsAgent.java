@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static net.bytebuddy.implementation.MethodDelegation.to;
+import static net.bytebuddy.matcher.ElementMatchers.any;
 import static net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.isStatic;
@@ -62,10 +63,9 @@ public class DriverSessionsAgent {
                             builder.method(named(START_SESSION_METHOD_MAME))
                                     .intercept(to(startSessionInterceptor())))
                     .type(named("org.openqa.selenium.remote.HttpCommandExecutor"))
-                    .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder
-                            .visit(Advice
-                                    .to(HttpCommandExecutorInterceptor.class)
-                                    .on(isConstructor().and(takesArguments(Map.class, ClientConfig.class, HttpClient.Factory.class)))))
+                    .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder.
+                            constructor(takesArguments(Map.class, ClientConfig.class, HttpClient.Factory.class))
+                            .intercept(to(HttpCommandExecutorInterceptor.class)))
                     .installOn(instrumentation);
         } catch (Exception e) {
             log.error("Could not add interceptors for RemoteWebDriver", e);
