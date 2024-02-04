@@ -5,6 +5,15 @@ plugins {
 group = 'com.zebrunner'
 version = "${version != 'unspecified' ? version : '1.7.0'}"
 
+sourceSets.all {
+    configurations.getByName(runtimeClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+    configurations.getByName(compileClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -13,8 +22,8 @@ dependencies {
     compileOnly('com.konghq:unirest-java:3.13.10')
     implementation('org.yaml:snakeyaml:1.30')
 
-    implementation("net.bytebuddy:byte-buddy:1.12.18")
-    compileOnly('io.appium:java-client:8.3.0')
+    implementation("net.bytebuddy:byte-buddy:1.14.11")
+    compileOnly('org.seleniumhq.selenium:selenium-remote-driver:4.17.0')
 
     implementation('org.slf4j:slf4j-api:1.7.36')
     compileOnly("log4j:log4j:1.2.17")
