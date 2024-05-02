@@ -54,12 +54,16 @@ public class TestStartDescriptor {
      */
     private final Class<?> testClass;
 
+    private String testClassName = null;
+
     /**
      * Test method. This one can be obtained either from test metadata supplied by test framework or
      * by using Java Reflection API. It is needed in order to guarantee test uniqueness within test run and retrieve
      * additional test info (such as maintainer)
      */
     private final Method testMethod;
+
+    private String testMethodName = null;
 
     /**
      * Index of the arguments passed into test method. If test method does not accept arguments, null value should be provided
