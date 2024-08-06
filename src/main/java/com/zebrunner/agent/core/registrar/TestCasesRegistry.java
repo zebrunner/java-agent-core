@@ -1,12 +1,5 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.annotation.TestCaseStatusOnFail;
-import com.zebrunner.agent.core.annotation.TestCaseStatusOnPass;
-import com.zebrunner.agent.core.annotation.TestCaseStatusOnSkip;
-import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
-import com.zebrunner.agent.core.registrar.domain.TcmType;
-import com.zebrunner.agent.core.registrar.domain.TestCaseResult;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
@@ -14,13 +7,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import com.zebrunner.agent.core.annotation.TestCaseStatusOnFail;
+import com.zebrunner.agent.core.annotation.TestCaseStatusOnPass;
+import com.zebrunner.agent.core.annotation.TestCaseStatusOnSkip;
+import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
+import com.zebrunner.agent.core.registrar.domain.TcmType;
+import com.zebrunner.agent.core.registrar.domain.TestCaseResult;
 
 @Slf4j
 class TestCasesRegistry {
@@ -45,7 +46,7 @@ class TestCasesRegistry {
     }
 
     private final ZebrunnerApiClient zebrunnerApiClient = ClientRegistrar.getClient();
-    private final Map<Long, Map<TcmType, Map<String, String>>> testIdToTcmTypeToTestCaseIdToStatus = new HashMap<>();
+    private final Map<Long, Map<TcmType, Map<String, String>>> testIdToTcmTypeToTestCaseIdToStatus = new ConcurrentHashMap<>();
 
     void addTestCasesToCurrentTest(TcmType tcmType, Collection<String> testCaseIds) {
         RunContext.getCurrentTest()
@@ -74,8 +75,8 @@ class TestCasesRegistry {
     }
 
     private Map<String, String> getTestCaseIdToStatus(Long testId, TcmType tcmType) {
-        return testIdToTcmTypeToTestCaseIdToStatus.computeIfAbsent(testId, $ -> new HashMap<>())
-                                                  .computeIfAbsent(tcmType, $ -> new HashMap<>());
+        return testIdToTcmTypeToTestCaseIdToStatus.computeIfAbsent(testId, $ -> new ConcurrentHashMap<>())
+                                                  .computeIfAbsent(tcmType, $ -> new ConcurrentHashMap<>());
     }
 
     void setExplicitStatusesOnCurrentTestPass() {
@@ -116,7 +117,7 @@ class TestCasesRegistry {
 
     private void setCaseStatusesIfThereIsNoExplicit(Long testId, String status) {
         List<TestCaseResult> results = new ArrayList<>();
-        testIdToTcmTypeToTestCaseIdToStatus.computeIfAbsent(testId, $ -> new HashMap<>())
+        testIdToTcmTypeToTestCaseIdToStatus.computeIfAbsent(testId, $ -> new ConcurrentHashMap<>())
                                            .forEach((tcmType, testCaseIdToStatus) ->
                                                    testCaseIdToStatus.forEach((testCaseId, explicitStatus) -> {
                                                        if (explicitStatus == null) {
