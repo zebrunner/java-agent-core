@@ -57,7 +57,7 @@ class TestCasesRegistry {
                                  .filter(testCaseId -> !testCaseIdToStatus.containsKey(testCaseId))
                                  .forEach(testCaseId -> {
                                      Label.attachToTest(TCM_TYPE_TO_LABEL_KEY.get(tcmType), testCaseId);
-                                     testCaseIdToStatus.put(testCaseId, null);
+                                     testCaseIdToStatus.put(testCaseId, "");
                                  });
                   });
     }
@@ -120,7 +120,7 @@ class TestCasesRegistry {
         testIdToTcmTypeToTestCaseIdToStatus.computeIfAbsent(testId, $ -> new ConcurrentHashMap<>())
                                            .forEach((tcmType, testCaseIdToStatus) ->
                                                    testCaseIdToStatus.forEach((testCaseId, explicitStatus) -> {
-                                                       if (explicitStatus == null) {
+                                                       if (explicitStatus.isEmpty()) {
                                                            results.add(new TestCaseResult(tcmType, testCaseId, status));
                                                        }
                                                    })
