@@ -17,4 +17,13 @@ public interface LogsBuffer<E> {
 
     void put(E event);
 
+    void flushQueuedConfigurationLogs();
+
+    /**
+     * Clear configuration methods logs queue in current thread.
+     * Usage example (TestNG): BeforeClass and AfterClass methods will be called in the same thread,
+     * as the first test method in class, and AfterClass logs can appear in the next random test method start,
+     * so this method should be called after AfterClass calls.
+     */
+    void clearQueuedConfigurationLogs();
 }
