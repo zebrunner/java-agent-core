@@ -68,4 +68,9 @@ public class NoOpTestRunRegistrar implements TestRunRegistrar {
         return false;
     }
 
+    @Override
+    public void clearConfigurationLogs() {
+        log.trace("Clear configuration logs");
+    }
+
 }

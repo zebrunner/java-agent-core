@@ -85,4 +85,6 @@ public interface TestRunRegistrar {
 
     boolean isKnownIssueAttachedToTest(String failureStacktrace);
 
+    void clearConfigurationLogs();
+
 }

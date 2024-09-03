@@ -17,8 +17,10 @@ import com.zebrunner.agent.core.registrar.maintainer.ChainedMaintainerResolver;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Vector;
 
 @Slf4j
 class ReportingRegistrar implements TestRunRegistrar {
@@ -26,6 +28,8 @@ class ReportingRegistrar implements TestRunRegistrar {
     private static final String TEST_RUN_WARNING_MSG_FORMAT = "[TEST RUN '{}' WARNING]: {}";
 
     private static volatile ReportingRegistrar instance;
+
+    private static final List<LogsBuffer<?>> LOGS_BUFFERS = new Vector<>();
 
     public static ReportingRegistrar getInstance() {
         if (instance == null) {
@@ -41,6 +45,10 @@ class ReportingRegistrar implements TestRunRegistrar {
     private final CiContextResolver ciContextResolver = CompositeCiContextResolver.getInstance();
     private final TestSessionRegistrar testSessionRegistrar = TestSessionRegistrar.getInstance();
     private final RegistrationListenerRegistry registrationListenerRegistry = RegistrationListenerRegistry.getInstance();
+
+    public static void registerLogsBuffer(LogsBuffer<?> logsBuffer) {
+        LOGS_BUFFERS.add(logsBuffer);
+    }
 
     @Override
     public void registerStart(TestRunStartDescriptor tr) {
@@ -167,6 +175,7 @@ class ReportingRegistrar implements TestRunRegistrar {
                 RunContext.addCurrentTest(id, testDescriptor);
                 testSessionRegistrar.linkAllCurrentToTest(test.getId());
             }
+            LOGS_BUFFERS.forEach(LogsBuffer::flushQueuedConfigurationLogs);
         }
     }
 
@@ -205,6 +214,7 @@ class ReportingRegistrar implements TestRunRegistrar {
             testSessionRegistrar.linkAllCurrentToTest(test.getId());
             registrationListenerRegistry.forEach(listener -> listener.onAfterTestStart(ts));
         }
+        LOGS_BUFFERS.forEach(LogsBuffer::flushQueuedConfigurationLogs);
     }
 
     @Override
@@ -258,6 +268,11 @@ class ReportingRegistrar implements TestRunRegistrar {
             log.error("Failed to retrieve assigned known issues for stacktrace '{}' because test has not been started yet.", failureStacktrace);
             return false;
         }
+    }
+
+    @Override
+    public void clearConfigurationLogs() {
+        LOGS_BUFFERS.forEach(LogsBuffer::clearQueuedConfigurationLogs);
     }
 
 }
