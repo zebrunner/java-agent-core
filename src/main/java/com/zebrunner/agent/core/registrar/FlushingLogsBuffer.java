@@ -28,6 +28,7 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
     private static final AtomicBoolean EXECUTOR_ENABLED = new AtomicBoolean();
 
     private static volatile Queue<Log> QUEUE = new ConcurrentLinkedQueue<>();
+    private static final ThreadLocal<Queue<Log>> CONFIGURATION_LOGS_QUEUE = new ThreadLocal<>();
     private final Function<E, Log> converter;
 
     /**
@@ -39,6 +40,7 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
     FlushingLogsBuffer(Function<E, Log> converter) {
         this.converter = converter;
         Runtime.getRuntime().addShutdownHook(new Thread(FlushingLogsBuffer::shutdown));
+        ReportingRegistrar.registerLogsBuffer(this);
     }
 
     /**
@@ -49,18 +51,42 @@ final class FlushingLogsBuffer<E> implements LogsBuffer<E> {
     @Override
     public void put(E event) {
         Optional<TestDescriptor> currentTest = RunContext.getCurrentTest();
-
+        Log log = converter.apply(event);
         if (currentTest.isPresent()) {
-            Log log = converter.apply(event);
             log.setTestId(String.valueOf(currentTest.get().getZebrunnerId()));
-
             QUEUE.add(log);
-
-            // lazily enables buffer and schedules flushes on the very first event to be buffered
-            if (EXECUTOR_ENABLED.compareAndSet(false, true)) {
-                scheduleFlush();
+        } else {
+            if(CONFIGURATION_LOGS_QUEUE.get() == null) {
+                CONFIGURATION_LOGS_QUEUE.set(new ConcurrentLinkedQueue<>());
             }
+            CONFIGURATION_LOGS_QUEUE.get()
+                    .add(log);
         }
+        // lazily enables buffer and schedules flushes on the very first event to be buffered
+        if (EXECUTOR_ENABLED.compareAndSet(false, true)) {
+            scheduleFlush();
+        }
+    }
+
+    @Override
+    public void flushQueuedConfigurationLogs() {
+        RunContext.getCurrentTest()
+                .ifPresent(currentTest -> {
+                    Queue<Log> queue = CONFIGURATION_LOGS_QUEUE.get();
+                    if (queue != null) {
+                        while (!queue.isEmpty()) {
+                            Log log = queue.poll();
+                            log.setTestId(String.valueOf(currentTest.getZebrunnerId()));
+                            QUEUE.add(log);
+                        }
+                        CONFIGURATION_LOGS_QUEUE.remove();
+                    }
+                });
+    }
+
+    @Override
+    public void clearQueuedConfigurationLogs() {
+        CONFIGURATION_LOGS_QUEUE.remove();
     }
 
     private static void scheduleFlush() {
