@@ -2,23 +2,36 @@ package com.zebrunner.agent.core.webdriver;
 
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
+import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.bind.annotation.FieldProxy;
+import net.bytebuddy.implementation.bind.annotation.Morph;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.NameMatcher;
 import net.bytebuddy.pool.TypePool;
+import org.openqa.selenium.remote.CommandInfo;
+import org.openqa.selenium.remote.HttpCommandExecutor;
+import org.openqa.selenium.remote.http.ClientConfig;
+import org.openqa.selenium.remote.http.HttpClient;
 
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static net.bytebuddy.implementation.MethodDelegation.to;
+import static net.bytebuddy.matcher.ElementMatchers.any;
+import static net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.isStatic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.not;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 @Slf4j
 public class DriverSessionsAgent {
@@ -54,6 +67,13 @@ public class DriverSessionsAgent {
                     .transform((builder, type, classloader, module, protectionDomain) ->
                             builder.method(named(START_SESSION_METHOD_MAME))
                                     .intercept(to(startSessionInterceptor())))
+                    .type(named("org.openqa.selenium.remote.HttpCommandExecutor"))
+                    .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder.
+                            defineConstructor(Modifier.PUBLIC)
+                            .withParameters(Map.class, ClientConfig.class, HttpClient.Factory.class)
+                            .intercept(MethodDelegation.withDefaultConfiguration().withBinders(
+                                    Morph.Binder.install(HttpCommandExecutor.class)
+                            ).to(HttpCommandExecutorInterceptor.class)))
                     .installOn(instrumentation);
         } catch (Exception e) {
             log.error("Could not add interceptors for RemoteWebDriver", e);
@@ -68,29 +88,29 @@ public class DriverSessionsAgent {
 
     private static DynamicType.Builder<?> addInterceptors(DynamicType.Builder<?> builder) {
         return builder.method(isPublicMethodToIntercept())
-                      .intercept(to(publicMethodsInterceptor()))
-                      .method(named(START_SESSION_METHOD_MAME))
-                      .intercept(to(startSessionInterceptor()))
-                      .method(named(QUIT_METHOD_MAME))
-                      .intercept(to(quitSessionInterceptor()));
+                .intercept(to(publicMethodsInterceptor()))
+                .method(named(START_SESSION_METHOD_MAME))
+                .intercept(to(startSessionInterceptor()))
+                .method(named(QUIT_METHOD_MAME))
+                .intercept(to(quitSessionInterceptor()));
     }
 
     private static TypeDescription publicMethodsInterceptor() {
         return TypePool.Default.ofSystemLoader()
-                               .describe(PublicMethodInvocationInterceptor.class.getName())
-                               .resolve();
+                .describe(PublicMethodInvocationInterceptor.class.getName())
+                .resolve();
     }
 
     private static TypeDescription startSessionInterceptor() {
         return TypePool.Default.ofSystemLoader()
-                               .describe(StartSessionInterceptor.class.getName())
-                               .resolve();
+                .describe(StartSessionInterceptor.class.getName())
+                .resolve();
     }
 
     private static TypeDescription quitSessionInterceptor() {
         return TypePool.Default.ofSystemLoader()
-                               .describe(QuitSessionInterceptor.class.getName())
-                               .resolve();
+                .describe(QuitSessionInterceptor.class.getName())
+                .resolve();
     }
 
 }
