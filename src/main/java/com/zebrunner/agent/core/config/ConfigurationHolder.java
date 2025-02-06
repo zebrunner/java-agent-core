@@ -97,6 +97,10 @@ public class ConfigurationHolder {
         return configuration.getTcm().getTestCaseStatus().getOnSkip();
     }
 
+    public static String getTestCaseStatusOnBlock() {
+        return configuration.getTcm().getTestCaseStatus().getOnBlock();
+    }
+
     private static String toSerializedRunContext(String ciRunId) {
         Map<String, Object> runContext = new HashMap<>();
         runContext.put("id", ciRunId);
