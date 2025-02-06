@@ -27,6 +27,8 @@ interface RegistrationListener {
             this.onBeforeTestFail(finishDescriptor);
         } else if (status == Status.SKIPPED) {
             this.onBeforeTestSkip(finishDescriptor);
+        } else if (status == Status.BLOCKED) {
+            this.onBeforeTestBlock(finishDescriptor);
         }
     }
 
@@ -39,6 +41,9 @@ interface RegistrationListener {
     default void onBeforeTestSkip(TestFinishDescriptor finishDescriptor) {
     }
 
+    default void onBeforeTestBlock(TestFinishDescriptor finishDescriptor) {
+    }
+
     default void onAfterTestFinish(TestFinishDescriptor finishDescriptor) {
         Status status = finishDescriptor.getStatus();
         if (status == Status.PASSED) {
@@ -47,6 +52,8 @@ interface RegistrationListener {
             this.onAfterTestFail(finishDescriptor);
         } else if (status == Status.SKIPPED) {
             this.onAfterTestSkip(finishDescriptor);
+        } else if (status == Status.BLOCKED) {
+            this.onAfterTestBlock(finishDescriptor);
         }
     }
 
@@ -57,6 +64,9 @@ interface RegistrationListener {
     }
 
     default void onAfterTestSkip(TestFinishDescriptor finishDescriptor) {
+    }
+
+    default void onAfterTestBlock(TestFinishDescriptor finishDescriptor) {
     }
 
 }

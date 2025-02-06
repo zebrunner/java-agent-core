@@ -185,6 +185,7 @@ class ConfigurationProvidersChain {
             String onPass = testCaseStatus.getOnPass();
             String onFail = testCaseStatus.getOnFail();
             String onSkip = testCaseStatus.getOnSkip();
+            String onBlock = testCaseStatus.getOnBlock();
 
             if (onPass != null && onPass.trim().isEmpty()) {
                 testCaseStatus.setOnPass(null);
@@ -194,6 +195,9 @@ class ConfigurationProvidersChain {
             }
             if (onSkip != null && onSkip.trim().isEmpty()) {
                 testCaseStatus.setOnSkip(null);
+            }
+            if (onBlock != null && onBlock.trim().isEmpty()) {
+                testCaseStatus.setOnBlock(null);
             }
         }
     }
@@ -361,6 +365,9 @@ class ConfigurationProvidersChain {
         if (testCaseStatus.getOnSkip() == null) {
             testCaseStatus.setOnSkip(providedConfig.getTcm().getTestCaseStatus().getOnSkip());
         }
+        if (testCaseStatus.getOnBlock() == null) {
+            testCaseStatus.setOnBlock(providedConfig.getTcm().getTestCaseStatus().getOnBlock());
+        }
 
         ReportingConfiguration.TcmConfiguration.Zebrunner zebrunner = tcm.getZebrunner();
         if (zebrunner.getPushResults() == null) {
@@ -451,6 +458,7 @@ class ConfigurationProvidersChain {
         String testCaseStatusOnPass = config.getTcm().getTestCaseStatus().getOnPass();
         String testCaseStatusOnFail = config.getTcm().getTestCaseStatus().getOnFail();
         String testCaseStatusOnSkip = config.getTcm().getTestCaseStatus().getOnSkip();
+        String testCaseStatusOnBlock = config.getTcm().getTestCaseStatus().getOnBlock();
 
         Boolean notificationsEnabled = config.getNotification().getEnabled();
         Boolean notifyOnEachFailure = config.getNotification().getNotifyOnEachFailure();
@@ -485,7 +493,7 @@ class ConfigurationProvidersChain {
                 && hostname != null && accessToken != null
                 && displayName != null && build != null && environment != null && context != null
                 && retryKnownIssues != null && substituteRemoteWebDrivers != null && treatSkipsAsFailures != null
-                && testCaseStatusOnPass != null && testCaseStatusOnFail != null && testCaseStatusOnSkip != null
+                && testCaseStatusOnPass != null && testCaseStatusOnFail != null && testCaseStatusOnSkip != null && testCaseStatusOnBlock != null
                 && notificationsEnabled != null && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null
                 && tcmPushResults != null && tcmPushInRealTime != null && tcmRunId != null
                 && testRailPushResults != null && testRailPushInRealTime != null && testRailSuiteId != null

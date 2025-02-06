@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.zebrunner.agent.core.annotation.TestCaseStatusOnBlock;
 import com.zebrunner.agent.core.annotation.TestCaseStatusOnFail;
 import com.zebrunner.agent.core.annotation.TestCaseStatusOnPass;
 import com.zebrunner.agent.core.annotation.TestCaseStatusOnSkip;
@@ -115,6 +116,18 @@ class TestCasesRegistry {
                   });
     }
 
+    void setExplicitStatusesOnCurrentTestBlock() {
+        RunContext.getCurrentTest()
+                  .ifPresent(test -> {
+                      Long testId = test.getZebrunnerId();
+                      String blockStatus = this.getOnBlockStatus(test);
+                      if (blockStatus != null && !blockStatus.isEmpty()) {
+                          this.setCaseStatusesIfThereIsNoExplicit(testId, blockStatus);
+                      }
+                      testIdToTcmTypeToTestCaseIdToStatus.remove(testId);
+                  });
+    }
+
     private void setCaseStatusesIfThereIsNoExplicit(Long testId, String status) {
         List<TestCaseResult> results = new ArrayList<>();
         testIdToTcmTypeToTestCaseIdToStatus.computeIfAbsent(testId, $ -> new ConcurrentHashMap<>())
@@ -141,6 +154,10 @@ class TestCasesRegistry {
 
     private String getOnSkipStatus(TestDescriptor testDescriptor) {
         return this.getStatus(testDescriptor, TestCaseStatusOnSkip.class, TestCaseStatusOnSkip::value, ConfigurationHolder::getTestCaseStatusOnSkip);
+    }
+
+    private String getOnBlockStatus(TestDescriptor testDescriptor) {
+        return this.getStatus(testDescriptor, TestCaseStatusOnBlock.class, TestCaseStatusOnBlock::value, ConfigurationHolder::getTestCaseStatusOnBlock);
     }
 
     private <T extends Annotation> String getStatus(TestDescriptor testDescriptor,
