@@ -37,6 +37,9 @@ class TestCasesRegistry {
         return InstanceHolder.INSTANCE;
     }
 
+    // used when no status is set, since "" is a status that can be explicitly set.
+    // push to tcm is disabled for test cases with "" status
+    private static final String UNSET_STATUS = "<unset>";
     private static final Map<TcmType, String> TCM_TYPE_TO_LABEL_KEY = new EnumMap<>(TcmType.class);
 
     static {
@@ -58,7 +61,7 @@ class TestCasesRegistry {
                                  .filter(testCaseId -> !testCaseIdToStatus.containsKey(testCaseId))
                                  .forEach(testCaseId -> {
                                      Label.attachToTest(TCM_TYPE_TO_LABEL_KEY.get(tcmType), testCaseId);
-                                     testCaseIdToStatus.put(testCaseId, "");
+                                     testCaseIdToStatus.put(testCaseId, UNSET_STATUS);
                                  });
                   });
     }
@@ -85,7 +88,7 @@ class TestCasesRegistry {
                   .ifPresent(test -> {
                       Long testId = test.getZebrunnerId();
                       String passStatus = this.getOnPassStatus(test);
-                      if (passStatus != null && !passStatus.isEmpty()) {
+                      if (passStatus != null) {
                           this.setCaseStatusesIfThereIsNoExplicit(testId, passStatus);
                       }
                       testIdToTcmTypeToTestCaseIdToStatus.remove(testId);
@@ -97,7 +100,7 @@ class TestCasesRegistry {
                   .ifPresent(test -> {
                       Long testId = test.getZebrunnerId();
                       String failStatus = this.getOnFailStatus(test);
-                      if (failStatus != null && !failStatus.isEmpty()) {
+                      if (failStatus != null) {
                           this.setCaseStatusesIfThereIsNoExplicit(testId, failStatus);
                       }
                       testIdToTcmTypeToTestCaseIdToStatus.remove(testId);
@@ -109,7 +112,7 @@ class TestCasesRegistry {
                   .ifPresent(test -> {
                       Long testId = test.getZebrunnerId();
                       String skipStatus = this.getOnSkipStatus(test);
-                      if (skipStatus != null && !skipStatus.isEmpty()) {
+                      if (skipStatus != null) {
                           this.setCaseStatusesIfThereIsNoExplicit(testId, skipStatus);
                       }
                       testIdToTcmTypeToTestCaseIdToStatus.remove(testId);
@@ -121,7 +124,7 @@ class TestCasesRegistry {
                   .ifPresent(test -> {
                       Long testId = test.getZebrunnerId();
                       String blockStatus = this.getOnBlockStatus(test);
-                      if (blockStatus != null && !blockStatus.isEmpty()) {
+                      if (blockStatus != null) {
                           this.setCaseStatusesIfThereIsNoExplicit(testId, blockStatus);
                       }
                       testIdToTcmTypeToTestCaseIdToStatus.remove(testId);
@@ -133,7 +136,7 @@ class TestCasesRegistry {
         testIdToTcmTypeToTestCaseIdToStatus.computeIfAbsent(testId, $ -> new ConcurrentHashMap<>())
                                            .forEach((tcmType, testCaseIdToStatus) ->
                                                    testCaseIdToStatus.forEach((testCaseId, explicitStatus) -> {
-                                                       if (explicitStatus.isEmpty()) {
+                                                       if (UNSET_STATUS.equals(explicitStatus)) {
                                                            results.add(new TestCaseResult(tcmType, testCaseId, status));
                                                        }
                                                    })
