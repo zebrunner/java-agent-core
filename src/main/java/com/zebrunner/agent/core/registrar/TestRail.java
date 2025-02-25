@@ -95,6 +95,7 @@ public final class TestRail {
      *
      * @param testCaseId   TestRail id of the test case. Can be either a regular number or a number with the letter 'C' at the begging.
      * @param resultStatus system name (not labels!) of the status to be set for the test case
+     * @throws NullPointerException if {@code resultStatus} is null
      * @see SystemTestCaseStatus
      */
     public static void setTestCaseStatus(String testCaseId, String resultStatus) {

@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,6 +68,8 @@ class TestCasesRegistry {
     }
 
     void setCurrentTestTestCaseStatus(TcmType tcmType, String testCaseId, String status) {
+        Objects.requireNonNull(status, "Status cannot be null.");
+
         RunContext.getCurrentTest()
                   .map(TestDescriptor::getZebrunnerId)
                   .ifPresent(testId -> {

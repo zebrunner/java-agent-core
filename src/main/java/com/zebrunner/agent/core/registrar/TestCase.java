@@ -54,7 +54,7 @@ public final class TestCase {
      *
      * @param testCaseKey  key of the test case
      * @param resultStatus name of the status to be set for the test case
-     * @see SystemTestCaseStatus
+     * @throws NullPointerException if {@code resultStatus} is null
      * @see SystemTestCaseStatus
      */
     public static void setTestCaseStatus(String testCaseKey, String resultStatus) {
