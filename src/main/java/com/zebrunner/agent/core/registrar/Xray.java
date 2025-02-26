@@ -54,6 +54,7 @@ public final class Xray {
      *
      * @param testKey      key of the Xray test
      * @param resultStatus name of the status to be set for the test
+     * @throws NullPointerException if {@code resultStatus} is null
      * @see SystemTestStatus.Cloud
      * @see SystemTestStatus.Server
      */
