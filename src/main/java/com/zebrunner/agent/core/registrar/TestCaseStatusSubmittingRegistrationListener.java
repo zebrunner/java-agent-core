@@ -21,4 +21,9 @@ class TestCaseStatusSubmittingRegistrationListener implements RegistrationListen
         testCasesRegistry.setExplicitStatusesOnCurrentTestSkip();
     }
 
+    @Override
+    public void onBeforeTestBlock(TestFinishDescriptor finishDescriptor) {
+        testCasesRegistry.setExplicitStatusesOnCurrentTestBlock();
+    }
+
 }

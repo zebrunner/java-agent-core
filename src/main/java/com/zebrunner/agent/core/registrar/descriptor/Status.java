@@ -21,6 +21,11 @@ public enum Status {
     SKIPPED,
 
     /**
+     * Indicates that test was failed because of {@link com.zebrunner.agent.core.exception.BlockedTestException}
+     */
+    BLOCKED,
+
+    /**
      * Indicates that test execution was aborted
      */
     ABORTED,

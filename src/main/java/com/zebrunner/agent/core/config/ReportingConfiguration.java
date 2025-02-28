@@ -214,6 +214,12 @@ public class ReportingConfiguration {
             @PropertiesFileProperty("reporting.tcm.test-case-status.on-skip")
             private String onSkip;
 
+            @YamlProperty("reporting.tcm.test-case-status.on-block")
+            @SystemProperty("reporting.tcm.test-case-status.on-block")
+            @EnvironmentVariable("REPORTING_TCM_TEST_CASE_STATUS_ON_BLOCK")
+            @PropertiesFileProperty("reporting.tcm.test-case-status.on-block")
+            private String onBlock;
+
         }
 
         @Getter
