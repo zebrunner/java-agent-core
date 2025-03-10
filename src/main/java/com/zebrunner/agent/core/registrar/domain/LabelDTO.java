@@ -1,11 +1,11 @@
 package com.zebrunner.agent.core.registrar.domain;
 
-import lombok.Value;
+@Deprecated
+// for backward compatibility with carina
+public class LabelDTO extends Label {
 
-@Value
-public class LabelDTO {
-
-    String key;
-    String value;
+    public LabelDTO(String key, String value) {
+        super(key, value);
+    }
 
 }

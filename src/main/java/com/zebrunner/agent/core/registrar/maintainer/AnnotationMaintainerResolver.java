@@ -1,13 +1,18 @@
 package com.zebrunner.agent.core.registrar.maintainer;
 
-import com.zebrunner.agent.core.annotation.Maintainer;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Method;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public final class AnnotationMaintainerResolver implements MaintainerResolver {
+import com.zebrunner.agent.core.annotation.Maintainer;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class AnnotationMaintainerResolver implements MaintainerResolver {
+
+    @Getter
+    private static final AnnotationMaintainerResolver instance = new AnnotationMaintainerResolver();
 
     @Override
     public String resolve(Class<?> klass, Method method) {

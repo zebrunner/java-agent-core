@@ -3,7 +3,7 @@ package com.zebrunner.agent.core.webdriver;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
+import com.zebrunner.agent.core.registrar.client.ObjectMapperImpl;
 import kong.unirest.GenericType;
 import kong.unirest.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

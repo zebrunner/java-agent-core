@@ -1,7 +1,7 @@
 package com.zebrunner.agent.core.webdriver;
 
 import com.zebrunner.agent.core.registrar.TestSessionRegistrar;
-import com.zebrunner.agent.core.registrar.descriptor.SessionCloseDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.SessionClose;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
@@ -31,7 +31,7 @@ public class QuitSessionInterceptor {
         }
 
         if (CLOSED_SESSIONS.put(sessionId, MAP_VALUE) == null) {
-            SessionCloseDescriptor closeDescriptor = SessionCloseDescriptor.of(sessionId);
+            SessionClose closeDescriptor = SessionClose.of(sessionId);
 
             REGISTRAR.registerClose(closeDescriptor);
         } else {

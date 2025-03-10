@@ -1,6 +1,6 @@
 package com.zebrunner.agent.core.webdriver;
 
-import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
+import com.zebrunner.agent.core.registrar.client.ObjectMapperImpl;
 import kong.unirest.GenericType;
 import kong.unirest.ObjectMapper;
 import lombok.AccessLevel;

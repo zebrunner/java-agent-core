@@ -1,10 +1,10 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunFinishDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.TestFinish;
+import com.zebrunner.agent.core.registrar.descriptor.TestRunFinish;
+import com.zebrunner.agent.core.registrar.descriptor.TestRunStart;
+import com.zebrunner.agent.core.registrar.descriptor.TestStart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,27 +32,27 @@ public interface TestRunRegistrar {
     /**
      * Registers test run start
      *
-     * @param testRunStartDescriptor test run start descriptor capturing state at the beginning of the run
+     * @param testRunStart test run start descriptor capturing state at the beginning of the run
      */
-    void registerStart(TestRunStartDescriptor testRunStartDescriptor);
+    void registerStart(TestRunStart testRunStart);
 
     /**
      * Registers test run finish
      *
-     * @param testRunFinishDescriptor test run finish descriptor capturing state at the end of the run
+     * @param testRunFinish test run finish descriptor capturing state at the end of the run
      */
-    void registerFinish(TestRunFinishDescriptor testRunFinishDescriptor);
+    void registerFinish(TestRunFinish testRunFinish);
 
-    void registerHeadlessTestStart(String id, TestStartDescriptor testStartDescriptor);
+    void registerHeadlessTestStart(String id, TestStart testStart);
 
     /**
      * Registers test start
      *
      * @param id                  key that uniquely identifies specific test in scope of test run.
      *                            This value will be used later for test finish registration
-     * @param testStartDescriptor test start descriptor
+     * @param testStart test start descriptor
      */
-    void registerTestStart(String id, TestStartDescriptor testStartDescriptor);
+    void registerTestStart(String id, TestStart testStart);
 
     /**
      * Checks if there is a started test within current execution thread.
@@ -75,9 +75,9 @@ public interface TestRunRegistrar {
      * @param id                   key that uniquely identifies specific test in scope of test run.
      *                             Appropriate test start with matching id should be registered prior to test finish registration,
      *                             otherwise test won't be properly registered
-     * @param testFinishDescriptor test result descriptor
+     * @param testFinish test result descriptor
      */
-    void registerTestFinish(String id, TestFinishDescriptor testFinishDescriptor);
+    void registerTestFinish(String id, TestFinish testFinish);
 
     void registerAfterTestStart();
 

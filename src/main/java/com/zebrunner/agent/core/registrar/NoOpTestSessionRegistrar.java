@@ -1,29 +1,28 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.descriptor.SessionCloseDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.SessionStartDescriptor;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.zebrunner.agent.core.registrar.descriptor.SessionClose;
+import com.zebrunner.agent.core.registrar.descriptor.SessionStart;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class NoOpTestSessionRegistrar implements TestSessionRegistrar {
 
-    private static final NoOpTestSessionRegistrar INSTANCE = new NoOpTestSessionRegistrar();
+    @Getter
+    private static final NoOpTestSessionRegistrar instance = new NoOpTestSessionRegistrar();
 
-    public static NoOpTestSessionRegistrar getInstance() {
-        return INSTANCE;
+    @Override
+    public void registerStart(SessionStart context) {
     }
 
     @Override
-    public void registerStart(SessionStartDescriptor context) {
+    public void registerClose(SessionClose context) {
     }
 
     @Override
-    public void registerClose(SessionCloseDescriptor context) {
-    }
-
-    @Override
-    public void linkAllCurrentToTest(Long zebrunnerTestId) {
+    public void linkAllCurrentToTest(Long testId) {
     }
 
     @Override
