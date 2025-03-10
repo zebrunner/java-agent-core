@@ -187,17 +187,17 @@ class ConfigurationProvidersChain {
             String onSkip = testCaseStatus.getOnSkip();
             String onBlock = testCaseStatus.getOnBlock();
 
-            if (onPass != null && onPass.trim().isEmpty()) {
-                testCaseStatus.setOnPass(null);
+            if (onPass != null) {
+                testCaseStatus.setOnPass(onPass.trim());
             }
-            if (onFail != null && onFail.trim().isEmpty()) {
-                testCaseStatus.setOnFail(null);
+            if (onFail != null) {
+                testCaseStatus.setOnFail(onFail.trim());
             }
-            if (onSkip != null && onSkip.trim().isEmpty()) {
-                testCaseStatus.setOnSkip(null);
+            if (onSkip != null) {
+                testCaseStatus.setOnSkip(onSkip.trim());
             }
-            if (onBlock != null && onBlock.trim().isEmpty()) {
-                testCaseStatus.setOnBlock(null);
+            if (onBlock != null) {
+                testCaseStatus.setOnBlock(onBlock.trim());
             }
         }
     }
