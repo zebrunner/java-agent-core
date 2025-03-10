@@ -59,6 +59,7 @@ public final class Zephyr {
      *
      * @param testCaseKey  key of the Zephyr test case
      * @param resultStatus name of the status to be set for the test case
+     * @throws NullPointerException if {@code resultStatus} is null
      * @see Scale.SystemTestCaseStatus.Cloud
      * @see Squad.SystemTestCaseStatus.Cloud
      */
