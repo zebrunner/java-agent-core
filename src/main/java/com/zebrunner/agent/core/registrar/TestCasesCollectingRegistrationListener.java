@@ -1,8 +1,8 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.annotation.TestCaseKey;
-import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
-import com.zebrunner.agent.core.registrar.domain.TcmType;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.lang.reflect.AnnotatedElement;
 import java.util.Arrays;
@@ -11,12 +11,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.zebrunner.agent.core.annotation.TestCaseKey;
+import com.zebrunner.agent.core.registrar.descriptor.TestStart;
+import com.zebrunner.agent.core.registrar.domain.TcmType;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 class TestCasesCollectingRegistrationListener implements RegistrationListener {
+
+    @Getter
+    private static final TestCasesCollectingRegistrationListener instance = new TestCasesCollectingRegistrationListener();
 
     private final TestCasesRegistry testCasesRegistry = TestCasesRegistry.getInstance();
 
     @Override
-    public void onAfterTestStart(TestStartDescriptor startDescriptor) {
+    public void onAfterTestStart(TestStart startDescriptor) {
         TestCaseKey[] annotations = this.getAnnotations(startDescriptor.getTestMethod());
         List<String> testCaseIds = Optional.ofNullable(annotations)
                                            .map(Arrays::stream)

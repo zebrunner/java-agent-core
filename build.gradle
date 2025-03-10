@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.zebrunner'
-version = "${version != 'unspecified' ? version : '1.7.0'}"
+version = "${version != 'unspecified' ? version : '1.8.2.352-SNAPSHOT'}"
 
 repositories {
     mavenCentral()
@@ -31,7 +31,7 @@ jar {
                 "Premain-Class": "com.zebrunner.agent.core.webdriver.DriverSessionsAgent",
                 "Can-Redefine-Classes": false,
                 "Can-Retransform-Classes": true,
-                "Build-Jdk": "1.8.0_152"
+                "Build-Jdk": "11"
         )
     }
 }

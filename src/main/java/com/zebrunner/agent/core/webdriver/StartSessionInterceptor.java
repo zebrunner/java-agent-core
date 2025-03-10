@@ -2,7 +2,7 @@ package com.zebrunner.agent.core.webdriver;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.registrar.TestSessionRegistrar;
-import com.zebrunner.agent.core.registrar.descriptor.SessionStartDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.SessionStart;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -37,7 +37,7 @@ public class StartSessionInterceptor {
             capabilities = customizeCapabilities(methodInvocationProxy, capabilities);
         }
 
-        SessionStartDescriptor startDescriptor = SessionStartDescriptor.initiatedWith(capabilities.asMap());
+        SessionStart startDescriptor = SessionStart.initiatedWith(capabilities.asMap());
         try {
             methodInvocationProxy.run();
 

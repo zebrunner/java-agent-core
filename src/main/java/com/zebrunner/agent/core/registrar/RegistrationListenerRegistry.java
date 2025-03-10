@@ -1,31 +1,23 @@
 package com.zebrunner.agent.core.registrar;
 
-import java.util.ArrayList;
+import lombok.Getter;
+
 import java.util.List;
 import java.util.function.Consumer;
 
 public class RegistrationListenerRegistry {
 
-    private static final class InstanceHolder {
+    @Getter
+    private static final RegistrationListenerRegistry instance = new RegistrationListenerRegistry();
 
-        private static final RegistrationListenerRegistry INSTANCE = new RegistrationListenerRegistry();
-
-    }
-
-    static RegistrationListenerRegistry getInstance() {
-        return InstanceHolder.INSTANCE;
-    }
-
-    private final List<RegistrationListener> listeners = new ArrayList<>();
-
-    private RegistrationListenerRegistry() {
-        listeners.add(new TestRunTcmConfigurationRegistrationListener());
-        listeners.add(new TestRailCasesCollectingRegistrationListener());
-        listeners.add(new XrayCasesCollectingRegistrationListener());
-        listeners.add(new ZephyrCasesCollectingRegistrationListener());
-        listeners.add(new TestCasesCollectingRegistrationListener());
-        listeners.add(new TestCaseStatusSubmittingRegistrationListener());
-    }
+    private final List<RegistrationListener> listeners = List.of(
+            TestRunTcmConfigurationRegistrationListener.getInstance(),
+            TestRailCasesCollectingRegistrationListener.getInstance(),
+            XrayCasesCollectingRegistrationListener.getInstance(),
+            ZephyrCasesCollectingRegistrationListener.getInstance(),
+            TestCasesCollectingRegistrationListener.getInstance(),
+            TestCaseStatusSubmittingRegistrationListener.getInstance()
+    );
 
     public void forEach(Consumer<RegistrationListener> listenerConsumer) {
         listeners.forEach(listenerConsumer);

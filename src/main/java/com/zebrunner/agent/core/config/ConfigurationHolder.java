@@ -2,16 +2,18 @@ package com.zebrunner.agent.core.config;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.zebrunner.agent.core.registrar.domain.NotificationTarget;
+
 public class ConfigurationHolder {
 
-    private static final ConfigurationProvidersChain CONFIGURATION_PROVIDERS_CHAIN
-            = ConfigurationProvidersChain.getInstance();
+    private static final ConfigurationProvidersChain CONFIGURATION_PROVIDERS_CHAIN = ConfigurationProvidersChain.getInstance();
     private static ReportingConfiguration configuration = CONFIGURATION_PROVIDERS_CHAIN.getConfiguration();
 
     public static void addConfigurationProviderAfter(ConfigurationProvider configurationProvider,
@@ -136,16 +138,25 @@ public class ConfigurationHolder {
         return notifyOnEachFailure != null && notifyOnEachFailure;
     }
 
-    public static String getSlackChannels() {
-        return configuration.getNotification().getSlackChannels();
-    }
+    public static List<NotificationTarget> collectNotificationTargets() {
+        List<NotificationTarget> notificationTargets = new ArrayList<>();
 
-    public static String getMsTeamsChannels() {
-        return configuration.getNotification().getMsTeamsChannels();
-    }
+        String emailRecipients = configuration.getNotification().getEmails();
+        if (emailRecipients != null && !emailRecipients.isEmpty()) {
+            notificationTargets.add(NotificationTarget.email(emailRecipients));
+        }
 
-    public static String getEmails() {
-        return configuration.getNotification().getEmails();
+        String teamsChannels = configuration.getNotification().getMsTeamsChannels();
+        if (teamsChannels != null && !teamsChannels.isEmpty()) {
+            notificationTargets.add(NotificationTarget.teams(teamsChannels));
+        }
+
+        String slackChannels = configuration.getNotification().getSlackChannels();
+        if (slackChannels != null && !slackChannels.isEmpty()) {
+            notificationTargets.add(NotificationTarget.slack(slackChannels));
+        }
+
+        return notificationTargets;
     }
 
     public static Long getMilestoneId() {

@@ -1,9 +1,9 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.logging.Log;
-import com.zebrunner.agent.core.config.ConfigurationHolder;
-
 import java.util.function.Function;
+
+import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.logging.Log;
 
 public interface LogsBuffer<E> {
 
@@ -26,4 +26,5 @@ public interface LogsBuffer<E> {
      * so this method should be called after AfterClass calls.
      */
     void clearQueuedConfigurationLogs();
+
 }

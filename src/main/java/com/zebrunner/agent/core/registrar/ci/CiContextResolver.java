@@ -1,9 +1,13 @@
 package com.zebrunner.agent.core.registrar.ci;
 
-import com.zebrunner.agent.core.registrar.domain.CiContextDTO;
+import com.zebrunner.agent.core.registrar.domain.CiContext;
 
 public interface CiContextResolver {
 
-    CiContextDTO resolve();
+    static CiContextResolver getInstance() {
+        return CompositeCiContextResolver.getInstance();
+    }
+
+    CiContext resolve();
 
 }

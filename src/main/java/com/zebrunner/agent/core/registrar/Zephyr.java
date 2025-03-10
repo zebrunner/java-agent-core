@@ -1,14 +1,15 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.domain.TcmType;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 
+import com.zebrunner.agent.core.registrar.domain.TcmType;
+
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@UtilityClass
+@SuppressWarnings("unused")
 public final class Zephyr {
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.zephyr.sync.enabled";
@@ -22,12 +23,12 @@ public final class Zephyr {
     private static volatile boolean isRealTimeSyncEnabled = false;
 
     public static void disableSync() {
-        attachLabelToTestRun(SYNC_ENABLED, "false");
+        Zephyr.attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
     public static synchronized void enableRealTimeSync() {
         if (!isRealTimeSyncEnabled) {
-            attachLabelToTestRun(SYNC_REAL_TIME, "true");
+            Zephyr.attachLabelToTestRun(SYNC_REAL_TIME, "true");
             isRealTimeSyncEnabled = true;
         } else {
             log.warn("Realtime sync for Zephyr already enabled.");
@@ -35,11 +36,11 @@ public final class Zephyr {
     }
 
     public static void setTestCycleKey(String testCycleKey) {
-        attachLabelToTestRun(TEST_CYCLE_KEY, testCycleKey);
+        Zephyr.attachLabelToTestRun(TEST_CYCLE_KEY, testCycleKey);
     }
 
     public static void setJiraProjectKey(String jiraProjectKey) {
-        attachLabelToTestRun(JIRA_PROJECT_KEY, jiraProjectKey);
+        Zephyr.attachLabelToTestRun(JIRA_PROJECT_KEY, jiraProjectKey);
     }
 
     private static void attachLabelToTestRun(String name, String... values) {
@@ -67,13 +68,13 @@ public final class Zephyr {
         TEST_CASES_REGISTRY.setCurrentTestTestCaseStatus(TcmType.ZEPHYR, testCaseKey, resultStatus);
     }
 
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @UtilityClass
     public static final class Scale {
 
-        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        @UtilityClass
         public static final class SystemTestCaseStatus {
 
-            @NoArgsConstructor(access = AccessLevel.PRIVATE)
+            @UtilityClass
             public static final class Cloud {
 
                 public static final String IN_PROGRESS = "IN PROGRESS";
@@ -88,13 +89,13 @@ public final class Zephyr {
 
     }
 
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @UtilityClass
     public static final class Squad {
 
-        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        @UtilityClass
         public static final class SystemTestCaseStatus {
 
-            @NoArgsConstructor(access = AccessLevel.PRIVATE)
+            @UtilityClass
             public static final class Cloud {
 
                 public static final String UNEXECUTED = "UNEXECUTED";

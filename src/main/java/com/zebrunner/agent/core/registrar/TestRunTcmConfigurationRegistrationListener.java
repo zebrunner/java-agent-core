@@ -1,14 +1,22 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.function.Consumer;
 
+import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.registrar.descriptor.TestRunStart;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 class TestRunTcmConfigurationRegistrationListener implements RegistrationListener {
 
+    @Getter
+    private static final TestRunTcmConfigurationRegistrationListener instance = new TestRunTcmConfigurationRegistrationListener();
+
     @Override
-    public void onAfterTestRunStart(TestRunStartDescriptor startDescriptor) {
+    public void onAfterTestRunStart(TestRunStart startDescriptor) {
         this.resolveZebrunnerConfiguration();
         this.resolveTestRailConfiguration();
         this.resolveXrayConfiguration();
