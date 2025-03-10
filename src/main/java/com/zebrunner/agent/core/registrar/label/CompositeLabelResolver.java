@@ -1,6 +1,8 @@
 package com.zebrunner.agent.core.registrar.label;
 
-import com.zebrunner.agent.core.registrar.domain.LabelDTO;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -10,24 +12,30 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public final class CompositeLabelResolver implements LabelResolver {
+import com.zebrunner.agent.core.registrar.domain.Label;
 
-    private static final Set<LabelResolver> RESOLVERS = new HashSet<>();
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class CompositeLabelResolver implements LabelResolver {
 
-    static {
-        addResolver(new TestLabelResolver());
-        addResolver(new PriorityLabelResolver());
+    @Getter
+    private static final CompositeLabelResolver instance = new CompositeLabelResolver();
+
+    private final Set<LabelResolver> resolvers = new HashSet<>();
+
+    {
+        this.addResolver(TestLabelResolver.getInstance());
+        this.addResolver(PriorityLabelResolver.getResolver());
     }
 
-    public static void addResolver(LabelResolver labelResolver) {
+    public void addResolver(LabelResolver labelResolver) {
         if (!(labelResolver instanceof CompositeLabelResolver)) {
-            RESOLVERS.add(labelResolver);
+            resolvers.add(labelResolver);
         }
     }
 
     @Override
-    public List<LabelDTO> resolve(Class<?> clazz, Method method) {
-        return RESOLVERS.stream()
+    public List<Label> resolve(Class<?> clazz, Method method) {
+        return resolvers.stream()
                         .map(labelResolver -> labelResolver.resolve(clazz, method))
                         .filter(Objects::nonNull)
                         .flatMap(Collection::stream)

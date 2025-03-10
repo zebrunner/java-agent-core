@@ -1,15 +1,15 @@
 package com.zebrunner.agent.core.registrar.domain;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TestCaseResult {
 
-    private TcmType tcmType;
-    private String testCaseId;
-    private String resultStatus;
+    private final TcmType tcmType;
+    private final String testCaseId;
+    private final String resultStatus;
 
     public static TestCaseResult ofTestRail(String testCaseId, String resultStatus) {
         return new TestCaseResult(TcmType.TEST_RAIL, testCaseId, resultStatus);

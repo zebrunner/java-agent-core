@@ -1,23 +1,35 @@
 package com.zebrunner.agent.core.registrar.maintainer;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ChainedMaintainerResolver implements MaintainerResolver {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class ChainedMaintainerResolver implements MaintainerResolver {
 
-    private static final List<MaintainerResolver> resolvers = new ArrayList<>();
+    @Getter
+    private static final ChainedMaintainerResolver instance = new ChainedMaintainerResolver();
 
-    static {
-        addFirst(new AnnotationMaintainerResolver());
+    private final List<MaintainerResolver> resolvers = new ArrayList<>();
+
+    {
+        this.addFirst(AnnotationMaintainerResolver.getInstance());
     }
 
-    public static void addFirst(MaintainerResolver resolver) {
-        resolvers.add(0, resolver);
+    public void addFirst(MaintainerResolver resolver) {
+        if (!(resolver instanceof ChainedMaintainerResolver)) {
+            resolvers.add(0, resolver);
+        }
     }
 
-    public static void addLast(MaintainerResolver resolver) {
-        resolvers.add(resolver);
+    public void addLast(MaintainerResolver resolver) {
+        if (!(resolver instanceof ChainedMaintainerResolver)) {
+            resolvers.add(resolver);
+        }
     }
 
     @Override

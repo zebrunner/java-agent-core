@@ -1,8 +1,8 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.registrar.descriptor.SessionCloseDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.SessionStartDescriptor;
+import com.zebrunner.agent.core.registrar.descriptor.SessionClose;
+import com.zebrunner.agent.core.registrar.descriptor.SessionStart;
 
 public interface TestSessionRegistrar {
 
@@ -12,11 +12,11 @@ public interface TestSessionRegistrar {
                 : NoOpTestSessionRegistrar.getInstance();
     }
 
-    void registerStart(SessionStartDescriptor context);
+    void registerStart(SessionStart context);
 
-    void registerClose(SessionCloseDescriptor context);
+    void registerClose(SessionClose context);
 
-    void linkAllCurrentToTest(Long zebrunnerTestId);
+    void linkAllCurrentToTest(Long testId);
 
     void linkToCurrentTest(String sessionId);
 

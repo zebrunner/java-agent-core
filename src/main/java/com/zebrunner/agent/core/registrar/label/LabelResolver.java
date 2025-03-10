@@ -1,12 +1,16 @@
 package com.zebrunner.agent.core.registrar.label;
 
-import com.zebrunner.agent.core.registrar.domain.LabelDTO;
-
 import java.lang.reflect.Method;
 import java.util.List;
 
+import com.zebrunner.agent.core.registrar.domain.Label;
+
 public interface LabelResolver {
 
-    List<LabelDTO> resolve(Class<?> clazz, Method method);
+    static LabelResolver getInstance() {
+        return CompositeLabelResolver.getInstance();
+    }
+
+    List<Label> resolve(Class<?> clazz, Method method);
 
 }

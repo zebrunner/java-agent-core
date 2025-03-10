@@ -1,7 +1,8 @@
 package com.zebrunner.agent.core.registrar.label;
 
-import com.zebrunner.agent.core.annotation.TestLabel;
-import com.zebrunner.agent.core.registrar.domain.LabelDTO;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -14,20 +15,26 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.zebrunner.agent.core.annotation.TestLabel;
+import com.zebrunner.agent.core.registrar.domain.Label;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TestLabelResolver implements LabelResolver {
 
+    @Getter
+    private static final TestLabelResolver instance = new TestLabelResolver();
+
     @Override
-    public List<LabelDTO> resolve(Class<?> clazz, Method method) {
+    public List<Label> resolve(Class<?> clazz, Method method) {
         // method-level labels override class-level labels for the same key.
-        // that is why it is much easier to collect labels into map first,
-        // and then convert them to dto's
+        // that is why it is much easier to collect labels into map first, and then convert them to dto's
         Map<String, List<String>> labels = getAnnotations(clazz);
         labels.putAll(getAnnotations(method));
 
         return labels.entrySet()
                      .stream()
                      .flatMap(keyToValues -> keyToValues.getValue().stream()
-                                                        .map(value -> new LabelDTO(keyToValues.getKey(), value)))
+                                                        .map(value -> new Label(keyToValues.getKey(), value)))
                      .collect(Collectors.toList());
     }
 
