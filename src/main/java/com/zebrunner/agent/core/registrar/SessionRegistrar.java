@@ -5,19 +5,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.zebrunner.agent.core.registrar.client.ApiClientRegistry;
 import com.zebrunner.agent.core.registrar.client.ZebrunnerApiClient;
 import com.zebrunner.agent.core.registrar.client.request.CloseTestSessionRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartTestSessionRequest;
 import com.zebrunner.agent.core.registrar.client.request.UpdateTestSessionRequest;
 import com.zebrunner.agent.core.registrar.client.response.StartTestSessionResponse;
-import com.zebrunner.agent.core.registrar.descriptor.SessionClose;
-import com.zebrunner.agent.core.registrar.descriptor.SessionStart;
+import com.zebrunner.agent.core.registrar.domain.SessionClose;
+import com.zebrunner.agent.core.registrar.domain.SessionStart;
 import com.zebrunner.agent.core.registrar.domain.Test;
 import com.zebrunner.agent.core.registrar.domain.TestSession;
 
@@ -29,9 +24,6 @@ class SessionRegistrar implements TestSessionRegistrar {
     public static final SessionRegistrar instance = new SessionRegistrar();
 
     private final ZebrunnerApiClient apiClient = ApiClientRegistry.getClient();
-
-    private final Map<String, TestSession> sessionIdToSession = new ConcurrentHashMap<>();
-    private final ThreadLocal<Set<String>> threadSessionIds = InheritableThreadLocal.withInitial(HashSet::new);
 
     @Override
     public void registerStart(SessionStart sessionStart) {
@@ -60,8 +52,7 @@ class SessionRegistrar implements TestSessionRegistrar {
         if (response != null && response.getStatus() != TestSession.Status.FAILED) {
             TestSession testSession = TestSession.of(response, sessionStart);
 
-            sessionIdToSession.put(testSession.getSessionId(), testSession);
-            threadSessionIds.get().add(testSession.getSessionId());
+            ReportingContext.addCurrentTestSession(testSession);
         }
 
         log.debug("Registration of test session start completed. {}", sessionStart);
@@ -72,15 +63,14 @@ class SessionRegistrar implements TestSessionRegistrar {
         log.debug("Registering test session close. {}", sessionClose);
 
         Long testRunId = ReportingContext.getNullableTestRunId();
-        TestSession testSession = sessionIdToSession.get(sessionClose.getSessionId());
+        TestSession testSession = ReportingContext.getNullableTestSession(sessionClose.getSessionId());
 
         if (testSession != null && testRunId != null) {
             var request = new CloseTestSessionRequest().setEndedAt(sessionClose.getEndedAt());
 
             apiClient.closeSession(testRunId, testSession.getId(), request);
 
-            sessionIdToSession.remove(sessionClose.getSessionId());
-            threadSessionIds.get().remove(sessionClose.getSessionId());
+            ReportingContext.removeCurrentTestSession(testSession.getSessionId());
         }
 
         log.debug("Registration of test session close completed. {}", sessionClose);
@@ -88,7 +78,8 @@ class SessionRegistrar implements TestSessionRegistrar {
 
     @Override
     public void linkAllCurrentToTest(Long testId) {
-        threadSessionIds.get().forEach(sessionId -> this.link(sessionId, testId));
+        ReportingContext.getCurrentTestSessions()
+                        .forEach(testSession -> this.link(testSession.getSessionId(), testId));
     }
 
     @Override
@@ -100,7 +91,7 @@ class SessionRegistrar implements TestSessionRegistrar {
 
     private void link(String sessionId, Long testId) {
         Long testRunId = ReportingContext.getNullableTestRunId();
-        TestSession testSession = sessionIdToSession.get(sessionId);
+        TestSession testSession = ReportingContext.getNullableTestSession(sessionId);
 
         if (testSession != null && testSession.getTestIds().add(testId)) {
             log.debug("Linking test '{}' to session '{}'", testId, sessionId);

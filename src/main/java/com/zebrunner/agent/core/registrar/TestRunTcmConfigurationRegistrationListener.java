@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.util.function.Consumer;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunStart;
+import com.zebrunner.agent.core.registrar.domain.TestRunStart;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class TestRunTcmConfigurationRegistrationListener implements RegistrationListener {

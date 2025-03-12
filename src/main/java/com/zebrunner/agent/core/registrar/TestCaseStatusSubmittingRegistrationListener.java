@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.zebrunner.agent.core.registrar.descriptor.TestFinish;
+import com.zebrunner.agent.core.registrar.domain.TestFinish;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class TestCaseStatusSubmittingRegistrationListener implements RegistrationListener {

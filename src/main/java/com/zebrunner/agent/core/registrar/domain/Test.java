@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.zebrunner.agent.core.registrar.client.response.StartTestResponse;
-import com.zebrunner.agent.core.registrar.descriptor.TestFinish;
-import com.zebrunner.agent.core.registrar.descriptor.TestStart;
 
 @Getter
 @Accessors(chain = true)

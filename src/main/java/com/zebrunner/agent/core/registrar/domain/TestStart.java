@@ -1,4 +1,4 @@
-package com.zebrunner.agent.core.registrar.descriptor;
+package com.zebrunner.agent.core.registrar.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +22,7 @@ public class TestStart {
      * Id of already existing Zebrunner test to rerun.
      */
     @Setter
-    private Long zebrunnerId;
+    private Long id;
 
     /**
      * Contains information about test identity.

@@ -1,4 +1,4 @@
-package com.zebrunner.agent.core.registrar.descriptor;
+package com.zebrunner.agent.core.registrar.domain;
 
 import lombok.Value;
 

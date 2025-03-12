@@ -18,13 +18,14 @@ import com.zebrunner.agent.core.registrar.client.request.StartTestRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartTestRunRequest;
 import com.zebrunner.agent.core.registrar.client.response.StartTestResponse;
 import com.zebrunner.agent.core.registrar.client.response.StartTestRunResponse;
-import com.zebrunner.agent.core.registrar.descriptor.TestFinish;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunFinish;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunStart;
-import com.zebrunner.agent.core.registrar.descriptor.TestStart;
+import com.zebrunner.agent.core.registrar.domain.TestFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunStart;
+import com.zebrunner.agent.core.registrar.domain.TestStart;
 import com.zebrunner.agent.core.registrar.domain.Label;
 import com.zebrunner.agent.core.registrar.domain.Test;
 import com.zebrunner.agent.core.registrar.domain.TestRun;
+import com.zebrunner.agent.core.registrar.domain.TestSession;
 import com.zebrunner.agent.core.registrar.label.LabelResolver;
 import com.zebrunner.agent.core.registrar.maintainer.MaintainerResolver;
 
@@ -117,8 +118,8 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                         .setStartedAt(testStart.getStartedAt());
 
             StartTestResponse response;
-            if (testStart.getZebrunnerId() != null) {
-                response = apiClient.registerHeadlessTestRerunStart(testRunId, testStart.getZebrunnerId(), request);
+            if (testStart.getId() != null) {
+                response = apiClient.registerHeadlessTestRerunStart(testRunId, testStart.getId(), request);
             } else {
                 response = apiClient.registerHeadlessTestStart(testRunId, request);
             }
@@ -138,11 +139,12 @@ class ReportingRegistrar implements TestRunRegistrar {
     public void registerTestStart(String id, TestStart testStart) {
         registrationListenerRegistry.forEach(listener -> listener.onBeforeTestStart(testStart));
 
-        Long testRunId = ReportingContext.getNullableTestRunId();
-        if (testRunId == null) {
+        TestRun testRun = ReportingContext.getNullableTestRun();
+        if (testRun == null) {
             return;
         }
 
+        List<TestSession> testSessions = ReportingContext.getCurrentTestSessions();
         var request = new StartTestRequest().setName(testStart.getName())
                                             .setCorrelationData(testStart.getCorrelationData())
                                             .setClassName(testStart.getTestClassName() != null
@@ -152,22 +154,12 @@ class ReportingRegistrar implements TestRunRegistrar {
                                                     ? testStart.getTestMethodName()
                                                     : testStart.getTestMethod().getName())
                                             .setArgumentsIndex(testStart.getArgumentsIndex())
-                                            .setMaintainer(maintainerResolver.resolve(testStart.getTestClass(), testStart.getTestMethod()))
+                                            .setMaintainer(maintainerResolver.resolve(testRun, testStart, testSessions))
                                             .setStartedAt(testStart.getStartedAt())
                                             .setLabels((List<Label>) labelResolver.resolve(testStart.getTestClass(), testStart.getTestMethod()))
                                             .setTestGroups(testStart.getTestGroups());
 
-        StartTestResponse response;
-        Long headlessTestId = ReportingContext.getCurrentTest()
-                                              .map(Test::getId)
-                                              .orElse(null);
-        if (headlessTestId != null) {
-            response = apiClient.registerHeadlessTestUpdate(testRunId, headlessTestId, request);
-        } else if (testStart.getZebrunnerId() != null) {
-            response = apiClient.registerTestRerunStart(testRunId, testStart.getZebrunnerId(), request);
-        } else {
-            response = apiClient.registerTestStart(testRunId, request);
-        }
+        StartTestResponse response = this.registerTestStart(testRun.getId(), testStart.getId(), request);
 
         // if reporting is enabled and test was actually registered
         if (response != null) {
@@ -179,6 +171,20 @@ class ReportingRegistrar implements TestRunRegistrar {
             registrationListenerRegistry.forEach(listener -> listener.onAfterTestStart(testStart));
         }
         LOGS_BUFFERS.forEach(LogsBuffer::flushQueuedConfigurationLogs);
+    }
+
+    private StartTestResponse registerTestStart(Long testRunId, Long nullableTestId, StartTestRequest request) {
+        Long headlessTestId = ReportingContext.getCurrentTest()
+                                              .map(Test::getId)
+                                              .orElse(null);
+
+        if (headlessTestId != null) {
+            return apiClient.registerHeadlessTestUpdate(testRunId, headlessTestId, request);
+        } else if (nullableTestId != null) {
+            return apiClient.registerTestRerunStart(testRunId, nullableTestId, request);
+        } else {
+            return apiClient.registerTestStart(testRunId, request);
+        }
     }
 
     @Override

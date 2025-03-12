@@ -8,10 +8,10 @@ import lombok.experimental.Accessors;
 
 import java.time.Instant;
 import java.util.HashSet;
+ import java.util.Map;
 import java.util.Set;
 
 import com.zebrunner.agent.core.registrar.client.response.StartTestSessionResponse;
-import com.zebrunner.agent.core.registrar.descriptor.SessionStart;
 
 @Getter
 @Accessors(chain = true)
@@ -28,8 +28,8 @@ public class TestSession {
     private Status status;
     private String failureReason;
 
-    private Object desiredCapabilities;
-    private Object capabilities;
+    private Map<String, Object> desiredCapabilities;
+    private Map<String, Object> capabilities;
 
     private Set<Long> testIds = new HashSet<>();
 

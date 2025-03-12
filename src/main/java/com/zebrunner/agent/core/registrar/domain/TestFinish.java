@@ -1,11 +1,9 @@
-package com.zebrunner.agent.core.registrar.descriptor;
+package com.zebrunner.agent.core.registrar.domain;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import java.time.Instant;
-
-import com.zebrunner.agent.core.registrar.domain.Status;
 
 /**
  * Descriptor of test finish event. Captures resulting test data, such as its result/status, end time

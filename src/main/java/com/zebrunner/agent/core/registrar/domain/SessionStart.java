@@ -1,6 +1,5 @@
-package com.zebrunner.agent.core.registrar.descriptor;
+package com.zebrunner.agent.core.registrar.domain;
 
-import com.zebrunner.agent.core.registrar.domain.TestSession;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

@@ -1,9 +1,5 @@
 package com.zebrunner.agent.core.webdriver;
 
-import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.registrar.TestSessionRegistrar;
-import com.zebrunner.agent.core.registrar.descriptor.SessionStart;
-import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
@@ -15,12 +11,18 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.http.ClientConfig;
 import org.openqa.selenium.remote.http.netty.NettyClient;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+
+import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.registrar.TestSessionRegistrar;
+import com.zebrunner.agent.core.registrar.domain.SessionStart;
 
 @Slf4j
 public class StartSessionInterceptor {
@@ -34,7 +36,7 @@ public class StartSessionInterceptor {
                                       @Argument(0) Capabilities capabilities) throws Exception {
         if (ConfigurationHolder.shouldSubstituteRemoteWebDrivers()) {
             substituteSeleniumHub(driver);
-            capabilities = customizeCapabilities(methodInvocationProxy, capabilities);
+            capabilities = StartSessionInterceptor.customizeCapabilities(methodInvocationProxy, capabilities);
         }
 
         SessionStart startDescriptor = SessionStart.initiatedWith(capabilities.asMap());
@@ -53,10 +55,10 @@ public class StartSessionInterceptor {
             // so we try to get capabilities from RemoteWebDriver forcibly
             if (driverCapabilities == null) {
                 Field capabilitiesField = Arrays.stream(RemoteWebDriver.class.getDeclaredFields())
-                        .filter(field -> Capabilities.class.equals(field.getType()))
-                        .peek(field -> field.setAccessible(true))
-                        .findFirst()
-                        .orElseThrow(() -> new NoSuchFieldException("Cannot find RemoteWebDriver capabilities field"));
+                                                .filter(field -> Capabilities.class.equals(field.getType()))
+                                                .peek(field -> field.setAccessible(true))
+                                                .findFirst()
+                                                .orElseThrow(() -> new NoSuchFieldException("Cannot find RemoteWebDriver capabilities field"));
 
                 driverCapabilities = (Capabilities) capabilitiesField.get(driver);
             }
@@ -80,7 +82,7 @@ public class StartSessionInterceptor {
             HttpCommandExecutor commandExecutor = (HttpCommandExecutor) driver.getCommandExecutor();
             setFieldValue(commandExecutor, "remoteServer", seleniumHubUrl);
 
-            Object clientObject = getFieldValue(commandExecutor, "client");
+            Object clientObject = StartSessionInterceptor.getFieldValue(commandExecutor, "client");
             if (clientObject instanceof NettyClient) {
                 String userInfo = seleniumHubUrl.getUserInfo();
                 if (userInfo != null && !userInfo.isEmpty()) {
@@ -88,7 +90,7 @@ public class StartSessionInterceptor {
                     String username = credentials[0];
                     String password = credentials.length > 1 ? credentials[1] : "";
 
-                    ClientConfig clientConfig = ((ClientConfig) getFieldValue(clientObject, "config"))
+                    ClientConfig clientConfig = ((ClientConfig) StartSessionInterceptor.getFieldValue(clientObject, "config"))
                             .baseUri(seleniumHubUrl.toURI())
                             .authenticateAs(new UsernameAndPassword(username, password));
                     setFieldValue(clientObject, "config", clientConfig);
@@ -144,14 +146,14 @@ public class StartSessionInterceptor {
                 argument1Field.setAccessible(false);
             } else {
                 log.debug("#startSession() argument has unexpected type, thus it will not be modified. " +
-                        "Capabilities from Zebrunner will not be taken into account.");
+                          "Capabilities from Zebrunner will not be taken into account.");
             }
         } catch (NoSuchFieldException e) {
             log.debug("#startSession() invocation proxy class does not contain an expected field. " +
-                    "Capabilities from Zebrunner will not be taken into account.");
+                      "Capabilities from Zebrunner will not be taken into account.");
         } catch (IllegalAccessException e) {
             log.debug("Could not get access to the original argument of #startSession() method. " +
-                    "Capabilities from Zebrunner will not be taken into account.");
+                      "Capabilities from Zebrunner will not be taken into account.");
         }
 
         return capabilities;

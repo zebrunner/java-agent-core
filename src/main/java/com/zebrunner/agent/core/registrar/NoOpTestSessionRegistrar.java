@@ -4,8 +4,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.zebrunner.agent.core.registrar.descriptor.SessionClose;
-import com.zebrunner.agent.core.registrar.descriptor.SessionStart;
+import com.zebrunner.agent.core.registrar.domain.SessionClose;
+import com.zebrunner.agent.core.registrar.domain.SessionStart;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class NoOpTestSessionRegistrar implements TestSessionRegistrar {

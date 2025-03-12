@@ -4,13 +4,19 @@ import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.experimental.UtilityClass;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-import com.zebrunner.agent.core.registrar.descriptor.TestFinish;
 import com.zebrunner.agent.core.registrar.domain.Test;
+import com.zebrunner.agent.core.registrar.domain.TestFinish;
 import com.zebrunner.agent.core.registrar.domain.TestRun;
+import com.zebrunner.agent.core.registrar.domain.TestSession;
 
 /**
  * Thread-safe context holder. It is used to keep track between atomic independent test run events
@@ -28,8 +34,17 @@ class ReportingContext {
     private static final ThreadLocal<Test> CURRENT_THREAD_LOCAL_AFTER_METHOD = new InheritableThreadLocal<>();
     private static final ThreadLocal<Test> PREVIOUS_COMPLETED_THREAD_LOCAL_TEST = new ThreadLocal<>();
 
+    private static final Map<String, TestSession> SESSION_ID_TO_SESSION = new ConcurrentHashMap<>();
+    // Carina closes driver sessions in a separate thread (have no idea why),
+    // so the ThreadLocal usually contains obsolete ids
+    private static final ThreadLocal<Set<String>> CURRENT_THREAD_LOCAL_TEST_SESSION_IDS = InheritableThreadLocal.withInitial(HashSet::new);
+
     static Optional<TestRun> getTestRun() {
         return Optional.ofNullable(testRun);
+    }
+
+    static TestRun getNullableTestRun() {
+        return testRun;
     }
 
     static Optional<Long> getTestRunId() {
@@ -42,6 +57,8 @@ class ReportingContext {
                        .map(TestRun::getId)
                        .orElse(null);
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     static Test getTest(String id) {
         return TESTS.get(id);
@@ -100,6 +117,31 @@ class ReportingContext {
             CURRENT_THREAD_LOCAL_TEST.remove();
             CURRENT_THREAD_LOCAL_AFTER_METHOD.remove();
         }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    static void addCurrentTestSession(TestSession testSession) {
+        SESSION_ID_TO_SESSION.put(testSession.getSessionId(), testSession);
+        CURRENT_THREAD_LOCAL_TEST_SESSION_IDS.get().add(testSession.getSessionId());
+    }
+
+    static void removeCurrentTestSession(String sessionId) {
+        SESSION_ID_TO_SESSION.remove(sessionId);
+        CURRENT_THREAD_LOCAL_TEST_SESSION_IDS.get().remove(sessionId);
+    }
+
+    static List<TestSession> getCurrentTestSessions() {
+        return CURRENT_THREAD_LOCAL_TEST_SESSION_IDS.get()
+                                                    .stream()
+                                                    .map(SESSION_ID_TO_SESSION::get)
+                                                    // see comment for CURRENT_THREAD_LOCAL_TEST_SESSION_IDS
+                                                    .filter(Objects::nonNull)
+                                                    .collect(Collectors.toList());
+    }
+
+    static TestSession getNullableTestSession(String sessionId) {
+        return SESSION_ID_TO_SESSION.get(sessionId);
     }
 
 }

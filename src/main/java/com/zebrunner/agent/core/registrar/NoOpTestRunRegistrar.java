@@ -5,10 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import com.zebrunner.agent.core.registrar.descriptor.TestFinish;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunFinish;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunStart;
-import com.zebrunner.agent.core.registrar.descriptor.TestStart;
+import com.zebrunner.agent.core.registrar.domain.TestFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunStart;
+import com.zebrunner.agent.core.registrar.domain.TestStart;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

@@ -1,8 +1,8 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.descriptor.TestFinish;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunStart;
-import com.zebrunner.agent.core.registrar.descriptor.TestStart;
+import com.zebrunner.agent.core.registrar.domain.TestFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunStart;
+import com.zebrunner.agent.core.registrar.domain.TestStart;
 import com.zebrunner.agent.core.registrar.domain.Status;
 
 interface RegistrationListener {

@@ -1,8 +1,8 @@
 package com.zebrunner.agent.core.registrar;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
-import com.zebrunner.agent.core.registrar.descriptor.SessionClose;
-import com.zebrunner.agent.core.registrar.descriptor.SessionStart;
+import com.zebrunner.agent.core.registrar.domain.SessionClose;
+import com.zebrunner.agent.core.registrar.domain.SessionStart;
 
 public interface TestSessionRegistrar {
 

@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.zebrunner.agent.core.annotation.TestRailCaseId;
-import com.zebrunner.agent.core.registrar.descriptor.TestStart;
+import com.zebrunner.agent.core.registrar.domain.TestStart;
 import com.zebrunner.agent.core.registrar.domain.TcmType;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

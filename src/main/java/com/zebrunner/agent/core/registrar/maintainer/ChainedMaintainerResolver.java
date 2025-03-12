@@ -4,9 +4,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.zebrunner.agent.core.registrar.domain.TestRun;
+import com.zebrunner.agent.core.registrar.domain.TestSession;
+import com.zebrunner.agent.core.registrar.domain.TestStart;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ChainedMaintainerResolver implements MaintainerResolver {
@@ -17,7 +20,10 @@ public class ChainedMaintainerResolver implements MaintainerResolver {
     private final List<MaintainerResolver> resolvers = new ArrayList<>();
 
     static {
-        ChainedMaintainerResolver.addFirst(AnnotationMaintainerResolver.getInstance());
+        ChainedMaintainerResolver.addLast(MethodLevelAnnotationMaintainerResolver.getInstance());
+        ChainedMaintainerResolver.addLast(MethodLevelProviderAnnotationMaintainerResolver.getInstance());
+        ChainedMaintainerResolver.addLast(ClassLevelAnnotationMaintainerResolver.getInstance());
+        ChainedMaintainerResolver.addLast(ClassLevelProviderAnnotationMaintainerResolver.getInstance());
     }
 
     public static void addFirst(MaintainerResolver resolver) {
@@ -33,9 +39,9 @@ public class ChainedMaintainerResolver implements MaintainerResolver {
     }
 
     @Override
-    public String resolve(Class<?> clazz, Method method) {
+    public String resolve(TestRun testRun, TestStart testStart, List<TestSession> testSessions) {
         return resolvers.stream()
-                        .map(resolver -> resolver.resolve(clazz, method))
+                        .map(resolver -> resolver.resolve(testRun, testStart, testSessions))
                         .filter(maintainer -> maintainer != null && !maintainer.trim().isEmpty())
                         .findFirst()
                         .orElse(null);

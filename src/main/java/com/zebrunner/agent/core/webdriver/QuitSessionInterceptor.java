@@ -1,16 +1,18 @@
 package com.zebrunner.agent.core.webdriver;
 
-import com.zebrunner.agent.core.registrar.TestSessionRegistrar;
-import com.zebrunner.agent.core.registrar.descriptor.SessionClose;
-import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.implementation.bind.annotation.This;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.zebrunner.agent.core.registrar.TestSessionRegistrar;
+import com.zebrunner.agent.core.registrar.domain.SessionClose;
 
 @Slf4j
 public class QuitSessionInterceptor {
