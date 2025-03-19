@@ -1,18 +1,20 @@
 package com.zebrunner.agent.core.webdriver;
 
-import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
 import kong.unirest.GenericType;
 import kong.unirest.ObjectMapper;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+
 import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
+
+import com.zebrunner.agent.core.registrar.client.ObjectMapperImpl;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RemoteWebDriverFactory {
@@ -28,7 +30,7 @@ public class RemoteWebDriverFactory {
     }
 
     private static URL getMandatorySeleniumHubUrl() {
-        return Optional.ofNullable(getSeleniumHubUrl())
+        return Optional.ofNullable(RemoteWebDriverFactory.getSeleniumHubUrl())
                        .orElseThrow(() -> new RuntimeException("Zebrunner didn't provide a selenium hub url."));
     }
 
@@ -45,18 +47,16 @@ public class RemoteWebDriverFactory {
     }
 
     public static RemoteWebDriver getDriver() {
-        return new RemoteWebDriver(getMandatorySeleniumHubUrl(), getCapabilities());
+        return new RemoteWebDriver(RemoteWebDriverFactory.getMandatorySeleniumHubUrl(), RemoteWebDriverFactory.getCapabilities());
     }
 
     public static RemoteWebDriver getDriver(Capabilities capabilities) {
-        capabilities = capabilities.merge(getCapabilities());
-        return new RemoteWebDriver(getMandatorySeleniumHubUrl(), capabilities);
+        capabilities = capabilities.merge(RemoteWebDriverFactory.getCapabilities());
+        return new RemoteWebDriver(RemoteWebDriverFactory.getMandatorySeleniumHubUrl(), capabilities);
     }
 
     public static RemoteWebDriver getDriver(Map<String, ?> capabilitiesMap) {
-        Capabilities capabilities = new DesiredCapabilities(capabilitiesMap);
-        capabilities = capabilities.merge(getCapabilities());
-        return new RemoteWebDriver(getMandatorySeleniumHubUrl(), capabilities);
+        return RemoteWebDriverFactory.getDriver(new DesiredCapabilities(capabilitiesMap));
     }
 
 }

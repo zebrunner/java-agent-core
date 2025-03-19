@@ -1,22 +1,26 @@
 package com.zebrunner.agent.core.registrar.ci;
 
-import com.zebrunner.agent.core.registrar.domain.CiContextDTO;
-import com.zebrunner.agent.core.registrar.domain.CiType;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+import com.zebrunner.agent.core.registrar.domain.CiContext;
+import com.zebrunner.agent.core.registrar.domain.CiType;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 class JenkinsCiContextResolver implements CiContextResolver {
+
+    @Getter
+    private static final JenkinsCiContextResolver instance = new JenkinsCiContextResolver();
 
     // https://wiki.jenkins.io/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-below
     private static final String JENKINS_URL_ENV_VARIABLE = "JENKINS_URL";
-    private static final List<String> ENV_VARIABLE_PREFIXES = Arrays.asList(
+    private static final List<String> ENV_VARIABLE_PREFIXES = List.of(
             "CVS_",
             "SVN_",
             "GIT_",
@@ -31,12 +35,13 @@ class JenkinsCiContextResolver implements CiContextResolver {
     );
 
     @Override
-    public CiContextDTO resolve() {
+    public CiContext resolve() {
         Map<String, String> envVariables = System.getenv();
 
         if (envVariables.containsKey(JENKINS_URL_ENV_VARIABLE)) {
-            envVariables = collectEnvironmentVariables(envVariables);
-            return new CiContextDTO(CiType.JENKINS, envVariables);
+            envVariables = this.collectEnvironmentVariables(envVariables);
+
+            return new CiContext(CiType.JENKINS, envVariables);
         }
 
         return null;
@@ -45,8 +50,7 @@ class JenkinsCiContextResolver implements CiContextResolver {
     private Map<String, String> collectEnvironmentVariables(Map<String, String> envVariables) {
         return envVariables.keySet()
                            .stream()
-                           .filter(key -> ENV_VARIABLE_PREFIXES.stream()
-                                                               .anyMatch(key::startsWith))
+                           .filter(key -> ENV_VARIABLE_PREFIXES.stream().anyMatch(key::startsWith))
                            .collect(Collectors.toMap(Function.identity(), envVariables::get));
     }
 

@@ -1,33 +1,35 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunFinishDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import com.zebrunner.agent.core.registrar.domain.TestFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunStart;
+import com.zebrunner.agent.core.registrar.domain.TestStart;
+
 @Slf4j
-public class NoOpTestRunRegistrar implements TestRunRegistrar {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+class NoOpTestRunRegistrar implements TestRunRegistrar {
 
-    private static final NoOpTestRunRegistrar INSTANCE = new NoOpTestRunRegistrar();
+    @Getter
+    private static final NoOpTestRunRegistrar instance = new NoOpTestRunRegistrar();
 
-    public static NoOpTestRunRegistrar getInstance() {
-        return INSTANCE;
+    @Override
+    public void registerStart(TestRunStart testRunStart) {
+        log.trace("Test run started: {}", testRunStart);
     }
 
     @Override
-    public void registerStart(TestRunStartDescriptor testRunStartDescriptor) {
-        log.trace("Test run started: {}", testRunStartDescriptor);
+    public void registerFinish(TestRunFinish testRunFinish) {
+        log.trace("Test run finished: {}", testRunFinish);
     }
 
     @Override
-    public void registerFinish(TestRunFinishDescriptor testRunFinishDescriptor) {
-        log.trace("Test run finished: {}", testRunFinishDescriptor);
-    }
-
-    @Override
-    public void registerTestStart(String id, TestStartDescriptor testStartDescriptor) {
-        log.trace("Test started: {}", testStartDescriptor);
+    public void registerTestStart(String id, TestStart testStart) {
+        log.trace("Test started: {}", testStart);
     }
 
     @Override
@@ -37,8 +39,8 @@ public class NoOpTestRunRegistrar implements TestRunRegistrar {
     }
 
     @Override
-    public void registerHeadlessTestStart(String id, TestStartDescriptor testStartDescriptor) {
-        log.trace("Headless test started: {}", testStartDescriptor);
+    public void registerHeadlessTestStart(String id, TestStart testStart) {
+        log.trace("Headless test started: {}", testStart);
     }
 
     @Override
@@ -48,8 +50,8 @@ public class NoOpTestRunRegistrar implements TestRunRegistrar {
     }
 
     @Override
-    public void registerTestFinish(String id, TestFinishDescriptor testFinishDescriptor) {
-        log.trace("Test finished: {}", testFinishDescriptor);
+    public void registerTestFinish(String id, TestFinish testFinish) {
+        log.trace("Test finished: {}", testFinish);
     }
 
     @Override

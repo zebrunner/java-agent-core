@@ -1,14 +1,15 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.domain.TcmType;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 
+import com.zebrunner.agent.core.registrar.domain.TcmType;
+
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@SuppressWarnings("unused")
+@UtilityClass
 public final class TestCase {
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.zebrunner.sync.enabled";
@@ -21,12 +22,12 @@ public final class TestCase {
     private static volatile boolean isRealTimeSyncEnabled = false;
 
     public static void disableSync() {
-        attachLabelToTestRun(SYNC_ENABLED, "false");
+        TestCase.attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
     public static synchronized void enableRealTimeSync() {
         if (!isRealTimeSyncEnabled) {
-            attachLabelToTestRun(SYNC_REAL_TIME, "true");
+            TestCase.attachLabelToTestRun(SYNC_REAL_TIME, "true");
             isRealTimeSyncEnabled = true;
         } else {
             log.warn("Realtime sync for Zebrunner TCM already enabled.");
@@ -34,7 +35,7 @@ public final class TestCase {
     }
 
     public static void setTestRunId(String id) {
-        attachLabelToTestRun(TEST_RUN_ID, id);
+        TestCase.attachLabelToTestRun(TEST_RUN_ID, id);
     }
 
     private static void attachLabelToTestRun(String name, String... values) {
@@ -54,14 +55,14 @@ public final class TestCase {
      *
      * @param testCaseKey  key of the test case
      * @param resultStatus name of the status to be set for the test case
-     * @see SystemTestCaseStatus
+     * @throws NullPointerException if {@code resultStatus} is null
      * @see SystemTestCaseStatus
      */
     public static void setTestCaseStatus(String testCaseKey, String resultStatus) {
         TEST_CASES_REGISTRY.setCurrentTestTestCaseStatus(TcmType.ZEBRUNNER, testCaseKey, resultStatus);
     }
 
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @UtilityClass
     public static final class SystemTestCaseStatus {
 
         public static final String PASSED = "Passed";

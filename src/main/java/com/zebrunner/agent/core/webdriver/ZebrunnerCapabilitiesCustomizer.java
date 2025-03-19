@@ -3,16 +3,18 @@ package com.zebrunner.agent.core.webdriver;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import com.zebrunner.agent.core.registrar.domain.ObjectMapperImpl;
 import kong.unirest.GenericType;
 import kong.unirest.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.remote.DesiredCapabilities;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import com.zebrunner.agent.core.registrar.client.ObjectMapperImpl;
 
 @Slf4j
 public class ZebrunnerCapabilitiesCustomizer implements CapabilitiesCustomizer {

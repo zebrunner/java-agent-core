@@ -1,14 +1,15 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.domain.TcmType;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 
+import com.zebrunner.agent.core.registrar.domain.TcmType;
+
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@UtilityClass
+@SuppressWarnings("unused")
 public final class Xray {
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.xray.sync.enabled";
@@ -21,20 +22,20 @@ public final class Xray {
     private static volatile boolean isRealTimeSyncEnabled = false;
 
     public static void disableSync() {
-        attachLabelToTestRun(SYNC_ENABLED, "false");
+        Xray.attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
     public static synchronized void enableRealTimeSync() {
         if (!isRealTimeSyncEnabled) {
-            attachLabelToTestRun(SYNC_REAL_TIME, "true");
+            Xray.attachLabelToTestRun(SYNC_REAL_TIME, "true");
             isRealTimeSyncEnabled = true;
         } else {
-            log.warn("Realtime sync for Xray already enabled.");
+            log.warn("Realtime sync for Xray already enabled");
         }
     }
 
     public static void setExecutionKey(String executionKey) {
-        attachLabelToTestRun(EXECUTION_KEY, executionKey);
+        Xray.attachLabelToTestRun(EXECUTION_KEY, executionKey);
     }
 
     private static void attachLabelToTestRun(String name, String... values) {
@@ -54,6 +55,7 @@ public final class Xray {
      *
      * @param testKey      key of the Xray test
      * @param resultStatus name of the status to be set for the test
+     * @throws NullPointerException if {@code resultStatus} is null
      * @see SystemTestStatus.Cloud
      * @see SystemTestStatus.Server
      */
@@ -61,10 +63,10 @@ public final class Xray {
         TEST_CASES_REGISTRY.setCurrentTestTestCaseStatus(TcmType.XRAY, testKey, resultStatus);
     }
 
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @UtilityClass
     public static final class SystemTestStatus {
 
-        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        @UtilityClass
         public static final class Cloud {
 
             public static final String PASSED = "PASSED";
@@ -74,7 +76,7 @@ public final class Xray {
 
         }
 
-        @NoArgsConstructor(access = AccessLevel.PRIVATE)
+        @UtilityClass
         public static final class Server {
 
             public static final String PASS = "PASS";

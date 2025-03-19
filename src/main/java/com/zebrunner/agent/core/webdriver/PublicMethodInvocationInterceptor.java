@@ -1,12 +1,13 @@
 package com.zebrunner.agent.core.webdriver;
 
-import com.zebrunner.agent.core.registrar.TestSessionRegistrar;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.implementation.bind.annotation.This;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.util.concurrent.Callable;
+
+import com.zebrunner.agent.core.registrar.TestSessionRegistrar;
 
 public class PublicMethodInvocationInterceptor {
 

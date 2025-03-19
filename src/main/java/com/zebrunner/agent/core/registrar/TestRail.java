@@ -1,14 +1,15 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.domain.TcmType;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 
+import com.zebrunner.agent.core.registrar.domain.TcmType;
+
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@UtilityClass
+@SuppressWarnings("unused")
 public final class TestRail {
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.testrail.sync.enabled";
@@ -28,13 +29,13 @@ public final class TestRail {
     private static volatile boolean isRealTimeSyncEnabled = false;
 
     public static void disableSync() {
-        attachLabelToTestRun(SYNC_ENABLED, "false");
+        TestRail.attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
     public static synchronized void enableRealTimeSync() {
         if (!isRealTimeSyncEnabled) {
-            attachLabelToTestRun(SYNC_REAL_TIME, "true");
-            attachLabelToTestRun(INCLUDE_ALL, "true");
+            TestRail.attachLabelToTestRun(SYNC_REAL_TIME, "true");
+            TestRail.attachLabelToTestRun(INCLUDE_ALL, "true");
             isRealTimeSyncEnabled = true;
             log.warn("Runtime upload is enabled, all cases will be included in new run by default");
         } else {
@@ -43,27 +44,27 @@ public final class TestRail {
     }
 
     public static void includeAllTestCasesInNewRun() {
-        attachLabelToTestRun(INCLUDE_ALL, "true");
+        TestRail.attachLabelToTestRun(INCLUDE_ALL, "true");
     }
 
     public static void setSuiteId(String suiteId) {
-        attachLabelToTestRun(SUITE_ID, suiteId);
+        TestRail.attachLabelToTestRun(SUITE_ID, suiteId);
     }
 
     public static void setRunId(String runId) {
-        attachLabelToTestRun(RUN_ID, runId);
+        TestRail.attachLabelToTestRun(RUN_ID, runId);
     }
 
     public static void setRunName(String runName) {
-        attachLabelToTestRun(RUN_NAME, runName);
+        TestRail.attachLabelToTestRun(RUN_NAME, runName);
     }
 
     public static void setMilestone(String milestone) {
-        attachLabelToTestRun(MILESTONE, milestone);
+        TestRail.attachLabelToTestRun(MILESTONE, milestone);
     }
 
     public static void setAssignee(String assignee) {
-        attachLabelToTestRun(ASSIGNEE, assignee);
+        TestRail.attachLabelToTestRun(ASSIGNEE, assignee);
     }
 
     private static void attachLabelToTestRun(String name, String... values) {
@@ -95,6 +96,7 @@ public final class TestRail {
      *
      * @param testCaseId   TestRail id of the test case. Can be either a regular number or a number with the letter 'C' at the begging.
      * @param resultStatus system name (not labels!) of the status to be set for the test case
+     * @throws NullPointerException if {@code resultStatus} is null
      * @see SystemTestCaseStatus
      */
     public static void setTestCaseStatus(String testCaseId, String resultStatus) {
@@ -104,7 +106,7 @@ public final class TestRail {
     /**
      * This class contains names (not labels!) of the TestRail system test case result statuses.
      */
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @UtilityClass
     public static class SystemTestCaseStatus {
 
         public static final String PASSED = "passed";

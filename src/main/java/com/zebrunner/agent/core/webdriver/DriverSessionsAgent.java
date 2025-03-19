@@ -1,6 +1,5 @@
 package com.zebrunner.agent.core.webdriver;
 
-import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
@@ -8,6 +7,8 @@ import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.NameMatcher;
 import net.bytebuddy.pool.TypePool;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.instrument.Instrumentation;
 import java.util.Arrays;
@@ -48,31 +49,30 @@ public class DriverSessionsAgent {
             new AgentBuilder.Default()
                     .with(new AgentBuilder.InitializationStrategy.SelfInjection.Eager())
                     .type(named(REMOTE_WEB_DRIVER_CLASS_MAME))
-                    .transform((builder, type, classloader, module, protectionDomain) -> addInterceptors(builder))
+                    .transform((builder, type, classloader, module, protectionDomain) -> DriverSessionsAgent.addInterceptors(builder))
                     // if ** <- AppiumDriver is created, then the startSession method in RemoteWebDriver is not called
                     .type(named(APPIUM_WEB_DRIVER_CLASS_MAME))
-                    .transform((builder, type, classloader, module, protectionDomain) ->
-                            builder.method(named(START_SESSION_METHOD_MAME))
-                                    .intercept(to(startSessionInterceptor())))
+                    .transform((builder, type, classloader, module, protectionDomain) -> builder.method(named(START_SESSION_METHOD_MAME))
+                                                                                                .intercept(to(DriverSessionsAgent.startSessionInterceptor())))
                     .installOn(instrumentation);
         } catch (Exception e) {
             log.error("Could not add interceptors for RemoteWebDriver", e);
         }
     }
 
+    private static DynamicType.Builder<?> addInterceptors(DynamicType.Builder<?> builder) {
+        return builder.method(DriverSessionsAgent.isPublicMethodToIntercept())
+                      .intercept(to(DriverSessionsAgent.publicMethodsInterceptor()))
+                      .method(named(START_SESSION_METHOD_MAME))
+                      .intercept(to(DriverSessionsAgent.startSessionInterceptor()))
+                      .method(named(QUIT_METHOD_MAME))
+                      .intercept(to(DriverSessionsAgent.quitSessionInterceptor()));
+    }
+
     public static ElementMatcher<? super MethodDescription> isPublicMethodToIntercept() {
         return isPublic()
                 .and(not(isStatic()))
                 .and(not(new NameMatcher<>(PUBLIC_METHODS_TO_NOT_INTERCEPT::contains)));
-    }
-
-    private static DynamicType.Builder<?> addInterceptors(DynamicType.Builder<?> builder) {
-        return builder.method(isPublicMethodToIntercept())
-                      .intercept(to(publicMethodsInterceptor()))
-                      .method(named(START_SESSION_METHOD_MAME))
-                      .intercept(to(startSessionInterceptor()))
-                      .method(named(QUIT_METHOD_MAME))
-                      .intercept(to(quitSessionInterceptor()));
     }
 
     private static TypeDescription publicMethodsInterceptor() {
