@@ -1,28 +1,28 @@
 plugins {
-    id "java-library"
+    id 'java-library'
 }
 
 group = 'com.zebrunner'
-version = "${version != 'unspecified' ? version : '1.7.0'}"
+version = "${version != 'unspecified' ? version : 'local'}"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compileOnly('com.konghq:unirest-java:3.13.10')
-    implementation('org.yaml:snakeyaml:2.4')
+    compileOnly 'com.konghq:unirest-java:3.14.5'
+    implementation 'org.yaml:snakeyaml:2.4'
 
-    implementation("net.bytebuddy:byte-buddy:1.12.18")
-    compileOnly('io.appium:java-client:8.3.0')
+    implementation 'net.bytebuddy:byte-buddy:1.12.18'
+    compileOnly 'io.appium:java-client:8.3.0'
 
-    implementation('org.slf4j:slf4j-api:1.7.36')
-    compileOnly("log4j:log4j:1.2.17")
-    compileOnly('org.apache.logging.log4j:log4j-core:2.17.2')
-    compileOnly('ch.qos.logback:logback-classic:1.2.11')
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+    compileOnly 'log4j:log4j:1.2.17'
+    compileOnly 'org.apache.logging.log4j:log4j-core:2.17.2'
+    compileOnly 'ch.qos.logback:logback-classic:1.5.17'
 
-    annotationProcessor('org.projectlombok:lombok:1.18.24')
-    compileOnly("org.projectlombok:lombok:1.18.24")
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
+    compileOnly 'org.projectlombok:lombok:1.18.36'
 }
 
 jar {
@@ -31,7 +31,7 @@ jar {
                 "Premain-Class": "com.zebrunner.agent.core.webdriver.DriverSessionsAgent",
                 "Can-Redefine-Classes": false,
                 "Can-Retransform-Classes": true,
-                "Build-Jdk": "1.8.0_152"
+                "Build-Jdk": "11"
         )
     }
 }

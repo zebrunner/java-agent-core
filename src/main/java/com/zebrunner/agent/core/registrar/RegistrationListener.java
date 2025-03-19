@@ -1,72 +1,72 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.descriptor.Status;
-import com.zebrunner.agent.core.registrar.descriptor.TestFinishDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestRunStartDescriptor;
-import com.zebrunner.agent.core.registrar.descriptor.TestStartDescriptor;
+import com.zebrunner.agent.core.registrar.domain.TestFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunStart;
+import com.zebrunner.agent.core.registrar.domain.TestStart;
+import com.zebrunner.agent.core.registrar.domain.Status;
 
 interface RegistrationListener {
 
-    default void onBeforeTestRunStart(TestRunStartDescriptor startDescriptor) {
+    default void onBeforeTestRunStart(TestRunStart testRunStart) {
     }
 
-    default void onAfterTestRunStart(TestRunStartDescriptor startDescriptor) {
+    default void onAfterTestRunStart(TestRunStart testRunStart) {
     }
 
-    default void onBeforeTestStart(TestStartDescriptor startDescriptor) {
+    default void onBeforeTestStart(TestStart testStart) {
     }
 
-    default void onAfterTestStart(TestStartDescriptor startDescriptor) {
+    default void onAfterTestStart(TestStart testStart) {
     }
 
-    default void onBeforeTestFinish(TestFinishDescriptor finishDescriptor) {
-        Status status = finishDescriptor.getStatus();
+    default void onBeforeTestFinish(TestFinish testFinish) {
+        Status status = testFinish.getStatus();
         if (status == Status.PASSED) {
-            this.onBeforeTestPass(finishDescriptor);
+            this.onBeforeTestPass(testFinish);
         } else if (status == Status.FAILED) {
-            this.onBeforeTestFail(finishDescriptor);
+            this.onBeforeTestFail(testFinish);
         } else if (status == Status.SKIPPED) {
-            this.onBeforeTestSkip(finishDescriptor);
+            this.onBeforeTestSkip(testFinish);
         } else if (status == Status.BLOCKED) {
-            this.onBeforeTestBlock(finishDescriptor);
+            this.onBeforeTestBlock(testFinish);
         }
     }
 
-    default void onBeforeTestPass(TestFinishDescriptor finishDescriptor) {
+    default void onBeforeTestPass(TestFinish testFinish) {
     }
 
-    default void onBeforeTestFail(TestFinishDescriptor finishDescriptor) {
+    default void onBeforeTestFail(TestFinish testFinish) {
     }
 
-    default void onBeforeTestSkip(TestFinishDescriptor finishDescriptor) {
+    default void onBeforeTestSkip(TestFinish testFinish) {
     }
 
-    default void onBeforeTestBlock(TestFinishDescriptor finishDescriptor) {
+    default void onBeforeTestBlock(TestFinish testFinish) {
     }
 
-    default void onAfterTestFinish(TestFinishDescriptor finishDescriptor) {
-        Status status = finishDescriptor.getStatus();
+    default void onAfterTestFinish(TestFinish testFinish) {
+        Status status = testFinish.getStatus();
         if (status == Status.PASSED) {
-            this.onAfterTestPass(finishDescriptor);
+            this.onAfterTestPass(testFinish);
         } else if (status == Status.FAILED) {
-            this.onAfterTestFail(finishDescriptor);
+            this.onAfterTestFail(testFinish);
         } else if (status == Status.SKIPPED) {
-            this.onAfterTestSkip(finishDescriptor);
+            this.onAfterTestSkip(testFinish);
         } else if (status == Status.BLOCKED) {
-            this.onAfterTestBlock(finishDescriptor);
+            this.onAfterTestBlock(testFinish);
         }
     }
 
-    default void onAfterTestPass(TestFinishDescriptor finishDescriptor) {
+    default void onAfterTestPass(TestFinish testFinish) {
     }
 
-    default void onAfterTestFail(TestFinishDescriptor finishDescriptor) {
+    default void onAfterTestFail(TestFinish testFinish) {
     }
 
-    default void onAfterTestSkip(TestFinishDescriptor finishDescriptor) {
+    default void onAfterTestSkip(TestFinish testFinish) {
     }
 
-    default void onAfterTestBlock(TestFinishDescriptor finishDescriptor) {
+    default void onAfterTestBlock(TestFinish testFinish) {
     }
 
 }

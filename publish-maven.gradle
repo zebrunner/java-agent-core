@@ -35,19 +35,14 @@ publishing {
                 }
                 developers {
                     developer {
-                        id = 'nsidorevich'
-                        name = 'Nikita Sidorevich'
-                        email = 'nsidorevich@zebrunner.com'
-                    }
-                    developer {
-                        id = 'brutskov'
-                        name = 'Bogdan Rutskov'
-                        email = 'brutskov@zebrunner.com'
-                    }
-                    developer {
                         id = 'sbrenko'
                         name = 'Sergey Brenko'
                         email = 'sbrenko@zebrunner.com'
+                    }
+                    developer {
+                        id = 'dkazak'
+                        name = 'Dmitry Kazak'
+                        email = 'dkazak@solvd.com'
                     }
                 }
                 scm {

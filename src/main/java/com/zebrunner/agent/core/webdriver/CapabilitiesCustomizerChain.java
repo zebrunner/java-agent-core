@@ -2,20 +2,15 @@ package com.zebrunner.agent.core.webdriver;
 
 import org.openqa.selenium.Capabilities;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public final class CapabilitiesCustomizerChain {
 
-    private static final class InstanceHolder {
-
-        private static final CapabilitiesCustomizerChain INSTANCE = new CapabilitiesCustomizerChain();
-
-    }
-
-    public static CapabilitiesCustomizerChain getInstance() {
-        return InstanceHolder.INSTANCE;
-    }
+    @Getter
+    private static final CapabilitiesCustomizerChain instance = new CapabilitiesCustomizerChain();
 
     private final List<CapabilitiesCustomizer> customizers = new ArrayList<>(1);
 

@@ -1,13 +1,13 @@
 package com.zebrunner.agent.core.registrar.domain;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TestRunPlatform {
 
-    private String name;
-    private String version;
+    private final String name;
+    private final String version;
 
 }

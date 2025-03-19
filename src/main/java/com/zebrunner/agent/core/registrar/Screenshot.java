@@ -1,12 +1,15 @@
 package com.zebrunner.agent.core.registrar;
 
-import com.zebrunner.agent.core.registrar.descriptor.TestDescriptor;
 import lombok.extern.slf4j.Slf4j;
+
+import com.zebrunner.agent.core.registrar.client.ApiClientRegistry;
+import com.zebrunner.agent.core.registrar.client.ZebrunnerApiClient;
+import com.zebrunner.agent.core.registrar.domain.Test;
 
 @Slf4j
 public final class Screenshot {
 
-    private static final ZebrunnerApiClient API_CLIENT = ClientRegistrar.getClient();
+    private static final ZebrunnerApiClient API_CLIENT = ApiClientRegistry.getClient();
 
     /**
      * Sends screenshot captured in scope of current test execution to Zebrunner. Captured at timestamp accuracy
@@ -18,11 +21,16 @@ public final class Screenshot {
      */
     public static void upload(byte[] screenshot, Long capturedAtMillis) {
         Long capturedAt = capturedAtMillis != null ? capturedAtMillis : System.currentTimeMillis();
-        Long runId = RunContext.getZebrunnerRunId();
 
-        RunContext.getCurrentTest()
-                  .map(TestDescriptor::getZebrunnerId)
-                  .ifPresent(testId -> API_CLIENT.uploadScreenshot(screenshot, runId, testId, capturedAt));
+        ReportingContext.getTestRunId()
+                        .ifPresent(testRunId ->
+                                ReportingContext.getCurrentTest()
+                                                .map(Test::getId)
+                                                .ifPresent(testId ->
+                                                        API_CLIENT.uploadScreenshot(screenshot, testRunId, testId, capturedAt)
+                                                )
+                        );
+
     }
 
 }
