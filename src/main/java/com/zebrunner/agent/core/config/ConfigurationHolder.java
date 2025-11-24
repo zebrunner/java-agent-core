@@ -87,6 +87,10 @@ public class ConfigurationHolder {
         return treatSkipsAsFailures == null || treatSkipsAsFailures;
     }
 
+    public static ReportingConfiguration.TcmConfiguration.TestCaseStatus getTestCaseStatus() {
+        return configuration.getTcm().getTestCaseStatus();
+    }
+
     public static String getTestCaseStatusOnPass() {
         return configuration.getTcm().getTestCaseStatus().getOnPass();
     }

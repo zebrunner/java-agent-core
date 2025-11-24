@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Vector;
 
 import com.zebrunner.agent.core.config.ConfigurationHolder;
+import com.zebrunner.agent.core.config.ReportingConfiguration;
 import com.zebrunner.agent.core.registrar.ci.CiContextResolver;
 import com.zebrunner.agent.core.registrar.client.ApiClientRegistry;
 import com.zebrunner.agent.core.registrar.client.ZebrunnerApiClient;
@@ -16,16 +17,17 @@ import com.zebrunner.agent.core.registrar.client.request.FinishTestRunRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartHeadlessTestRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartTestRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartTestRunRequest;
+import com.zebrunner.agent.core.registrar.client.request.UpdateLaunchTcmConfigRequest;
 import com.zebrunner.agent.core.registrar.client.response.StartTestResponse;
 import com.zebrunner.agent.core.registrar.client.response.StartTestRunResponse;
-import com.zebrunner.agent.core.registrar.domain.TestFinish;
-import com.zebrunner.agent.core.registrar.domain.TestRunFinish;
-import com.zebrunner.agent.core.registrar.domain.TestRunStart;
-import com.zebrunner.agent.core.registrar.domain.TestStart;
 import com.zebrunner.agent.core.registrar.domain.Label;
 import com.zebrunner.agent.core.registrar.domain.Test;
+import com.zebrunner.agent.core.registrar.domain.TestFinish;
 import com.zebrunner.agent.core.registrar.domain.TestRun;
+import com.zebrunner.agent.core.registrar.domain.TestRunFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunStart;
 import com.zebrunner.agent.core.registrar.domain.TestSession;
+import com.zebrunner.agent.core.registrar.domain.TestStart;
 import com.zebrunner.agent.core.registrar.label.LabelResolver;
 import com.zebrunner.agent.core.registrar.maintainer.MaintainerResolver;
 
@@ -85,13 +87,31 @@ class ReportingRegistrar implements TestRunRegistrar {
         // if reporting is enabled and test run was actually registered
         if (response != null) {
             ReportingContext.setTestRun(TestRun.of(response));
-
-            String locale = System.getProperty("locale");
-            if (locale != null) {
-                CurrentTestRun.setLocale(locale);
-            }
+            this.registerLocale();
+            this.registerTcmConfig(response.getId());
 
             registrationListenerRegistry.forEach(listener -> listener.onAfterTestRunStart(testRunStart));
+        }
+    }
+
+    private void registerLocale() {
+        String locale = System.getProperty("locale");
+        if (locale != null) {
+            CurrentTestRun.setLocale(locale);
+        }
+    }
+
+    private void registerTcmConfig(Long id) {
+        ReportingConfiguration.TcmConfiguration.TestCaseStatus status = ConfigurationHolder.getTestCaseStatus();
+
+        if (status.hasAnySpecified()) {
+            UpdateLaunchTcmConfigRequest request = new UpdateLaunchTcmConfigRequest().setStatusOnPass(status.getOnPass())
+                                                                                     .setStatusOnFail(status.getOnFail())
+                                                                                     .setStatusOnKnownIssue(status.getOnKnownIssue())
+                                                                                     .setStatusOnSkip(status.getOnSkip())
+                                                                                     .setStatusOnBlock(status.getOnBlock());
+
+            apiClient.patchTestRunTcmConfig(id, request);
         }
     }
 

@@ -1,16 +1,17 @@
 package com.zebrunner.agent.core.config;
 
-import com.zebrunner.agent.core.config.provider.EnvironmentConfigurationProvider;
-import com.zebrunner.agent.core.config.provider.PropertiesConfigurationProvider;
-import com.zebrunner.agent.core.config.provider.SystemPropertiesConfigurationProvider;
-import com.zebrunner.agent.core.config.provider.YamlConfigurationProvider;
-import com.zebrunner.agent.core.exception.TestAgentException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.zebrunner.agent.core.config.provider.EnvironmentConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.PropertiesConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.SystemPropertiesConfigurationProvider;
+import com.zebrunner.agent.core.config.provider.YamlConfigurationProvider;
+import com.zebrunner.agent.core.exception.TestAgentException;
 
 @Slf4j
 class ConfigurationProvidersChain {
@@ -35,15 +36,14 @@ class ConfigurationProvidersChain {
     }
 
     public ReportingConfiguration getConfiguration() {
-        ReportingConfiguration config = ReportingConfiguration.builder()
-                                                              .run(new ReportingConfiguration.RunConfiguration())
-                                                              .server(new ReportingConfiguration.ServerConfiguration())
-                                                              .milestone(new ReportingConfiguration.MilestoneConfiguration())
-                                                              .notification(new ReportingConfiguration.NotificationConfiguration())
-                                                              .tcm(new ReportingConfiguration.TcmConfiguration())
-                                                              .build();
-        assembleConfiguration(config);
-        if (areMandatoryArgsSet(config)) {
+        ReportingConfiguration config = new ReportingConfiguration().setRun(new ReportingConfiguration.RunConfiguration())
+                                                                    .setServer(new ReportingConfiguration.ServerConfiguration())
+                                                                    .setMilestone(new ReportingConfiguration.MilestoneConfiguration())
+                                                                    .setNotification(new ReportingConfiguration.NotificationConfiguration())
+                                                                    .setTcm(new ReportingConfiguration.TcmConfiguration());
+
+        this.assembleConfiguration(config);
+        if (this.areMandatoryArgsSet(config)) {
             return config;
         } else {
             throw new TestAgentException("Mandatory agent properties are missing - double-check agent configuration");
@@ -129,7 +129,7 @@ class ConfigurationProvidersChain {
 
     private static void normalizeMilestoneConfiguration(ReportingConfiguration config) {
         if (config.getMilestone() == null) {
-            config.setMilestone(new ReportingConfiguration.MilestoneConfiguration(null, null));
+            config.setMilestone(new ReportingConfiguration.MilestoneConfiguration());
         } else {
             ReportingConfiguration.MilestoneConfiguration milestoneConfig = config.getMilestone();
 
@@ -142,7 +142,7 @@ class ConfigurationProvidersChain {
 
     private static void normalizeNotificationConfiguration(ReportingConfiguration config) {
         if (config.getNotification() == null) {
-            config.setNotification(new ReportingConfiguration.NotificationConfiguration(null, null, null, null, null));
+            config.setNotification(new ReportingConfiguration.NotificationConfiguration());
         } else {
             ReportingConfiguration.NotificationConfiguration notificationConfig = config.getNotification();
 
@@ -184,6 +184,7 @@ class ConfigurationProvidersChain {
         } else {
             String onPass = testCaseStatus.getOnPass();
             String onFail = testCaseStatus.getOnFail();
+            String onKnownIssue = testCaseStatus.getOnKnownIssue();
             String onSkip = testCaseStatus.getOnSkip();
             String onBlock = testCaseStatus.getOnBlock();
 
@@ -192,6 +193,9 @@ class ConfigurationProvidersChain {
             }
             if (onFail != null) {
                 testCaseStatus.setOnFail(onFail.trim());
+            }
+            if (onKnownIssue != null) {
+                testCaseStatus.setOnKnownIssue(onKnownIssue.trim());
             }
             if (onSkip != null) {
                 testCaseStatus.setOnSkip(onSkip.trim());
@@ -362,6 +366,9 @@ class ConfigurationProvidersChain {
         if (testCaseStatus.getOnFail() == null) {
             testCaseStatus.setOnFail(providedConfig.getTcm().getTestCaseStatus().getOnFail());
         }
+        if (testCaseStatus.getOnKnownIssue() == null) {
+            testCaseStatus.setOnKnownIssue(providedConfig.getTcm().getTestCaseStatus().getOnKnownIssue());
+        }
         if (testCaseStatus.getOnSkip() == null) {
             testCaseStatus.setOnSkip(providedConfig.getTcm().getTestCaseStatus().getOnSkip());
         }
@@ -388,7 +395,9 @@ class ConfigurationProvidersChain {
             testRail.setPushInRealTime(providedConfig.getTcm().getTestRail().getPushInRealTime());
         }
         if (testRail.getIncludeAllTestCasesInNewRun() == null) {
-            testRail.setIncludeAllTestCasesInNewRun(providedConfig.getTcm().getTestRail().getIncludeAllTestCasesInNewRun());
+            testRail.setIncludeAllTestCasesInNewRun(providedConfig.getTcm()
+                                                                  .getTestRail()
+                                                                  .getIncludeAllTestCasesInNewRun());
         }
         if (testRail.getSuiteId() == null) {
             testRail.setSuiteId(providedConfig.getTcm().getTestRail().getSuiteId());
@@ -433,14 +442,14 @@ class ConfigurationProvidersChain {
     }
 
     // project-key is not considered as a mandatory property
-    private static boolean areMandatoryArgsSet(ReportingConfiguration config) {
+    private boolean areMandatoryArgsSet(ReportingConfiguration config) {
         ReportingConfiguration.ServerConfiguration server = config.getServer();
 
         // no need to check anything if reporting is disabled
         return !config.isReportingEnabled() || (server.getHostname() != null && server.getAccessToken() != null);
     }
 
-    private static boolean areAllArgsSet(ReportingConfiguration config) {
+    private boolean areAllArgsSet(ReportingConfiguration config) {
         Boolean enabled = config.getReportingEnabled();
 
         String projectKey = config.getProjectKey();
@@ -457,6 +466,7 @@ class ConfigurationProvidersChain {
 
         String testCaseStatusOnPass = config.getTcm().getTestCaseStatus().getOnPass();
         String testCaseStatusOnFail = config.getTcm().getTestCaseStatus().getOnFail();
+        String testCaseStatusOnKnownIssue = config.getTcm().getTestCaseStatus().getOnKnownIssue();
         String testCaseStatusOnSkip = config.getTcm().getTestCaseStatus().getOnSkip();
         String testCaseStatusOnBlock = config.getTcm().getTestCaseStatus().getOnBlock();
 
@@ -489,18 +499,18 @@ class ConfigurationProvidersChain {
         String zephyrTestCycleKey = config.getTcm().getZephyr().getTestCycleKey();
 
         return enabled != null
-                && projectKey != null
-                && hostname != null && accessToken != null
-                && displayName != null && build != null && environment != null && context != null
-                && retryKnownIssues != null && substituteRemoteWebDrivers != null && treatSkipsAsFailures != null
-                && testCaseStatusOnPass != null && testCaseStatusOnFail != null && testCaseStatusOnSkip != null && testCaseStatusOnBlock != null
-                && notificationsEnabled != null && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null
-                && tcmPushResults != null && tcmPushInRealTime != null && tcmRunId != null
-                && testRailPushResults != null && testRailPushInRealTime != null && testRailSuiteId != null
-                && testRailRunId != null && testRailIncludeAllTestCasesInNewRun != null && testRailRunName != null
-                && testRailMilestoneName != null && testRailAssignee != null
-                && xrayPushResults != null && xrayPushInRealTime != null && xrayExecutionKey != null
-                && zephyrPushResults != null && zephyrPushInRealTime != null && zephyrJiraProjectKey != null && zephyrTestCycleKey != null;
+               && projectKey != null
+               && hostname != null && accessToken != null
+               && displayName != null && build != null && environment != null && context != null
+               && retryKnownIssues != null && substituteRemoteWebDrivers != null && treatSkipsAsFailures != null
+               && testCaseStatusOnPass != null && testCaseStatusOnFail != null && testCaseStatusOnKnownIssue != null && testCaseStatusOnSkip != null && testCaseStatusOnBlock != null
+               && notificationsEnabled != null && notifyOnEachFailure != null && slackChannels != null && msTeamsChannels != null && emails != null
+               && tcmPushResults != null && tcmPushInRealTime != null && tcmRunId != null
+               && testRailPushResults != null && testRailPushInRealTime != null && testRailSuiteId != null
+               && testRailRunId != null && testRailIncludeAllTestCasesInNewRun != null && testRailRunName != null
+               && testRailMilestoneName != null && testRailAssignee != null
+               && xrayPushResults != null && xrayPushInRealTime != null && xrayExecutionKey != null
+               && zephyrPushResults != null && zephyrPushInRealTime != null && zephyrJiraProjectKey != null && zephyrTestCycleKey != null;
     }
 
 }

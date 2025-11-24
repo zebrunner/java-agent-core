@@ -1,22 +1,16 @@
 package com.zebrunner.agent.core.config;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
+
 import com.zebrunner.agent.core.config.annotation.Configuration;
 import com.zebrunner.agent.core.config.annotation.EnvironmentVariable;
 import com.zebrunner.agent.core.config.annotation.PropertiesFileProperty;
 import com.zebrunner.agent.core.config.annotation.SystemProperty;
 import com.zebrunner.agent.core.config.annotation.YamlProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
+@Accessors(chain = true)
 public class ReportingConfiguration {
 
     @YamlProperty("reporting.enabled")
@@ -51,8 +45,6 @@ public class ReportingConfiguration {
     }
 
     @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class MilestoneConfiguration {
 
         @YamlProperty("reporting.milestone.id")
@@ -69,10 +61,7 @@ public class ReportingConfiguration {
 
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Data
     public static class ServerConfiguration {
 
         @YamlProperty("reporting.server.hostname")
@@ -89,10 +78,7 @@ public class ReportingConfiguration {
 
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Data
     public static class RunConfiguration {
 
         @EnvironmentVariable("REPORTING_RUN_DISPLAY_NAME")
@@ -137,8 +123,6 @@ public class ReportingConfiguration {
     }
 
     @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class NotificationConfiguration {
 
         @YamlProperty("reporting.notification.enabled")
@@ -173,10 +157,7 @@ public class ReportingConfiguration {
 
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Data
     public static class TcmConfiguration {
 
         @Configuration
@@ -190,10 +171,7 @@ public class ReportingConfiguration {
         @Configuration
         private Zephyr zephyr = new Zephyr();
 
-        @Getter
-        @Setter
-        @NoArgsConstructor
-        @AllArgsConstructor
+        @Data
         public static class TestCaseStatus {
 
             @YamlProperty("reporting.tcm.test-case-status.on-pass")
@@ -208,6 +186,12 @@ public class ReportingConfiguration {
             @PropertiesFileProperty("reporting.tcm.test-case-status.on-fail")
             private String onFail;
 
+            @YamlProperty("reporting.tcm.test-case-status.on-known-issue")
+            @SystemProperty("reporting.tcm.test-case-status.on-known-issue")
+            @EnvironmentVariable("REPORTING_TCM_TEST_CASE_STATUS_ON_KNOWN_ISSUE")
+            @PropertiesFileProperty("reporting.tcm.test-case-status.on-known-issue")
+            private String onKnownIssue;
+
             @YamlProperty("reporting.tcm.test-case-status.on-skip")
             @SystemProperty("reporting.tcm.test-case-status.on-skip")
             @EnvironmentVariable("REPORTING_TCM_TEST_CASE_STATUS_ON_SKIP")
@@ -220,12 +204,17 @@ public class ReportingConfiguration {
             @PropertiesFileProperty("reporting.tcm.test-case-status.on-block")
             private String onBlock;
 
+            public boolean hasAnySpecified() {
+                return onPass != null
+                       || onFail != null
+                       || onKnownIssue != null
+                       || onSkip != null
+                       || onBlock != null;
+            }
+
         }
 
-        @Getter
-        @Setter
-        @NoArgsConstructor
-        @AllArgsConstructor
+        @Data
         public static class Zebrunner {
 
             @YamlProperty("reporting.tcm.zebrunner.push-results")
@@ -248,11 +237,7 @@ public class ReportingConfiguration {
 
         }
 
-        @Getter
-        @Setter
-        @Builder
-        @NoArgsConstructor
-        @AllArgsConstructor
+        @Data
         public static class TestRail {
 
             @YamlProperty("reporting.tcm.test-rail.push-results")
@@ -305,10 +290,7 @@ public class ReportingConfiguration {
 
         }
 
-        @Getter
-        @Setter
-        @NoArgsConstructor
-        @AllArgsConstructor
+        @Data
         public static class Xray {
 
             @YamlProperty("reporting.tcm.xray.push-results")
@@ -331,10 +313,7 @@ public class ReportingConfiguration {
 
         }
 
-        @Getter
-        @Setter
-        @NoArgsConstructor
-        @AllArgsConstructor
+        @Data
         public static class Zephyr {
 
             @YamlProperty("reporting.tcm.zephyr.push-results")
