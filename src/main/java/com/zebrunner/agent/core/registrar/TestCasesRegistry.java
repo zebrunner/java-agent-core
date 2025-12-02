@@ -6,7 +6,6 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,29 +42,31 @@ class TestCasesRegistry {
     // used when no status is set, since "" is a status that can be explicitly set.
     // push to tcm is disabled for test cases with "" status
     private static final String UNSET_STATUS = "<unset>";
-    private static final Map<TcmType, String> TCM_TYPE_TO_LABEL_KEY = new EnumMap<>(TcmType.class);
-
-    static {
-        TCM_TYPE_TO_LABEL_KEY.put(TcmType.TEST_RAIL, "com.zebrunner.app/tcm.testrail.case-id");
-        TCM_TYPE_TO_LABEL_KEY.put(TcmType.XRAY, "com.zebrunner.app/tcm.xray.test-key");
-        TCM_TYPE_TO_LABEL_KEY.put(TcmType.ZEPHYR, "com.zebrunner.app/tcm.zephyr.test-case-key");
-        TCM_TYPE_TO_LABEL_KEY.put(TcmType.ZEBRUNNER, "com.zebrunner.app/tcm.zebrunner.test-case-key");
-    }
 
     private final ZebrunnerApiClient zebrunnerApiClient = ApiClientRegistry.getClient();
     private final Map<Long, Map<TcmType, Map<String, String>>> testIdToTcmTypeToTestCaseIdToStatus = new ConcurrentHashMap<>();
 
     void addTestCasesToCurrentTest(TcmType tcmType, Collection<String> testCaseIds) {
+        Long testRunId = ReportingContext.getNullableTestRunId();
+        if (testRunId == null) {
+            return;
+        }
+
         ReportingContext.getCurrentTest()
                         .map(Test::getId)
                         .ifPresent(testId -> {
+                            List<TestCaseResult> newTestCases = new ArrayList<>();
                             Map<String, String> testCaseIdToStatus = this.getTestCaseIdToStatus(testId, tcmType);
-                            testCaseIds.stream()
-                                       .filter(testCaseId -> !testCaseIdToStatus.containsKey(testCaseId))
-                                       .forEach(testCaseId -> {
-                                           Label.attachToTest(TCM_TYPE_TO_LABEL_KEY.get(tcmType), testCaseId);
-                                           testCaseIdToStatus.put(testCaseId, UNSET_STATUS);
-                                       });
+
+                            for (String testCaseId : testCaseIds) {
+                                String previousValue = testCaseIdToStatus.putIfAbsent(testCaseId, UNSET_STATUS);
+
+                                if (previousValue == null) {
+                                    newTestCases.add(new TestCaseResult(tcmType, testCaseId, null));
+                                }
+                            }
+
+                            zebrunnerApiClient.upsertTestCaseResults(testRunId, testId, newTestCases);
                         });
     }
 
@@ -75,7 +76,7 @@ class TestCasesRegistry {
             return;
         }
 
-        Objects.requireNonNull(status, "Status cannot be null.");
+        Objects.requireNonNull(status, "Status cannot be null");
 
         ReportingContext.getCurrentTest()
                         .map(Test::getId)

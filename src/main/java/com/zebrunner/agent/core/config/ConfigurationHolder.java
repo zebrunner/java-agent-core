@@ -37,6 +37,10 @@ public class ConfigurationHolder {
         configuration = CONFIGURATION_PROVIDERS_CHAIN.getConfiguration();
     }
 
+    public static ReportingConfiguration get() {
+        return configuration;
+    }
+
     public static boolean isReportingEnabled() {
         return configuration.isReportingEnabled();
     }
@@ -87,7 +91,7 @@ public class ConfigurationHolder {
         return treatSkipsAsFailures == null || treatSkipsAsFailures;
     }
 
-    public static ReportingConfiguration.TcmConfiguration.TestCaseStatus getTestCaseStatus() {
+    public static ReportingConfiguration.Tcm.TestCaseStatus getTestCaseStatus() {
         return configuration.getTcm().getTestCaseStatus();
     }
 
