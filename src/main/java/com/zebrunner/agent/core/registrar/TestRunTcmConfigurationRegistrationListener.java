@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import com.zebrunner.agent.core.config.ConfigurationHolder;
 import com.zebrunner.agent.core.registrar.domain.TestRunStart;
 
+@Deprecated
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 class TestRunTcmConfigurationRegistrationListener implements RegistrationListener {
 

@@ -142,9 +142,7 @@ class TestCasesRegistry {
                                                    })
                                            );
 
-        if (!results.isEmpty()) {
-            zebrunnerApiClient.upsertTestCaseResults(testRunId, testId, results);
-        }
+        zebrunnerApiClient.upsertTestCaseResults(testRunId, testId, results);
     }
 
     private String getOnPassStatus(Test test) {
