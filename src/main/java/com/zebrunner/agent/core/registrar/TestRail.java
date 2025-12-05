@@ -28,10 +28,12 @@ public final class TestRail {
 
     private static volatile boolean isRealTimeSyncEnabled = false;
 
+    @Deprecated
     public static void disableSync() {
         TestRail.attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
+    @Deprecated
     public static synchronized void enableRealTimeSync() {
         if (!isRealTimeSyncEnabled) {
             TestRail.attachLabelToTestRun(SYNC_REAL_TIME, "true");
@@ -43,46 +45,43 @@ public final class TestRail {
         }
     }
 
+    @Deprecated
     public static void includeAllTestCasesInNewRun() {
         TestRail.attachLabelToTestRun(INCLUDE_ALL, "true");
     }
 
+    @Deprecated
     public static void setSuiteId(String suiteId) {
         TestRail.attachLabelToTestRun(SUITE_ID, suiteId);
     }
 
+    @Deprecated
     public static void setRunId(String runId) {
         TestRail.attachLabelToTestRun(RUN_ID, runId);
     }
 
+    @Deprecated
     public static void setRunName(String runName) {
         TestRail.attachLabelToTestRun(RUN_NAME, runName);
     }
 
+    @Deprecated
     public static void setMilestone(String milestone) {
         TestRail.attachLabelToTestRun(MILESTONE, milestone);
     }
 
+    @Deprecated
     public static void setAssignee(String assignee) {
         TestRail.attachLabelToTestRun(ASSIGNEE, assignee);
     }
 
+    @Deprecated
     private static void attachLabelToTestRun(String name, String... values) {
         if (isRealTimeSyncEnabled) {
             log.warn("Realtime sync for TestRail has been enabled, so you cannot overwrite TestRail configuration");
         } else {
             Label.attachToTestRun(name, values);
         }
-    }
-
-    /**
-     * Use {@link #setTestCaseId(String)} method instead of this on.
-     * <p>
-     * Will be removed in 1.8.0 version of the agent.
-     */
-    @Deprecated
-    public static void setCaseId(String testCaseId) {
-        setTestCaseId(testCaseId);
     }
 
     public static void setTestCaseId(String testCaseId) {

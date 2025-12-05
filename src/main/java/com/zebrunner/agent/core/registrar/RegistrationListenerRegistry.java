@@ -16,7 +16,9 @@ public class RegistrationListenerRegistry {
             XrayCasesCollectingRegistrationListener.getInstance(),
             ZephyrCasesCollectingRegistrationListener.getInstance(),
             TestCasesCollectingRegistrationListener.getInstance(),
-            TestCaseStatusSubmittingRegistrationListener.getInstance()
+            TestCaseStatusSubmittingRegistrationListener.getInstance(),
+            LocaleRegistrationListener.getInstance(),
+            TcmConfigRegistrationListener.getInstance()
     );
 
     public void forEach(Consumer<RegistrationListener> listenerConsumer) {

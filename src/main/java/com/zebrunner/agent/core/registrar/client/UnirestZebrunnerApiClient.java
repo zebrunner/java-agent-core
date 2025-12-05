@@ -28,6 +28,7 @@ import com.zebrunner.agent.core.registrar.client.request.StartHeadlessTestReques
 import com.zebrunner.agent.core.registrar.client.request.StartTestRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartTestRunRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartTestSessionRequest;
+import com.zebrunner.agent.core.registrar.client.request.UpdateLaunchTcmConfigRequest;
 import com.zebrunner.agent.core.registrar.client.request.UpdateTestSessionRequest;
 import com.zebrunner.agent.core.registrar.client.response.ExchangeRunContextResponse;
 import com.zebrunner.agent.core.registrar.client.response.StartTestResponse;
@@ -143,6 +144,17 @@ public class UnirestZebrunnerApiClient implements ZebrunnerApiClient {
                           this.client = null;
                           this.throwServerException("Could not register start of the test run", response);
                       })
+        );
+    }
+
+    @Override
+    public void patchTestRunTcmConfig(Long testRunId, UpdateLaunchTcmConfigRequest request) {
+        this.sendVoidRequest(client ->
+                client.patch(reportingAPI("/v1/test-runs/{testRunId}/tcm-configs"))
+                      .routeParam("testRunId", testRunId.toString())
+                      .body(request)
+                      .asString()
+                      .ifFailure(response -> this.throwServerException("Could not patch TCM config of the test run", response))
         );
     }
 

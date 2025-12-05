@@ -37,6 +37,10 @@ public class ConfigurationHolder {
         configuration = CONFIGURATION_PROVIDERS_CHAIN.getConfiguration();
     }
 
+    public static ReportingConfiguration get() {
+        return configuration;
+    }
+
     public static boolean isReportingEnabled() {
         return configuration.isReportingEnabled();
     }
@@ -85,6 +89,10 @@ public class ConfigurationHolder {
     public static boolean shouldTreatSkipsAsFailures() {
         Boolean treatSkipsAsFailures = configuration.getRun().getTreatSkipsAsFailures();
         return treatSkipsAsFailures == null || treatSkipsAsFailures;
+    }
+
+    public static ReportingConfiguration.Tcm.TestCaseStatus getTestCaseStatus() {
+        return configuration.getTcm().getTestCaseStatus();
     }
 
     public static String getTestCaseStatusOnPass() {

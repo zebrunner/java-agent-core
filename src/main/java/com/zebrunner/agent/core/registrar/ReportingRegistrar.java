@@ -18,14 +18,14 @@ import com.zebrunner.agent.core.registrar.client.request.StartTestRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartTestRunRequest;
 import com.zebrunner.agent.core.registrar.client.response.StartTestResponse;
 import com.zebrunner.agent.core.registrar.client.response.StartTestRunResponse;
-import com.zebrunner.agent.core.registrar.domain.TestFinish;
-import com.zebrunner.agent.core.registrar.domain.TestRunFinish;
-import com.zebrunner.agent.core.registrar.domain.TestRunStart;
-import com.zebrunner.agent.core.registrar.domain.TestStart;
 import com.zebrunner.agent.core.registrar.domain.Label;
 import com.zebrunner.agent.core.registrar.domain.Test;
+import com.zebrunner.agent.core.registrar.domain.TestFinish;
 import com.zebrunner.agent.core.registrar.domain.TestRun;
+import com.zebrunner.agent.core.registrar.domain.TestRunFinish;
+import com.zebrunner.agent.core.registrar.domain.TestRunStart;
 import com.zebrunner.agent.core.registrar.domain.TestSession;
+import com.zebrunner.agent.core.registrar.domain.TestStart;
 import com.zebrunner.agent.core.registrar.label.LabelResolver;
 import com.zebrunner.agent.core.registrar.maintainer.MaintainerResolver;
 
@@ -45,8 +45,8 @@ class ReportingRegistrar implements TestRunRegistrar {
         return instance;
     }
 
-    private final ZebrunnerApiClient apiClient = ApiClientRegistry.getClient();
     private final LabelResolver labelResolver = LabelResolver.getInstance();
+    private final ZebrunnerApiClient apiClient = ApiClientRegistry.getClient();
     private final CiContextResolver ciContextResolver = CiContextResolver.getInstance();
     private final MaintainerResolver maintainerResolver = MaintainerResolver.getInstance();
     private final TestSessionRegistrar testSessionRegistrar = TestSessionRegistrar.getInstance();
@@ -85,12 +85,6 @@ class ReportingRegistrar implements TestRunRegistrar {
         // if reporting is enabled and test run was actually registered
         if (response != null) {
             ReportingContext.setTestRun(TestRun.of(response));
-
-            String locale = System.getProperty("locale");
-            if (locale != null) {
-                CurrentTestRun.setLocale(locale);
-            }
-
             registrationListenerRegistry.forEach(listener -> listener.onAfterTestRunStart(testRunStart));
         }
     }

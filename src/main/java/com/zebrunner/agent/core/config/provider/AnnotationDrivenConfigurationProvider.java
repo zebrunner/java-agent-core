@@ -1,9 +1,5 @@
 package com.zebrunner.agent.core.config.provider;
 
-import com.zebrunner.agent.core.config.ConfigurationProvider;
-import com.zebrunner.agent.core.config.ConfigurationUtils;
-import com.zebrunner.agent.core.config.ReportingConfiguration;
-import com.zebrunner.agent.core.config.annotation.Configuration;
 import lombok.SneakyThrows;
 
 import java.lang.annotation.Annotation;
@@ -11,6 +7,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
+
+import com.zebrunner.agent.core.config.ConfigurationProvider;
+import com.zebrunner.agent.core.config.ConfigurationUtils;
+import com.zebrunner.agent.core.config.ReportingConfiguration;
+import com.zebrunner.agent.core.config.annotation.InjectConfiguration;
 
 public abstract class AnnotationDrivenConfigurationProvider<T extends Annotation> implements ConfigurationProvider {
 
@@ -33,8 +35,7 @@ public abstract class AnnotationDrivenConfigurationProvider<T extends Annotation
 
     private void setProperties(Object configuration) {
         for (Field field : configuration.getClass().getDeclaredFields()) {
-
-            if (field.isAnnotationPresent(Configuration.class)) {
+            if (field.isAnnotationPresent(InjectConfiguration.class)) {
                 Object nestedConfiguration = this.createNewInstanceOf(field);
 
                 this.setProperties(nestedConfiguration);
@@ -50,13 +51,13 @@ public abstract class AnnotationDrivenConfigurationProvider<T extends Annotation
 
                     .map(this::getConfigurationFieldValue)
                     .filter(Objects::nonNull)
+                    .filter(Predicate.not(String::isBlank))
 
                     .findFirst()
                     .map(fieldValue -> this.parse(field, fieldValue))
 
                     .ifPresent(fieldValue -> this.setFieldValue(configuration, field, fieldValue));
             }
-
         }
     }
 
@@ -71,7 +72,10 @@ public abstract class AnnotationDrivenConfigurationProvider<T extends Annotation
 
             return newInstance;
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException(String.format("No-args constructor doesn't exist for type: %s", field.getType().getName()));
+            throw new RuntimeException(String.format(
+                    "No-args constructor doesn't exist for type: %s",
+                    field.getType().getName()
+            ));
         }
     }
 

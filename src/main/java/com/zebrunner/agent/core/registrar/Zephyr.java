@@ -22,10 +22,12 @@ public final class Zephyr {
 
     private static volatile boolean isRealTimeSyncEnabled = false;
 
+    @Deprecated
     public static void disableSync() {
         Zephyr.attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
+    @Deprecated
     public static synchronized void enableRealTimeSync() {
         if (!isRealTimeSyncEnabled) {
             Zephyr.attachLabelToTestRun(SYNC_REAL_TIME, "true");
@@ -35,14 +37,17 @@ public final class Zephyr {
         }
     }
 
+    @Deprecated
     public static void setTestCycleKey(String testCycleKey) {
         Zephyr.attachLabelToTestRun(TEST_CYCLE_KEY, testCycleKey);
     }
 
+    @Deprecated
     public static void setJiraProjectKey(String jiraProjectKey) {
         Zephyr.attachLabelToTestRun(JIRA_PROJECT_KEY, jiraProjectKey);
     }
 
+    @Deprecated
     private static void attachLabelToTestRun(String name, String... values) {
         if (isRealTimeSyncEnabled) {
             log.warn("Realtime sync for Zephyr has been enabled, so you cannot overwrite Zephyr configuration");
