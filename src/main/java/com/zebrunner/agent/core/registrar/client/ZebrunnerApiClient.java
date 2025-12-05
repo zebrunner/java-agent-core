@@ -11,6 +11,7 @@ import com.zebrunner.agent.core.registrar.client.request.StartHeadlessTestReques
 import com.zebrunner.agent.core.registrar.client.request.StartTestRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartTestRunRequest;
 import com.zebrunner.agent.core.registrar.client.request.StartTestSessionRequest;
+import com.zebrunner.agent.core.registrar.client.request.UpdateLaunchTcmConfigRequest;
 import com.zebrunner.agent.core.registrar.client.request.UpdateTestSessionRequest;
 import com.zebrunner.agent.core.registrar.client.response.ExchangeRunContextResponse;
 import com.zebrunner.agent.core.registrar.client.response.StartTestResponse;
@@ -25,6 +26,8 @@ public interface ZebrunnerApiClient {
     ExchangeRunContextResponse exchangeRunContext(String runContext);
 
     StartTestRunResponse registerTestRunStart(StartTestRunRequest startRequest);
+
+    void patchTestRunTcmConfig(Long testRunId, UpdateLaunchTcmConfigRequest request);
 
     void patchTestRunBuild(Long testRunId, String build);
 

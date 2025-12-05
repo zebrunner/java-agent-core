@@ -1,9 +1,8 @@
 package com.zebrunner.agent.core.config;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.experimental.UtilityClass;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@UtilityClass
 public class ConfigurationUtils {
 
     public static Long parseLong(String property) {

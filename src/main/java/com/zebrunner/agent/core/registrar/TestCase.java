@@ -8,8 +8,8 @@ import java.util.Collections;
 import com.zebrunner.agent.core.registrar.domain.TcmType;
 
 @Slf4j
-@SuppressWarnings("unused")
 @UtilityClass
+@SuppressWarnings("unused")
 public final class TestCase {
 
     public static final String SYNC_ENABLED = "com.zebrunner.app/tcm.zebrunner.sync.enabled";
@@ -21,10 +21,12 @@ public final class TestCase {
 
     private static volatile boolean isRealTimeSyncEnabled = false;
 
+    @Deprecated
     public static void disableSync() {
         TestCase.attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
+    @Deprecated
     public static synchronized void enableRealTimeSync() {
         if (!isRealTimeSyncEnabled) {
             TestCase.attachLabelToTestRun(SYNC_REAL_TIME, "true");
@@ -34,10 +36,12 @@ public final class TestCase {
         }
     }
 
+    @Deprecated
     public static void setTestRunId(String id) {
         TestCase.attachLabelToTestRun(TEST_RUN_ID, id);
     }
 
+    @Deprecated
     private static void attachLabelToTestRun(String name, String... values) {
         if (isRealTimeSyncEnabled) {
             log.warn("Realtime sync for Zebrunner TCM has been enabled, so you cannot overwrite TCM configuration");

@@ -21,10 +21,12 @@ public final class Xray {
 
     private static volatile boolean isRealTimeSyncEnabled = false;
 
+    @Deprecated
     public static void disableSync() {
         Xray.attachLabelToTestRun(SYNC_ENABLED, "false");
     }
 
+    @Deprecated
     public static synchronized void enableRealTimeSync() {
         if (!isRealTimeSyncEnabled) {
             Xray.attachLabelToTestRun(SYNC_REAL_TIME, "true");
@@ -34,10 +36,12 @@ public final class Xray {
         }
     }
 
+    @Deprecated
     public static void setExecutionKey(String executionKey) {
         Xray.attachLabelToTestRun(EXECUTION_KEY, executionKey);
     }
 
+    @Deprecated
     private static void attachLabelToTestRun(String name, String... values) {
         if (isRealTimeSyncEnabled) {
             log.warn("Realtime sync for Xray has been enabled, so you cannot overwrite Xray configuration");
