@@ -13,7 +13,7 @@ tasks.register("publishReleaseToCentral") {
             throw new GradleException("Remove -SNAPSHOT for Central Portal releases.")
         }
     }
-    dependsOn("publishAllPublicationsToCentralPortal")
+    dependsOn("publishMavenJavaPublicationToMavenCentral")
 }
 
 publishing {
