@@ -308,6 +308,10 @@ public class UnirestZebrunnerApiClient implements ZebrunnerApiClient {
 
     @Override
     public void upsertTestCaseResults(Long testRunId, Long testId, Collection<TestCaseResult> testCaseResults) {
+        if (testCaseResults == null || testCaseResults.isEmpty()) {
+            return;
+        }
+
         this.sendVoidRequest(client ->
                 client.post(reportingAPI("/v1/test-runs/{testRunId}/tests/{testId}/test-cases:upsert"))
                       .routeParam("testRunId", testRunId.toString())
