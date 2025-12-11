@@ -79,14 +79,14 @@ class ConfigurationProvidersChain {
     }
 
     private void normalizeServerConfiguration(ReportingConfiguration config) {
-        ReportingConfiguration.Server server = config.getServer();
+        ReportingConfiguration.ServerConfiguration server = config.getServer();
 
         this.setNullIfBlank(server::getHostname, server::setHostname);
         this.setNullIfBlank(server::getAccessToken, server::setAccessToken);
     }
 
     private void normalizeRunConfiguration(ReportingConfiguration config) {
-        ReportingConfiguration.Run run = config.getRun();
+        ReportingConfiguration.RunConfiguration run = config.getRun();
 
         this.setNullIfBlank(run::getDisplayName, run::setDisplayName);
         this.setNullIfBlank(run::getBuild, run::setBuild);

@@ -26,10 +26,10 @@ public class ReportingConfiguration implements Configuration<ReportingConfigurat
     private String projectKey;
 
     @InjectConfiguration
-    private Server server = new Server();
+    private ServerConfiguration server = new ServerConfiguration();
 
     @InjectConfiguration
-    private Run run = new Run();
+    private RunConfiguration run = new RunConfiguration();
 
     @InjectConfiguration
     private Milestone milestone = new Milestone();
@@ -56,7 +56,8 @@ public class ReportingConfiguration implements Configuration<ReportingConfigurat
     }
 
     @Data
-    public static class Server implements Configuration<Server> {
+    // cannot be renamed because of crap written in CarinaListener class
+    public static class ServerConfiguration implements Configuration<ServerConfiguration> {
 
         @EnvironmentVariable("REPORTING_SERVER_HOSTNAME")
         @SystemProperty("reporting.server.hostname")
@@ -75,7 +76,7 @@ public class ReportingConfiguration implements Configuration<ReportingConfigurat
         }
 
         @Override
-        public void copyMissing(Server providedConfig) {
+        public void copyMissing(ServerConfiguration providedConfig) {
             this.setIfNull(this::getHostname, providedConfig::getHostname, this::setHostname);
             this.setIfNull(this::getAccessToken, providedConfig::getAccessToken, this::setAccessToken);
         }
@@ -83,7 +84,8 @@ public class ReportingConfiguration implements Configuration<ReportingConfigurat
     }
 
     @Data
-    public static class Run implements Configuration<Run> {
+    // cannot be renamed because of crap written in CarinaListener class
+    public static class RunConfiguration implements Configuration<RunConfiguration> {
 
         @EnvironmentVariable("REPORTING_RUN_DISPLAY_NAME")
         @SystemProperty({"reporting.run.display-name", "reporting.run.displayName"})
@@ -128,7 +130,7 @@ public class ReportingConfiguration implements Configuration<ReportingConfigurat
         private Boolean treatSkipsAsFailures;
 
         @Override
-        public void copyMissing(Run providedConfig) {
+        public void copyMissing(RunConfiguration providedConfig) {
             this.setIfNull(this::getDisplayName, providedConfig::getDisplayName, this::setDisplayName);
             this.setIfNull(this::getBuild, providedConfig::getBuild, this::setBuild);
             this.setIfNull(this::getEnvironment, providedConfig::getEnvironment, this::setEnvironment);
