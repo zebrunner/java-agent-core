@@ -134,6 +134,7 @@ public class ReportingConfiguration implements Configuration<ReportingConfigurat
             this.setIfNull(this::getDisplayName, providedConfig::getDisplayName, this::setDisplayName);
             this.setIfNull(this::getBuild, providedConfig::getBuild, this::setBuild);
             this.setIfNull(this::getEnvironment, providedConfig::getEnvironment, this::setEnvironment);
+            this.setIfNull(this::getContext, providedConfig::getContext, this::setContext);
             this.setIfNull(this::getRetryKnownIssues, providedConfig::getRetryKnownIssues, this::setRetryKnownIssues);
             this.setIfNull(this::getTreatSkipsAsFailures, providedConfig::getTreatSkipsAsFailures, this::setTreatSkipsAsFailures);
         }
