@@ -68,9 +68,9 @@ class SessionRegistrar implements TestSessionRegistrar {
         if (testSession != null && testRunId != null) {
             var request = new CloseTestSessionRequest().setEndedAt(sessionClose.getEndedAt());
 
-            apiClient.closeSession(testRunId, testSession.getId(), request);
-
             ReportingContext.removeCurrentTestSession(testSession.getSessionId());
+
+            apiClient.closeSession(testRunId, testSession.getId(), request);
         }
 
         log.debug("Registration of test session close completed. {}", sessionClose);
